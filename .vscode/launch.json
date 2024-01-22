@@ -1,0 +1,10 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "debug",
+            "request": "launch",
+            "mainClass": "${workspaceFolder}/src/scheduler/Scheduler.java"
+        }
+    ]
+}
