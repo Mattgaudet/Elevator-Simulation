@@ -4,7 +4,14 @@
             "type": "java",
             "name": "Main",
             "request": "launch",
-            "mainClass": "Main",
+            "mainClass": "main.Main",
+            "projectName": "SYSC 3303 Group Project_444ed0b0"
+        },
+        {
+            "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "Main.Main",
             "projectName": "SYSC 3303 Group Project_444ed0b0"
         },
         {

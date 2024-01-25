@@ -1,77 +1,103 @@
 package scheduler;
 
+import java.time.LocalTime;
+import java.util.ArrayList;
+
 import floor.ElevatorRequest;
-import elevator.ElevatorSubsystem;
-import java.util.*;
+import floor.FloorSubsystem;
+import floor.ElevatorRequest.ButtonDirection;
+
+// Communicates between ElevatorSubsystem and FloorSubsystem
+// The Scheduler notifies the Elevator when there is work to be done
+// After data is sent to the Elevator, it forwards the data to the Floor
 
 public class Scheduler implements Runnable {
-    private List<ElevatorSubsystem> elevators;
-    private Thread thread;
-    private List<ElevatorRequest> elevatorRequests; // A list to hold the requests
-    private int numFloors;
 
-    public Scheduler(int numElevators) {
-        elevators = new ArrayList<>();
-        for (int i = 1; i <= numElevators; i++) {
-            elevators.add(new ElevatorSubsystem(i, this, numFloors)); // Pass reference to the Scheduler
-        }
-        elevatorRequests = Collections.synchronizedList(new ArrayList<>());
-        thread = new Thread(this);
-        thread.start();
+    private ArrayList<ElevatorRequest> schedulerRequestsQueue = new ArrayList<>();
+    private ArrayList<ElevatorRequest> schedularResponseLog = new ArrayList<>();
+    private FloorSubsystem floorSubsystem;
+
+    // Constructor for the Scheduler class.
+    public Scheduler(FloorSubsystem floorSubsystem) {
+        this.floorSubsystem = floorSubsystem;
     }
 
-    public synchronized void addRequest(ElevatorRequest request) {
-        elevatorRequests.add(request);
-        System.out.println("Added request: " + request);
-        notifyAll(); // Notify any waiting threads (like the scheduler thread) that a new request is added
+    // Override constructor for the Scheduler class including a queue.
+    public Scheduler(FloorSubsystem floorSubsystem, ArrayList<ElevatorRequest> requestsQueue) {
+        this.floorSubsystem = floorSubsystem;
+        this.schedulerRequestsQueue = requestsQueue;
     }
+
+    // Returns the request queue 
+    public ArrayList<ElevatorRequest> getRequestQueuefromScheduler() {
+        return schedulerRequestsQueue;
+    }
+
+    // Returns the response log.
+    public ArrayList<ElevatorRequest> getSchedularResponseLog() {
+        return schedularResponseLog;
+    }
+
+    // Adds an elevatorRequest to the request queue.
+    public synchronized void addToRequestQueue(ElevatorRequest elevatorRequest) {
+        schedulerRequestsQueue.add(elevatorRequest);
+        System.out.println("Added elevator request " + elevatorRequest + " to request queue");
+        notifyAll();
+    }
+
+    // Continuously checks if there are any new jobs in the FloorSubsystem. If there are, 
+    // it adds the job to the buttonEventQueue and removes it from the FloorSubsystem.
 
     @Override
     public void run() {
-        while (true) {
-            synchronized (this) {
-                while (elevatorRequests.isEmpty()) {
+        
+        // Continuously check if there are any new jobs in the FloorSubsystem.
+
+        synchronized (floorSubsystem.getAllElevatorRequestsfromFloorSubsystem()) {
+            while (true) {
+                if (floorSubsystem.getAllElevatorRequestsfromFloorSubsystem().isEmpty()) {
                     try {
-                        wait(); // Wait until there is a request
+                        floorSubsystem.getAllElevatorRequestsfromFloorSubsystem().wait();
                     } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt(); // Set the interrupt flag
-                        System.err.println("Scheduler interrupted");
+                        e.printStackTrace();
                     }
                 }
 
-                ElevatorRequest request = elevatorRequests.remove(0); // Retrieve and remove the first request
-                assignRequestToElevator(request);
+                synchronized (schedulerRequestsQueue) {
 
+                    // Remove the ElevatorRequest from the FloorSubsystem
+                    ElevatorRequest er = floorSubsystem.getAllElevatorRequestsfromFloorSubsystem().remove(0);
+                    
+                    System.out.println("Scheduler: Received ElevatorRequest("+ er  +") from FloorSubsystem at " + LocalTime.now() + ".");
+
+                    // To be removed (for debug only)
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    // add it to the queue
+                    schedulerRequestsQueue.add(er);
+
+                    // Notify all threads.
+                    schedulerRequestsQueue.notifyAll();
+                }
 
             }
         }
     }
 
-    private void assignRequestToElevator(ElevatorRequest request) {
-        ElevatorSubsystem bestElevator = findBestElevator(request);
-        if (bestElevator != null) {
-            bestElevator.addRequest(request);
-            synchronized (bestElevator.getLock()) {
-                bestElevator.getLock().notify(); // Notify the elevator thread
-            }
-        } else {
-            System.out.println("No suitable elevator found for request: " + request);
+    // Adds an elevatorRequest to the response log.
+    public void addToResponseLog(ElevatorRequest elevatorRequest) {
+        synchronized (schedularResponseLog) {
+            schedularResponseLog.add(elevatorRequest);
+            schedularResponseLog.notifyAll();
         }
     }
-    
 
-    private ElevatorSubsystem findBestElevator(ElevatorRequest request) {
-        // Implement your logic here to find the best elevator
-        return elevators.stream()
-            .min(Comparator.comparingInt(elevator -> calculateDistance(elevator, request)))
-            .orElse(null);
+    // Change the status of the lamp.
+    public void changeLampStatus(ButtonDirection direction) {
+        floorSubsystem.changeLampStatus(direction);
     }
-
-    private int calculateDistance(ElevatorSubsystem elevator, ElevatorRequest request) {
-        // Calculate the distance between the elevator and the request
-        // This is a simple example and may not be accurate for your use case
-        return Math.abs(elevator.getCurrentFloor() - request.getFloorNumber());
-    }
-
-
 }
