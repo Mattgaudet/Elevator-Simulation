@@ -22,7 +22,7 @@ public class FloorSubsystem implements Runnable {
         scheduler = new Scheduler(this);
         elevatorRequests = new ArrayList<>();
         floorArray = new Floor[0];
-        
+
     }
 
     public void addIn(ElevatorRequest buttonPress) {
@@ -83,7 +83,7 @@ public class FloorSubsystem implements Runnable {
                         continue;
                 }
 
-                //4. car/Elevator number
+                // 4. car/Elevator number
                 int carNumber;
                 try {
                     carNumber = Integer.parseInt(parts[3].trim());
@@ -94,9 +94,11 @@ public class FloorSubsystem implements Runnable {
 
                 // Create ElevatorRequest
                 ElevatorRequest elevatorRequest = new ElevatorRequest(direction, floorNumber, carNumber, time);
-                
+
                 // Print request
-                System.out.println( "FloorSubsystem: Read ElevatorRequest(" + elevatorRequest  + ") from File >> " + "Time: " + time + ", Floor: " + floorNumber + ", Direction: " + direction + ", Car: " + carNumber);
+                System.out.println(
+                        "FloorSubsystem: Read ElevatorRequest(" + elevatorRequest + ") from File >> " + "Time: " + time
+                                + ", Floor: " + floorNumber + ", Direction: " + direction + ", Car: " + carNumber);
 
                 // To be removed (for debug only)
                 try {
@@ -107,7 +109,6 @@ public class FloorSubsystem implements Runnable {
 
                 // Add request to list
                 elevatorRequests.add(elevatorRequest);
-
 
             }
 
@@ -123,6 +124,6 @@ public class FloorSubsystem implements Runnable {
             System.out.println("Error: File not found");
             e.printStackTrace();
         }
-        
+
     }
 }

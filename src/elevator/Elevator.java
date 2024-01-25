@@ -6,18 +6,18 @@ import floor.ElevatorRequest;
 import floor.ElevatorRequest.ButtonDirection;
 
 public class Elevator {
-    
-    private int currentFloor = 0;  // default floor is 0
+
+    private int currentFloor = 0; // default floor is 0
     private int elevatorId;
-    private DoorStatus doorStatus = DoorStatus.CLOSED;  // default door status is closed
-    private MotorStatus motorStatus = MotorStatus.OFF; 
-    private ButtonDirection currDirection;  // current direction the elevator is moving in
-    
+    private DoorStatus doorStatus = DoorStatus.CLOSED; // default door status is closed
+    private MotorStatus motorStatus = MotorStatus.OFF;
+    private ButtonDirection currDirection; // current direction the elevator is moving in
+
     public enum DoorStatus {
         OPEN,
         CLOSED
     }
-    
+
     public enum MotorStatus {
         ON,
         OFF
@@ -68,7 +68,7 @@ public class Elevator {
 
     public int findTravelTime(int startFloor, int endFloor) {
         int floorDistance = Math.abs(startFloor - endFloor);
-        double travelTime = floorDistance * 0.5;         // Assuming the elevator travels at a speed of 0.5 seconds per floor
+        double travelTime = floorDistance * 0.5; // Assuming the elevator travels at a speed of 0.5 seconds per floor
         return (int) (Math.round(travelTime * 1000));
     }
 
@@ -86,19 +86,20 @@ public class Elevator {
         boolean isUpDirection = elevatorRequest.getButtonDirection() == ButtonDirection.UP;
         int initialFloor = this.currentFloor;
         double tripTime = findTravelTime(this.currentFloor, destinationFloor);
-    
+
         // Set the current direction of the elevator
         this.currDirection = elevatorRequest.getButtonDirection();
-    
+
         // Turn on the motor
         this.setMotorStatus(MotorStatus.ON);
-    
+
         // Move the elevator from the current floor to the destination floor
         for (int floorsMoved = 0; floorsMoved <= Math.abs(initialFloor - destinationFloor); floorsMoved++) {
             int nextFloor = isUpDirection ? initialFloor + floorsMoved : initialFloor - floorsMoved;
             arrivedFloor(nextFloor);
-    
-            // If the elevator hasn't reached the destination floor yet, pause for the time it takes to travel one floor
+
+            // If the elevator hasn't reached the destination floor yet, pause for the time
+            // it takes to travel one floor
             if (floorsMoved + 1 < Math.abs(initialFloor - destinationFloor)) {
                 try {
                     Thread.sleep((int) tripTime);
@@ -108,7 +109,7 @@ public class Elevator {
                 }
             }
         }
-    
+
         // If the elevator has reached the destination floor, turn off the motor
         this.setMotorStatus(MotorStatus.OFF);
     }

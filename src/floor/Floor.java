@@ -7,7 +7,7 @@ import floor.ElevatorRequest.ButtonDirection;
 // Processes the information in a table format.
 
 public class Floor {
-    
+
     private int floorNumber;
     private boolean isUpLampOn;
     private boolean isDownLampOn;
@@ -20,7 +20,7 @@ public class Floor {
         this.floorNumber = floorNumber;
         this.scheduler = scheduler;
     }
-    
+
     // Returns the floor number
     public int getFloorNumber() {
         return floorNumber;
@@ -30,7 +30,7 @@ public class Floor {
     public void changeLampStatus(ButtonDirection direction) {
         isUpLampOn = direction == ButtonDirection.UP;
         isDownLampOn = direction == ButtonDirection.DOWN;
-        
+
         if (isUpLampOn) {
             System.out.println("At Floor " + floorNumber + ", Up Lamp is On");
         } else if (isDownLampOn) {

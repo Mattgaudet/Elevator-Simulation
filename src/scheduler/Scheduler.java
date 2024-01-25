@@ -28,7 +28,7 @@ public class Scheduler implements Runnable {
         this.schedulerRequestsQueue = requestsQueue;
     }
 
-    // Returns the request queue 
+    // Returns the request queue
     public ArrayList<ElevatorRequest> getRequestQueuefromScheduler() {
         return schedulerRequestsQueue;
     }
@@ -45,12 +45,13 @@ public class Scheduler implements Runnable {
         notifyAll();
     }
 
-    // Continuously checks if there are any new jobs in the FloorSubsystem. If there are, 
-    // it adds the job to the buttonEventQueue and removes it from the FloorSubsystem.
+    // Continuously checks if there are any new jobs in the FloorSubsystem. If there
+    // are, it adds the job to the buttonEventQueue and removes it from the FloorSubsystem.
+
 
     @Override
     public void run() {
-        
+
         // Continuously check if there are any new jobs in the FloorSubsystem.
 
         synchronized (floorSubsystem.getAllElevatorRequestsfromFloorSubsystem()) {
@@ -67,8 +68,9 @@ public class Scheduler implements Runnable {
 
                     // Remove the ElevatorRequest from the FloorSubsystem
                     ElevatorRequest er = floorSubsystem.getAllElevatorRequestsfromFloorSubsystem().remove(0);
-                    
-                    System.out.println("Scheduler: Received ElevatorRequest("+ er  +") from FloorSubsystem at " + LocalTime.now() + ".");
+
+                    System.out.println("Scheduler: Received ElevatorRequest(" + er + ") from FloorSubsystem at "
+                            + LocalTime.now() + ".");
 
                     // To be removed (for debug only)
                     try {

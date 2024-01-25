@@ -7,8 +7,8 @@ import floor.ElevatorRequest;
 import floor.ElevatorRequest.ButtonDirection;
 import scheduler.Scheduler;
 
-public class ElevatorSubsystem implements Runnable{
-    private Elevator[] elevatorCars = new Elevator[1];     // 1 elevator for now
+public class ElevatorSubsystem implements Runnable {
+    private Elevator[] elevatorCars = new Elevator[1]; // 1 elevator for now
     private Scheduler scheduler; // Scheduler object
     private ElevatorRequest recentButtonEvent;
     private ArrayList<ElevatorRequest> elevatorSubsystemRequestsQueue = new ArrayList<ElevatorRequest>();
@@ -18,7 +18,6 @@ public class ElevatorSubsystem implements Runnable{
         this.scheduler = scheduler;
         this.elevatorCars[0] = new Elevator(0);
     }
-    
 
     public void run() {
         synchronized (this.scheduler.getRequestQueuefromScheduler()) {
@@ -31,20 +30,22 @@ public class ElevatorSubsystem implements Runnable{
                         e.printStackTrace();
                     }
                 }
-                
-                synchronized(this.elevatorSubsystemRequestsQueue) {
-                    ElevatorRequest request = this.scheduler.getRequestQueuefromScheduler().remove(0); // Remove request from queue
+
+                synchronized (this.elevatorSubsystemRequestsQueue) {
+                    ElevatorRequest request = this.scheduler.getRequestQueuefromScheduler().remove(0); // Remove request
+                                                                                                       // from queue
                     this.elevatorSubsystemRequestsQueue.add(request); // Add request to task list
 
-                    System.out.println("ElevatorSubsystem: Received ElevatorRequest(" + request + ") from Scheduler at " + LocalTime.now());
-                    
+                    System.out.println("ElevatorSubsystem: Received ElevatorRequest(" + request + ") from Scheduler at "
+                            + LocalTime.now());
+
                     // To be removed (for debug only)
                     try {
                         Thread.sleep(500);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    
+
                     this.elevatorSubsystemRequestsQueue.notifyAll(); // Notify all threads waiting on task list
                 }
 
