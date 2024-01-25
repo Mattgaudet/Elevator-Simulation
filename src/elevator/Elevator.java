@@ -41,7 +41,7 @@ public class Elevator {
 
     public void setMotorStatus(MotorStatus motorStatus) {
         this.motorStatus = motorStatus;
-        System.out.println("The motor is now " + (motorStatus == MotorStatus.ON ? "on!" : "off!"));
+        System.out.println("The motor is now " + motorStatus.name().toLowerCase() + "!");
     }
 
     public DoorStatus getDoorStatus() {
@@ -78,43 +78,6 @@ public class Elevator {
         System.out.println("Elevator " + this.elevatorId + " arrived at floor " + floorNum + " at " + LocalTime.now());
         return -1;
     }
-
-    // Moves the elevator based on the given request.
-    public int moveElevator(ElevatorRequest elevatorRequest) {
-        int destinationFloor = elevatorRequest.getFloorNumber();
-        boolean isUpDirection = elevatorRequest.getButtonDirection() == ButtonDirection.UP;
-        int initialFloor = this.currentFloor;
-        double tripTime = findTravelTime(this.currentFloor, destinationFloor);
-        double oneFloorTime = tripTime / Math.abs(this.currentFloor - destinationFloor);
-
-        this.setMotorStatus(MotorStatus.ON);
-
-        int newTaskIndex = -1;
-
-        this.currDirection = elevatorRequest.getButtonDirection();
-        for (int floorsMoved = 0; floorsMoved <= Math.abs(initialFloor - destinationFloor); floorsMoved++) {
-            if (newTaskIndex == -1) {
-                if (isUpDirection) {
-                    newTaskIndex = arrivedFloor(initialFloor + floorsMoved);
-                } else {
-                    newTaskIndex = arrivedFloor(initialFloor - floorsMoved);
-                }
-                if (floorsMoved + 1 == Math.abs(initialFloor - destinationFloor)) {
-                    continue;
-                }
-                try {
-                    Thread.sleep((int) oneFloorTime);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                return newTaskIndex;
-            }
-        }
-        this.setMotorStatus(MotorStatus.OFF);
-        return newTaskIndex;
-    }
-
 
     public void simulateElevatorMovement(ElevatorRequest elevatorRequest) {
 

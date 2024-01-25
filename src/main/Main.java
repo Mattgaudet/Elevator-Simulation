@@ -6,7 +6,6 @@ import floor.FloorSubsystem;
 
 public class Main {
 
-
 public static void main(String[] args) {
 
     Thread schedulerThread, elevatorSubsystemThread, floorSubsystemThread;

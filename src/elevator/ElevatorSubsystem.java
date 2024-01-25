@@ -44,14 +44,13 @@ public class ElevatorSubsystem implements Runnable{
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-
+                    
                     this.elevatorSubsystemRequestsQueue.notifyAll(); // Notify all threads waiting on task list
                 }
 
             }
         }
     }
-
 
     public ArrayList<ElevatorRequest> getElevatorSubsystemRequestsQueue() {
         return this.elevatorSubsystemRequestsQueue;
