@@ -1,5 +1,7 @@
 package floor;
 
+import log.Log;
+
 import scheduler.Scheduler;
 
 import java.io.File;
@@ -45,7 +47,7 @@ public class FloorSubsystem implements Runnable {
 
     @Override
     public void run() {
-        try (Scanner scanner = new Scanner(new File("src/resources/input.txt"))) {
+        try (Scanner scanner = new Scanner(new File("res/input.txt"))) {
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
                 String[] parts = line.split(";");
@@ -56,7 +58,7 @@ public class FloorSubsystem implements Runnable {
                 try {
                     time = LocalTime.parse(timeString);
                 } catch (DateTimeParseException e) {
-                    System.out.println("Invalid time: " + timeString);
+                    Log.print("Invalid time: " + timeString);
                     continue;
                 }
 
@@ -65,7 +67,7 @@ public class FloorSubsystem implements Runnable {
                 try {
                     floorNumber = Integer.parseInt(parts[1].trim());
                 } catch (NumberFormatException e) {
-                    System.out.println("Invalid floor number: " + parts[1].trim());
+                    Log.print("Invalid floor number: " + parts[1].trim());
                     continue;
                 }
 
@@ -79,7 +81,7 @@ public class FloorSubsystem implements Runnable {
                         direction = ButtonDirection.DOWN;
                         break;
                     default:
-                        System.out.println("Invalid direction: " + directionString);
+                        Log.print("Invalid direction: " + directionString);
                         continue;
                 }
 
@@ -88,7 +90,7 @@ public class FloorSubsystem implements Runnable {
                 try {
                     carNumber = Integer.parseInt(parts[3].trim());
                 } catch (NumberFormatException e) {
-                    System.out.println("Invalid car number: " + parts[3].trim());
+                    Log.print("Invalid car number: " + parts[3].trim());
                     continue;
                 }
 
@@ -96,7 +98,7 @@ public class FloorSubsystem implements Runnable {
                 ElevatorRequest elevatorRequest = new ElevatorRequest(direction, floorNumber, carNumber, time);
 
                 // Print request
-                System.out.println(
+                Log.print(
                         "FloorSubsystem: Read ElevatorRequest(" + elevatorRequest + ") from File >> " + "Time: " + time
                                 + ", Floor: " + floorNumber + ", Direction: " + direction + ", Car: " + carNumber);
 
@@ -121,7 +123,7 @@ public class FloorSubsystem implements Runnable {
             scanner.close();
 
         } catch (FileNotFoundException e) {
-            System.out.println("Error: File not found");
+            Log.print("Error: File not found");
             e.printStackTrace();
         }
 

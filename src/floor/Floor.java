@@ -1,5 +1,7 @@
 package floor;
 
+import log.Log;
+
 import floor.ElevatorRequest.ButtonDirection;
 
 // Represents a floor of a building.
@@ -32,11 +34,11 @@ public class Floor {
         isDownLampOn = direction == ButtonDirection.DOWN;
 
         if (isUpLampOn) {
-            System.out.println("At Floor " + floorNumber + ", Up Lamp is On");
+            Log.print("At Floor " + floorNumber + ", Up Lamp is On");
         } else if (isDownLampOn) {
-            System.out.println("At Floor " + floorNumber + ", Down Lamp is On");
+            Log.print("At Floor " + floorNumber + ", Down Lamp is On");
         } else {
-            System.out.println("Both Up and Down lamps are Off");
+            Log.print("Both Up and Down lamps are Off");
         }
     }
 

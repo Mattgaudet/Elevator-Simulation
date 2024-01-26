@@ -1,5 +1,7 @@
 package scheduler;
 
+import log.Log;
+
 import java.time.LocalTime;
 import java.util.ArrayList;
 
@@ -41,7 +43,7 @@ public class Scheduler implements Runnable {
     // Adds an elevatorRequest to the request queue.
     public synchronized void addToRequestQueue(ElevatorRequest elevatorRequest) {
         schedulerRequestsQueue.add(elevatorRequest);
-        System.out.println("Added elevator request " + elevatorRequest + " to request queue");
+        Log.print("Added elevator request " + elevatorRequest + " to request queue");
         notifyAll();
     }
 
@@ -69,7 +71,7 @@ public class Scheduler implements Runnable {
                     // Remove the ElevatorRequest from the FloorSubsystem
                     ElevatorRequest er = floorSubsystem.getAllElevatorRequestsfromFloorSubsystem().remove(0);
 
-                    System.out.println("Scheduler: Received ElevatorRequest(" + er + ") from FloorSubsystem at "
+                    Log.print("Scheduler: Received ElevatorRequest(" + er + ") from FloorSubsystem at "
                             + LocalTime.now() + ".");
 
                     // To be removed (for debug only)

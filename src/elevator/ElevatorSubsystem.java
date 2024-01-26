@@ -1,5 +1,7 @@
 package elevator;
 
+import log.Log;
+
 import java.time.LocalTime;
 import java.util.ArrayList;
 
@@ -36,7 +38,7 @@ public class ElevatorSubsystem implements Runnable {
                                                                                                        // from queue
                     this.elevatorSubsystemRequestsQueue.add(request); // Add request to task list
 
-                    System.out.println("ElevatorSubsystem: Received ElevatorRequest(" + request + ") from Scheduler at "
+                    Log.print("ElevatorSubsystem: Received ElevatorRequest(" + request + ") from Scheduler at "
                             + LocalTime.now());
 
                     // To be removed (for debug only)
