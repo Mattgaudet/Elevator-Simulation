@@ -1,3 +1,5 @@
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -7,12 +9,15 @@ class CSVParserTest {
     @org.junit.jupiter.api.Test
     void parseCSVTest() {
         CSVParser parser = new CSVParser();
-        List<ElevatorData> elevatorDataList = parser.parseCSV("floors_data.csv");
+        List<ElevatorPacket> elevatorPacketList = parser.parseCSV("floors_data.csv");
 
-        assertEquals(elevatorDataList.get(0).getTime(), "2:05:15:0");
-        assertEquals(elevatorDataList.get(0).getFloor(), 2);
-        assertEquals(elevatorDataList.get(0).getFloorButton(), "Up");
-        assertEquals(elevatorDataList.get(0).getCarButton(), 4);
-        assertEquals(elevatorDataList.get(0).getElevatorId(), 0);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("H:mm:ss:SSS");
+        String formattedTime = elevatorPacketList.get(0).getTime().format(formatter);
+
+        assertEquals("2:05:15:000", formattedTime);
+        assertEquals(2, elevatorPacketList.get(0).getFloor());
+        assertEquals("Up", elevatorPacketList.get(0).getFloorButton());
+        assertEquals(4, elevatorPacketList.get(0).getCarButton());
+        assertEquals(0, elevatorPacketList.get(0).getElevatorId());
     }
 }

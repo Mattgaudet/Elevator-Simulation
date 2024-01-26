@@ -1,19 +1,21 @@
-public class ElevatorData {
-    private String time;
+import java.time.LocalTime;
+
+public class ElevatorPacket {
+    private LocalTime time;
     private int floor;
     private String floorButton;
     private int carButton;
-    private int elevatorId; //
+    private int elevatorId;
 
-    public ElevatorData(){
+    public ElevatorPacket() {
         this.elevatorId = 0; // Set a default for Iteration 1
     }
 
-    public void setTime(String time) {
+    public void setTime(LocalTime time) {
         this.time = time;
     }
 
-    public String getTime() {
+    public LocalTime getTime() {
         return time;
     }
 
