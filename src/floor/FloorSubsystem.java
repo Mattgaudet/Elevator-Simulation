@@ -35,7 +35,7 @@ public class FloorSubsystem implements Runnable {
         elevatorRequests.remove(index);
     }
 
-    public List<ElevatorRequest> getAllElevatorRequestsfromFloorSubsystem() {
+    public List<ElevatorRequest> getAllElevatorRequestsFromFloorSubsystem() {
         return elevatorRequests;
     }
 
