@@ -1,4 +1,7 @@
-import java.time.LocalTime;
+import floor.CSVParser;
+import floor.ElevatorPacket;
+import floor.ElevatorRequest;
+
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -10,15 +13,16 @@ class CSVParserTest {
     void parseCSVTest() {
         // testing
         CSVParser parser = new CSVParser();
-        List<ElevatorPacket> elevatorPacketList = parser.parseCSV("floors_data.csv");
+        //List<ElevatorPacket> elevatorPacketList = parser.parseCSV("floors_data.csv");
+        List<ElevatorRequest> elevatorRequestList = parser.parseCSV("res/input.txt");
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("H:mm:ss:SSS");
-        String formattedTime = elevatorPacketList.get(0).getTime().format(formatter);
+        String formattedTime = elevatorRequestList.get(0).getTime().format(formatter);
 
-        assertEquals("2:05:15:000", formattedTime);
-        assertEquals(2, elevatorPacketList.get(0).getFloor());
-        assertEquals("Up", elevatorPacketList.get(0).getFloorButton());
-        assertEquals(4, elevatorPacketList.get(0).getCarButton());
-        assertEquals(0, elevatorPacketList.get(0).getElevatorId());
+        assertEquals("14:05:15:000", formattedTime);
+        assertEquals(4, elevatorRequestList.get(0).getFloorNumber());
+        assertEquals(2, elevatorRequestList.get(0).getButtonId());
+        assertEquals("UP", elevatorRequestList.get(0).getButtonDirection().toString());
+
     }
 }
