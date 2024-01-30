@@ -8,6 +8,7 @@ class CSVParserTest {
 
     @org.junit.jupiter.api.Test
     void parseCSVTest() {
+        // testing
         CSVParser parser = new CSVParser();
         List<ElevatorPacket> elevatorPacketList = parser.parseCSV("floors_data.csv");
 
