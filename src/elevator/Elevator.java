@@ -1,5 +1,8 @@
 package elevator;
 
+import config.Config;
+import log.Log;
+
 import java.time.LocalTime;
 
 import floor.ElevatorRequest;
@@ -41,7 +44,7 @@ public class Elevator {
 
     public void setMotorStatus(MotorStatus motorStatus) {
         this.motorStatus = motorStatus;
-        System.out.println("The motor is now " + motorStatus.name().toLowerCase() + "!");
+        Log.print("The motor is now " + motorStatus.name().toLowerCase() + "!");
     }
 
     public DoorStatus getDoorStatus() {
@@ -50,17 +53,17 @@ public class Elevator {
 
     public void setDoorStatus(DoorStatus doorStatus) {
         try {
-            Thread.sleep(3000); // it takes 3 seconds to open/close door
+            Thread.sleep(Config.DOOR_TIME); // it takes 3 seconds to open/close door
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
         this.doorStatus = doorStatus;
-        System.out.println("Door is " + (doorStatus == DoorStatus.OPEN ? "Open!" : "Closed!"));
+        Log.print("Door is " + doorStatus.name().toLowerCase() + "!");
     }
 
     public void timeToLoadPassengers(int numPassengers) {
         try {
-            Thread.sleep(numPassengers * 1000); // it takes 1 second to load/unload each passenger
+            Thread.sleep(numPassengers * Config.LOAD_TIME); // it takes 1 second to load/unload each passenger
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -68,14 +71,14 @@ public class Elevator {
 
     public int findTravelTime(int startFloor, int endFloor) {
         int floorDistance = Math.abs(startFloor - endFloor);
-        double travelTime = floorDistance * 0.5; // Assuming the elevator travels at a speed of 0.5 seconds per floor
+        double travelTime = floorDistance * 1.0 / Config.FLOORS_PER_SECOND; // Assuming the elevator travels at a speed of 0.5 seconds per floor
         return (int) (Math.round(travelTime * 1000));
     }
 
     // Updates the current floor of the elevator and prints the arrival message.
     public int arrivedFloor(int floorNum) {
         this.currentFloor = floorNum;
-        System.out.println("Elevator " + this.elevatorId + " arrived at floor " + floorNum + " at " + LocalTime.now());
+        Log.print("Elevator " + this.elevatorId + " arrived at floor " + floorNum + " at " + LocalTime.now());
         return -1;
     }
 

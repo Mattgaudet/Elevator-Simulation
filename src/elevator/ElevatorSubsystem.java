@@ -1,5 +1,7 @@
 package elevator;
 
+import log.Log;
+
 import java.time.LocalTime;
 import java.util.ArrayList;
 
@@ -20,23 +22,23 @@ public class ElevatorSubsystem implements Runnable {
     }
 
     public void run() {
-        synchronized (this.scheduler.getRequestQueuefromScheduler()) {
+        synchronized (this.scheduler.getRequestQueueFromScheduler()) {
 
             while (true) {
-                if (this.scheduler.getRequestQueuefromScheduler().isEmpty()) {
+                if (this.scheduler.getRequestQueueFromScheduler().isEmpty()) {
                     try {
-                        this.scheduler.getRequestQueuefromScheduler().wait(); // Wait for requests
+                        this.scheduler.getRequestQueueFromScheduler().wait(); // Wait for requests
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
 
                 synchronized (this.elevatorSubsystemRequestsQueue) {
-                    ElevatorRequest request = this.scheduler.getRequestQueuefromScheduler().remove(0); // Remove request
+                    ElevatorRequest request = this.scheduler.getRequestQueueFromScheduler().remove(0); // Remove request
                                                                                                        // from queue
                     this.elevatorSubsystemRequestsQueue.add(request); // Add request to task list
 
-                    System.out.println("ElevatorSubsystem: Received ElevatorRequest(" + request + ") from Scheduler at "
+                    Log.print("ElevatorSubsystem: Received ElevatorRequest(" + request + ") from Scheduler at "
                             + LocalTime.now());
 
                     // To be removed (for debug only)
