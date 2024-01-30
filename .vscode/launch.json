@@ -2,6 +2,20 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "main.Main",
+            "projectName": "SYSC 3303 Group Project_444ed0b0"
+        },
+        {
+            "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "Main.Main",
+            "projectName": "SYSC 3303 Group Project_444ed0b0"
+        },
+        {
+            "type": "java",
             "name": "debug",
             "request": "launch",
             "mainClass": "${workspaceFolder}/src/scheduler/Scheduler.java"
