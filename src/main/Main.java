@@ -1,5 +1,7 @@
 package main;
 
+import log.Log;
+
 import elevator.Elevator;
 import elevator.ElevatorSubsystem;
 import scheduler.Scheduler;
@@ -8,6 +10,9 @@ import floor.FloorSubsystem;
 public class Main {
 
     public static void main(String[] args) {
+
+        // For disabling logs
+        // Log.disable();
 
         Thread schedulerThread, elevatorSubsystemThread, floorSubsystemThread;
         FloorSubsystem floorSubsystem = new FloorSubsystem();
