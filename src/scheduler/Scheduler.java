@@ -14,7 +14,7 @@ import floor.ElevatorRequest.ButtonDirection;
 public class Scheduler implements Runnable {
 
     private ArrayList<ElevatorRequest> schedulerRequestsQueue = new ArrayList<>();
-    private ArrayList<ElevatorRequest> schedularResponseLog = new ArrayList<>();
+    private ArrayList<ElevatorRequest> schedulerResponseLog = new ArrayList<>();
     private FloorSubsystem floorSubsystem;
 
     // Constructor for the Scheduler class.
@@ -29,13 +29,13 @@ public class Scheduler implements Runnable {
     }
 
     // Returns the request queue
-    public ArrayList<ElevatorRequest> getRequestQueuefromScheduler() {
+    public ArrayList<ElevatorRequest> getRequestQueueFromScheduler() {
         return schedulerRequestsQueue;
     }
 
     // Returns the response log.
-    public ArrayList<ElevatorRequest> getSchedularResponseLog() {
-        return schedularResponseLog;
+    public ArrayList<ElevatorRequest> getSchedulerResponseLog() {
+        return schedulerResponseLog;
     }
 
     // Adds an elevatorRequest to the request queue.
@@ -54,11 +54,11 @@ public class Scheduler implements Runnable {
 
         // Continuously check if there are any new jobs in the FloorSubsystem.
 
-        synchronized (floorSubsystem.getAllElevatorRequestsfromFloorSubsystem()) {
+        synchronized (floorSubsystem.getAllElevatorRequestsFromFloorSubsystem()) {
             while (true) {
-                if (floorSubsystem.getAllElevatorRequestsfromFloorSubsystem().isEmpty()) {
+                if (floorSubsystem.getAllElevatorRequestsFromFloorSubsystem().isEmpty()) {
                     try {
-                        floorSubsystem.getAllElevatorRequestsfromFloorSubsystem().wait();
+                        floorSubsystem.getAllElevatorRequestsFromFloorSubsystem().wait();
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -67,7 +67,7 @@ public class Scheduler implements Runnable {
                 synchronized (schedulerRequestsQueue) {
 
                     // Remove the ElevatorRequest from the FloorSubsystem
-                    ElevatorRequest er = floorSubsystem.getAllElevatorRequestsfromFloorSubsystem().remove(0);
+                    ElevatorRequest er = floorSubsystem.getAllElevatorRequestsFromFloorSubsystem().remove(0);
 
                     System.out.println("Scheduler: Received ElevatorRequest(" + er + ") from FloorSubsystem at "
                             + LocalTime.now() + ".");
@@ -92,9 +92,9 @@ public class Scheduler implements Runnable {
 
     // Adds an elevatorRequest to the response log.
     public void addToResponseLog(ElevatorRequest elevatorRequest) {
-        synchronized (schedularResponseLog) {
-            schedularResponseLog.add(elevatorRequest);
-            schedularResponseLog.notifyAll();
+        synchronized (schedulerResponseLog) {
+            schedulerResponseLog.add(elevatorRequest);
+            schedulerResponseLog.notifyAll();
         }
     }
 
