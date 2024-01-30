@@ -13,6 +13,7 @@ public class ElevatorRequest {
 	private int floorNumber;
 	private LocalTime currTime = LocalTime.now(); // time of button press
 
+
 	public ElevatorRequest(ButtonDirection buttonDirection, int buttonId, int floorNumber, LocalTime currTime) {
 		this.buttonDirection = buttonDirection;
 		this.buttonId = buttonId;
@@ -35,5 +36,10 @@ public class ElevatorRequest {
 	public void setButtonId(int newButtonId) {
 		this.buttonId = newButtonId;
 	}
+
+	public LocalTime getTime() {
+		return this.currTime;
+	}
+
 
 }

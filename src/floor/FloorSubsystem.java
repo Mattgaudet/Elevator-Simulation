@@ -47,84 +47,15 @@ public class FloorSubsystem implements Runnable {
 
     @Override
     public void run() {
-        try (Scanner scanner = new Scanner(new File("res/input.txt"))) {
-            while (scanner.hasNextLine()) {
-                String line = scanner.nextLine();
-                String[] parts = line.split(";");
+        CSVParser parser = new CSVParser();
+        List<ElevatorRequest> elevatorRequestList = parser.parseCSV("floors_data.csv");
 
-                // 1. time
-                String timeString = parts[0].trim();
-                LocalTime time;
-                try {
-                    time = LocalTime.parse(timeString);
-                } catch (DateTimeParseException e) {
-                    Log.print("Invalid time: " + timeString);
-                    continue;
-                }
+        // Add request to list
+        elevatorRequests.addAll(elevatorRequestList);
 
-                // 2. floor number
-                int floorNumber;
-                try {
-                    floorNumber = Integer.parseInt(parts[1].trim());
-                } catch (NumberFormatException e) {
-                    Log.print("Invalid floor number: " + parts[1].trim());
-                    continue;
-                }
-
-                // 3. direction
-                String directionString = parts[2].trim().toLowerCase();
-                switch (directionString) {
-                    case "up":
-                        direction = ButtonDirection.UP;
-                        break;
-                    case "down":
-                        direction = ButtonDirection.DOWN;
-                        break;
-                    default:
-                        Log.print("Invalid direction: " + directionString);
-                        continue;
-                }
-
-                // 4. car/Elevator number
-                int carNumber;
-                try {
-                    carNumber = Integer.parseInt(parts[3].trim());
-                } catch (NumberFormatException e) {
-                    Log.print("Invalid car number: " + parts[3].trim());
-                    continue;
-                }
-
-                // Create ElevatorRequest
-                ElevatorRequest elevatorRequest = new ElevatorRequest(direction, floorNumber, carNumber, time);
-
-                // Print request
-                Log.print(
-                        "FloorSubsystem: Read ElevatorRequest(" + elevatorRequest + ") from File >> " + "Time: " + time
-                                + ", Floor: " + floorNumber + ", Direction: " + direction + ", Car: " + carNumber);
-
-                // To be removed (for debug only)
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                // Add request to list
-                elevatorRequests.add(elevatorRequest);
-
-            }
-
-            // Notify all threads once the file has been read
-            synchronized (elevatorRequests) {
+        // Notify all threads once the file has been read
+        synchronized (elevatorRequests) {
                 elevatorRequests.notifyAll();
-            }
-
-            // Close the scanner
-            scanner.close();
-
-        } catch (FileNotFoundException e) {
-            Log.print("Error: File not found");
-            e.printStackTrace();
         }
 
     }
