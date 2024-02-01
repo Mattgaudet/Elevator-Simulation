@@ -1,26 +1,42 @@
 package elevator;
 
-import log.Log;
-
+import floor.ElevatorRequest.ButtonDirection;
+import floor.ElevatorRequest;
 import java.time.LocalTime;
 import java.util.ArrayList;
-
-import floor.ElevatorRequest;
-import floor.ElevatorRequest.ButtonDirection;
+import log.Log;
 import scheduler.Scheduler;
 
+/**
+ * The elevator system. Manages the scheduling of the elevators.
+ */
 public class ElevatorSubsystem implements Runnable {
+
+    /** The elevators to schedule. */
     private Elevator[] elevatorCars = new Elevator[1]; // 1 elevator for now
-    private Scheduler scheduler; // Scheduler object
-    private ElevatorRequest recentButtonEvent;
+
+    /** The schedule to receive requests from. */
+    private Scheduler scheduler;
+
+    /** The requests from the scheduler. */
     private ArrayList<ElevatorRequest> elevatorSubsystemRequestsQueue = new ArrayList<ElevatorRequest>();
+
+    /** The responses from the elevators. */
     private ArrayList<ElevatorRequest> elevatorSubsystemResponseLog = new ArrayList<ElevatorRequest>();
 
+    /**
+     * Create a new elevator subsystem. Creates only 1 elevator for now.
+     * @param scheduler The scheduler to use for requests.
+     */
     public ElevatorSubsystem(Scheduler scheduler) {
         this.scheduler = scheduler;
         this.elevatorCars[0] = new Elevator(0);
     }
 
+    /**
+     * The entrypoint of the system. Pulls messages from the scheduler, forwards
+     * them to the elevators, and sends them back to the scheduler.
+     */
     public void run() {
         synchronized (this.scheduler.getRequestQueueFromScheduler()) {
 
@@ -56,20 +72,22 @@ public class ElevatorSubsystem implements Runnable {
                     this.scheduler.receiveRequestFromElevator(request);
 
                 }
-
-
-    
-
-
-
             }
         }
     }
 
+    /**
+     * Get the requests from the scheduler for testing.
+     * @return The requests from the scheduler for testing.
+     */
     public ArrayList<ElevatorRequest> getElevatorSubsystemRequestsQueue() {
         return this.elevatorSubsystemRequestsQueue;
     }
 
+    /**
+     * Add an elevator response.
+     * @param elevatorRequest The elevator response.
+     */
     public void addResponseList(ElevatorRequest elevatorRequest) {
         synchronized (this.elevatorSubsystemResponseLog) {
             this.elevatorSubsystemResponseLog.add(elevatorRequest); // Add response to response list
@@ -77,8 +95,11 @@ public class ElevatorSubsystem implements Runnable {
         }
     }
 
+    /**
+     * Change the lamp status to indicate a request.
+     * @param direction The direction of the request.
+     */
     public void changeLampStatus(ButtonDirection direction) {
         this.scheduler.changeLampStatus(direction); // Change lamp status in scheduler
     }
-
 }

@@ -1,18 +1,31 @@
 package floor;
 
-import log.Log;
-
 import java.io.*;
-import java.time.format.DateTimeFormatter;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import log.Log;
 
+/**
+ * The CSV parser for the elevator requests.
+ */
 public class CSVParser {
+
+    /** The time format in the elevator requests. */
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("H:mm:ss:SSS");
 
+    /**
+     * Parse a CSV file and create a list of elevator requests. Expects a CSV file in the format:
+     * - time
+     * - floor number
+     * - direction
+     * - elevator number
+     * @param filePath The path to the CSV file.
+     * @return The list of elevator requests.
+     */
     public List<ElevatorRequest> parseCSV(String filePath) {
         List<ElevatorRequest> elevatorRequests = new ArrayList<>();
         try (Scanner scanner = new Scanner(new File(filePath))) {
@@ -100,6 +113,7 @@ public class CSVParser {
         return elevatorRequests;
     }
 
+// Unused for now:
 //    private String formatTime(String timeString) {
 //        // Split the time string to separate the milliseconds part
 //        String[] parts = timeString.split(":");
