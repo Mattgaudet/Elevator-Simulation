@@ -27,9 +27,9 @@ public class Main {
         elevatorSubsystemThread.start();
         floorSubsystemThread.start();
 
-        // exit after 10 seconds
+        // exit after 15 seconds
         try {
-            Thread.sleep(10000);
+            Thread.sleep(15000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
