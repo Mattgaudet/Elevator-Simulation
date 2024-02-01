@@ -43,9 +43,35 @@ public class Scheduler implements Runnable {
     // Adds an elevatorRequest to the request queue.
     public synchronized void addToRequestQueue(ElevatorRequest elevatorRequest) {
         schedulerRequestsQueue.add(elevatorRequest);
-        Log.print("Added elevator request " + elevatorRequest + " to request queue");
+        Log.print("(FORWARD) Added elevator request " + elevatorRequest + " to request queue");
         notifyAll();
     }
+
+    // Receive request from elevator - Iter 1 (back and forth communication between FloorSubsystem - Shedular<- ElevatorSubsystem)
+    public synchronized void receiveRequestFromElevator(ElevatorRequest request) {
+        
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        Log.print("(BACK) Scheduler: Received ElevatorRequest(" + request + ") BACK from ElevatorSubsystem at "
+                + LocalTime.now() + ".");
+
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // send the request to the floorSubsystem
+        this.floorSubsystem.recieveRequestFromSchedular(request);
+
+        notifyAll(); // Notify any threads that are waiting for new requests
+    }
+
+
 
     // Continuously checks if there are any new jobs in the FloorSubsystem. If there
     // are, it adds the job to the buttonEventQueue and removes it from the FloorSubsystem.
@@ -71,7 +97,7 @@ public class Scheduler implements Runnable {
                     // Remove the ElevatorRequest from the FloorSubsystem
                     ElevatorRequest er = floorSubsystem.getAllElevatorRequestsFromFloorSubsystem().remove(0);
 
-                    Log.print("Scheduler: Received ElevatorRequest(" + er + ") from FloorSubsystem at "
+                    Log.print("(FORWARD) Scheduler: Received ElevatorRequest(" + er + ") from FloorSubsystem at "
                             + LocalTime.now() + ".");
 
                     // To be removed (for debug only)
@@ -87,6 +113,7 @@ public class Scheduler implements Runnable {
                     // Notify all threads.
                     schedulerRequestsQueue.notifyAll();
                 }
+
 
             }
         }

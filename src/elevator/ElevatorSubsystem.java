@@ -38,7 +38,7 @@ public class ElevatorSubsystem implements Runnable {
                                                                                                        // from queue
                     this.elevatorSubsystemRequestsQueue.add(request); // Add request to task list
 
-                    Log.print("ElevatorSubsystem: Received ElevatorRequest(" + request + ") from Scheduler at "
+                    Log.print("(FORWARD) ElevatorSubsystem: Received ElevatorRequest(" + request + ") from Scheduler at "
                             + LocalTime.now());
 
                     // To be removed (for debug only)
@@ -49,7 +49,18 @@ public class ElevatorSubsystem implements Runnable {
                     }
 
                     this.elevatorSubsystemRequestsQueue.notifyAll(); // Notify all threads waiting on task list
+
+
+                    // After processing the request, send it back to the scheduler - Iter 1
+                    // (back and forth communication between FloorSubsystem <- Shedular <- ElevatorSubsystem)
+                    this.scheduler.receiveRequestFromElevator(request);
+
                 }
+
+
+    
+
+
 
             }
         }
