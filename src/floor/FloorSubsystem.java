@@ -27,8 +27,23 @@ public class FloorSubsystem implements Runnable {
 
     }
 
-    public void addIn(ElevatorRequest buttonPress) {
-        elevatorRequests.add(buttonPress);
+    public void addIn(ElevatorRequest elevatorRequest) {
+        elevatorRequests.add(elevatorRequest);
+    }
+
+    // for iter 1
+    public void receiveRequestFromScheduler(ElevatorRequest elevatorRequest) {
+        
+        Log.print("(BACK) FloorSubsystem: Received ElevatorRequest(" + elevatorRequest + ") BACK from Scheduler at "
+                + LocalTime.now());
+        
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        elevatorRequests.add(elevatorRequest);
     }
 
     public void removeOut(int index) {
@@ -48,7 +63,7 @@ public class FloorSubsystem implements Runnable {
     @Override
     public void run() {
         CSVParser parser = new CSVParser();
-        List<ElevatorRequest> elevatorRequestList = parser.parseCSV("floors_data.csv");
+        List<ElevatorRequest> elevatorRequestList = parser.parseCSV("res/input.txt");
 
         // Add request to list
         elevatorRequests.addAll(elevatorRequestList);
