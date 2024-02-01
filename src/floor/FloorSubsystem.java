@@ -32,7 +32,7 @@ public class FloorSubsystem implements Runnable {
     }
 
     // for iter 1
-    public void recieveRequestFromSchedular(ElevatorRequest elevatorRequest) {
+    public void receiveRequestFromScheduler(ElevatorRequest elevatorRequest) {
         
         Log.print("(BACK) FloorSubsystem: Received ElevatorRequest(" + elevatorRequest + ") BACK from Scheduler at "
                 + LocalTime.now());
