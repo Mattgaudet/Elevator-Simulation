@@ -1,37 +1,43 @@
 package floor;
 
-import log.Log;
-
-import scheduler.Scheduler;
-
-import java.io.File;
-import java.io.FileNotFoundException;
+import floor.ElevatorRequest.ButtonDirection;
 import java.time.LocalTime;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
+import log.Log;
 
-import floor.ElevatorRequest.ButtonDirection;
-
+/**
+ * Create a new floor subsystem to manage the floors.
+ */
 public class FloorSubsystem implements Runnable {
-    private final Scheduler scheduler;
-    private final List<ElevatorRequest> elevatorRequests;
-    private final Floor[] floorArray;
-    private ButtonDirection direction;
 
+    /** The requests from the CSV file. */
+    private final List<ElevatorRequest> elevatorRequests;
+
+    /** The array of floors. */
+    private final Floor[] floorArray;
+
+    /**
+     * Create a new floor subsystem.
+     */
     public FloorSubsystem() {
-        scheduler = new Scheduler(this);
         elevatorRequests = new ArrayList<>();
         floorArray = new Floor[0];
 
     }
 
+    /**
+     * Add a new elevator request.
+     * @param elevatorRequest The elevator request.
+     */
     public void addIn(ElevatorRequest elevatorRequest) {
         elevatorRequests.add(elevatorRequest);
     }
 
-    // for iter 1
+    /**
+     * Get a response from the scheduler.
+     * @param elevatorRequest The response as an elevator request.
+     */
     public void receiveRequestFromScheduler(ElevatorRequest elevatorRequest) {
         
         Log.print("(BACK) FloorSubsystem: Received ElevatorRequest(" + elevatorRequest + ") BACK from Scheduler at "
@@ -46,20 +52,35 @@ public class FloorSubsystem implements Runnable {
         elevatorRequests.add(elevatorRequest);
     }
 
+    /**
+     * Remove an elevator request at a specific index.
+     * @param index The index to remove at.
+     */
     public void removeOut(int index) {
         elevatorRequests.remove(index);
     }
 
+    /**
+     * Get all of the elevator requests.
+     * @return All of the elevator requests.
+     */
     public List<ElevatorRequest> getAllElevatorRequestsFromFloorSubsystem() {
         return elevatorRequests;
     }
 
+    /**
+     * Change the directional status of the lamp for all floors.
+     * @param direction The directional status of the lamp for all floors.
+     */
     public void changeLampStatus(ButtonDirection direction) {
         for (Floor floor : floorArray) {
             floor.changeLampStatus(direction);
         }
     }
 
+    /**
+     * The entrypoint of the system. Creates a CSV file and sends requests to the scheduler.
+     */
     @Override
     public void run() {
         CSVParser parser = new CSVParser();

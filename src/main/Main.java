@@ -1,18 +1,19 @@
 package main;
 
-import log.Log;
-
-import elevator.Elevator;
 import elevator.ElevatorSubsystem;
-import scheduler.Scheduler;
 import floor.FloorSubsystem;
+import scheduler.Scheduler;
 
+/**
+ * Contains the entrypoint of the application.
+ */
 public class Main {
 
+    /**
+     * The entrypoint of the application. Creates all of the systems.
+     * @param args Unused for now.
+     */
     public static void main(String[] args) {
-
-        // For disabling logs
-        // Log.disable();
 
         Thread schedulerThread, elevatorSubsystemThread, floorSubsystemThread;
         FloorSubsystem floorSubsystem = new FloorSubsystem();
@@ -27,7 +28,7 @@ public class Main {
         elevatorSubsystemThread.start();
         floorSubsystemThread.start();
 
-        // exit after 15 seconds
+        // TODO: FIXME
         try {
             Thread.sleep(15000);
         } catch (InterruptedException e) {
@@ -37,5 +38,4 @@ public class Main {
         System.exit(0);
 
     }
-
 }

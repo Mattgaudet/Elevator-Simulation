@@ -1,53 +1,76 @@
 package scheduler;
 
-import log.Log;
-
-import java.time.LocalTime;
-import java.util.ArrayList;
-
+import floor.ElevatorRequest.ButtonDirection;
 import floor.ElevatorRequest;
 import floor.FloorSubsystem;
-import floor.ElevatorRequest.ButtonDirection;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import log.Log;
 
-// Communicates between ElevatorSubsystem and FloorSubsystem
-// The Scheduler notifies the Elevator when there is work to be done
-// After data is sent to the Elevator, it forwards the data to the Floor
-
+/**
+ * Communicates between the ElevatorSubsystem and the FloorSubsystem. The Scheduler
+ * notifies the Elevator when there is work to be done. After data is sent to the Elevator,
+ * it forwards the data to the Floor.
+ */
 public class Scheduler implements Runnable {
 
+    /** The requests to forward to the elevator subsystem. */
     private ArrayList<ElevatorRequest> schedulerRequestsQueue = new ArrayList<>();
+
+    /** The requests to forward to the floor subsystem. */
     private ArrayList<ElevatorRequest> schedulerResponseLog = new ArrayList<>();
+
+    /** The floor subsystem. */
     private FloorSubsystem floorSubsystem;
 
-    // Constructor for the Scheduler class.
+    /**
+     * Create a new scheduler.
+     * @param floorSubsystem The floor subsystem for the scheduler.
+     */
     public Scheduler(FloorSubsystem floorSubsystem) {
         this.floorSubsystem = floorSubsystem;
     }
 
-    // Override constructor for the Scheduler class including a queue.
+    /**
+     * Create a new scheduler with a specified queue of requests.
+     * @param floorSubsystem The floor subsystem for the scheduler.
+     * @param requestsQueue The queue of requests.
+     */
     public Scheduler(FloorSubsystem floorSubsystem, ArrayList<ElevatorRequest> requestsQueue) {
         this.floorSubsystem = floorSubsystem;
         this.schedulerRequestsQueue = requestsQueue;
     }
 
-    // Returns the request queue
+    /**
+     * Get the queue of requests.
+     * @return The queue of requests.
+     */
     public ArrayList<ElevatorRequest> getRequestQueueFromScheduler() {
         return schedulerRequestsQueue;
     }
 
-    // Returns the response log.
+    /**
+     * Get the responses.
+     * @return The responses.
+     */
     public ArrayList<ElevatorRequest> getSchedulerResponseLog() {
         return schedulerResponseLog;
     }
 
-    // Adds an elevatorRequest to the request queue.
+    /**
+     * Add a request to the scheduler.
+     * @param elevatorRequest The request to add to the scheduler.
+     */
     public synchronized void addToRequestQueue(ElevatorRequest elevatorRequest) {
         schedulerRequestsQueue.add(elevatorRequest);
         Log.print("(FORWARD) Added elevator request " + elevatorRequest + " to request queue");
         notifyAll();
     }
 
-    // Receive request from elevator - Iter 1 (back and forth communication between FloorSubsystem - Shedular<- ElevatorSubsystem)
+    /**
+     * Get a request from an elevator and send the the floor subsystem.
+     * @param request The request from an elevator.
+     */
     public synchronized void receiveRequestFromElevator(ElevatorRequest request) {
         
         try {
@@ -71,17 +94,15 @@ public class Scheduler implements Runnable {
         notifyAll(); // Notify any threads that are waiting for new requests
     }
 
-
-
-    // Continuously checks if there are any new jobs in the FloorSubsystem. If there
-    // are, it adds the job to the buttonEventQueue and removes it from the FloorSubsystem.
-
-
+    /**
+     * The entrypoint of the scheduler. Continuously checks if there are any jobs in the
+     * FloorSubsystem. If there are, it adds the jobs to the queue and removes it from the
+     * FloorSubsystem.
+     */
     @Override
     public void run() {
 
         // Continuously check if there are any new jobs in the FloorSubsystem.
-
         synchronized (floorSubsystem.getAllElevatorRequestsFromFloorSubsystem()) {
             while (true) {
                 if (floorSubsystem.getAllElevatorRequestsFromFloorSubsystem().isEmpty()) {
@@ -113,13 +134,14 @@ public class Scheduler implements Runnable {
                     // Notify all threads.
                     schedulerRequestsQueue.notifyAll();
                 }
-
-
             }
         }
     }
 
-    // Adds an elevatorRequest to the response log.
+    /**
+     * Add an elevator request to the responses.
+     * @param elevatorRequest The elevator request to add.
+     */
     public void addToResponseLog(ElevatorRequest elevatorRequest) {
         synchronized (schedulerResponseLog) {
             schedulerResponseLog.add(elevatorRequest);
@@ -127,7 +149,10 @@ public class Scheduler implements Runnable {
         }
     }
 
-    // Change the status of the lamp.
+    /**
+     * Change the lamp directional status of the floor subsystem.
+     * @param direction The lamp directional status.
+     */
     public void changeLampStatus(ButtonDirection direction) {
         floorSubsystem.changeLampStatus(direction);
     }

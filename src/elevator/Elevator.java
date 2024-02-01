@@ -1,56 +1,105 @@
 package elevator;
 
 import config.Config;
+import floor.ElevatorRequest.ButtonDirection;
+import floor.ElevatorRequest;
+import java.time.LocalTime;
 import log.Log;
 
-import java.time.LocalTime;
-
-import floor.ElevatorRequest;
-import floor.ElevatorRequest.ButtonDirection;
-
+/**
+ * Represents a single 'Elevator' or 'Elevator Car'. Used by the ElevatorSubsystem
+ * to schedule elevators for passengers.
+ */
 public class Elevator {
 
-    private int currentFloor = 0; // default floor is 0
-    private int elevatorId;
-    private DoorStatus doorStatus = DoorStatus.CLOSED; // default door status is closed
-    private MotorStatus motorStatus = MotorStatus.OFF;
-    private ButtonDirection currDirection; // current direction the elevator is moving in
+    /** The current floor the elevator is on. By default is 0. */
+    private int currentFloor = 0;
 
+    /** A unique elevator ID for sending specific messages to an elevator.  */
+    private int elevatorId;
+
+    /** The status of the door. Either open or closed. By default is closed.  */
+    private DoorStatus doorStatus = DoorStatus.CLOSED;
+
+    /** The status of the directional motor. Either up, down, or off. By default is off. */
+    private MotorStatus motorStatus = MotorStatus.OFF;
+
+    /** The direction of movement of the elevator. Either up, down, or none. */
+    private ButtonDirection currDirection = ButtonDirection.NONE;
+
+    /**
+     * The door status.
+     */
     public enum DoorStatus {
+        /** The door is open. */
         OPEN,
+        /** The door is closed. */
         CLOSED
     }
 
+    /**
+     * The status of the directional motor.
+     */
     public enum MotorStatus {
+        /** The motor is on. */
         ON,
+        /** The motor is off. */
         OFF
     }
 
+    /**
+     * Create a new elevator with a unique ID.
+     * @param elevatorId
+     */
     public Elevator(int elevatorId) {
         this.elevatorId = elevatorId;
     }
 
+    /**
+     * Get the current floor the elevator is on.
+     * @return The current floor the elevator is on.
+     */
     public int getCurrentFloor() {
         return currentFloor;
     }
 
+    /**
+     * Get the elevator ID.
+     * @return The elevator ID.
+     */
     public int getElevatorId() {
         return elevatorId;
     }
 
+    /**
+     * Get the status of the directional motor.
+     * @return The status of the directional motor.
+     */
     public MotorStatus getMotorStatus() {
         return motorStatus;
     }
 
+    /**
+     * Set the status of the directional motor.
+     * @param motorStatus The status of the directional motor.
+     */
     public void setMotorStatus(MotorStatus motorStatus) {
         this.motorStatus = motorStatus;
         Log.print("The motor is now " + motorStatus.name().toLowerCase() + "!");
     }
 
+    /**
+     * Get the status of the door.
+     * @return The status of the door.
+     */
     public DoorStatus getDoorStatus() {
         return doorStatus;
     }
 
+    /**
+     * Set the status of the door. Takes Config.DOOR_TIME seconds to open/close.
+     * @param doorStatus The status of the door.
+     */
     public void setDoorStatus(DoorStatus doorStatus) {
         try {
             Thread.sleep(Config.DOOR_TIME); // it takes 3 seconds to open/close door
@@ -61,6 +110,10 @@ public class Elevator {
         Log.print("Door is " + doorStatus.name().toLowerCase() + "!");
     }
 
+    /**
+     * Wait to load passengers. Each passenger takes Config.LOAD_TIME seconds to load.
+     * @param numPassengers The number of passengers to load.
+     */
     public void timeToLoadPassengers(int numPassengers) {
         try {
             Thread.sleep(numPassengers * Config.LOAD_TIME); // it takes 1 second to load/unload each passenger
@@ -69,19 +122,33 @@ public class Elevator {
         }
     }
 
+    /**
+     * Calculate the travel time from one floor to another.
+     * @param startFloor The starting the floor.
+     * @param endFloor The destination floor.
+     * @return The travel time in milliseconds.
+     */
     public int findTravelTime(int startFloor, int endFloor) {
         int floorDistance = Math.abs(startFloor - endFloor);
         double travelTime = floorDistance * 1.0 / Config.FLOORS_PER_SECOND; // Assuming the elevator travels at a speed of 0.5 seconds per floor
         return (int) (Math.round(travelTime * 1000));
     }
 
-    // Updates the current floor of the elevator and prints the arrival message.
+    /**
+     * Change the current floor of the elevator.
+     * @param floorNum The current floor of the elevator.
+     * @return Unused.
+     */
     public int arrivedFloor(int floorNum) {
         this.currentFloor = floorNum;
         Log.print("Elevator " + this.elevatorId + " arrived at floor " + floorNum + " at " + LocalTime.now());
         return -1;
     }
 
+    /**
+     * Simulate an elevator movement. Moves according to the elevator request.
+     * @param elevatorRequest The elevator request.
+     */
     public void simulateElevatorMovement(ElevatorRequest elevatorRequest) {
 
         // Extract information from the request

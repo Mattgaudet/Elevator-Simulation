@@ -1,7 +1,6 @@
 package test;
 
 import floor.CSVParser;
-import floor.ElevatorPacket;
 import floor.ElevatorRequest;
 
 import java.time.format.DateTimeFormatter;
@@ -15,7 +14,6 @@ class CSVParserTest {
     void parseCSVTest() {
         // testing
         CSVParser parser = new CSVParser();
-        //List<ElevatorPacket> elevatorPacketList = parser.parseCSV("floors_data.csv");
         List<ElevatorRequest> elevatorRequestList = parser.parseCSV("res/input.txt");
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("H:mm:ss:SSS");
