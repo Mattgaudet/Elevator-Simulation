@@ -19,7 +19,7 @@ public class FloorSubsystem implements Runnable {
 
     /** The total number of requests */
     private int initialNumRequests;
-    
+
     /** The number of executed requests */
     private int numExecutedRequests;
 
