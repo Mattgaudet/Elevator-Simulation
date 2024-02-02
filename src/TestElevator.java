@@ -11,8 +11,6 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalTime;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 /**
  * JUnit tests for the Elevator class.
  */
