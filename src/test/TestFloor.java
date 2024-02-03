@@ -66,16 +66,16 @@ public class TestFloor {
         floor = new Floor(1, scheduler);
 
         floor.changeLampStatus(ElevatorRequest.ButtonDirection.UP);
-        assertTrue(floor.isUpLampOn);
-        assertFalse(floor.isDownLampOn);
+        assertTrue(floor.getUpLampOnStatus());
+        assertFalse(floor.getDownLampOnStatus());
 
         floor.changeLampStatus(ElevatorRequest.ButtonDirection.DOWN);
-        assertFalse(floor.isUpLampOn);
-        assertTrue(floor.isDownLampOn);
+        assertFalse(floor.getUpLampOnStatus());
+        assertTrue(floor.getDownLampOnStatus());
 
         floor.changeLampStatus(null);
-        assertFalse(floor.isUpLampOn);
-        assertFalse(floor.isDownLampOn);
+        assertFalse(floor.getUpLampOnStatus());
+        assertFalse(floor.getDownLampOnStatus());
     }
 }
 

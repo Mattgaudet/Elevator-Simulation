@@ -85,6 +85,14 @@ public class ElevatorSubsystem implements Runnable {
     }
 
     /**
+     * Get the requests from the elevators for testing.
+     * @return The requests from the elevators for testing.
+     */
+    public ArrayList<ElevatorRequest> getElevatorSubsystemResponseLog() {
+        return this.elevatorSubsystemResponseLog;
+    }
+
+    /**
      * Add an elevator response.
      * @param elevatorRequest The elevator response.
      */

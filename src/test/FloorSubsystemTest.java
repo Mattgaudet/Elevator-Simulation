@@ -66,10 +66,9 @@ public class FloorSubsystemTest {
         floorSubsystem = new FloorSubsystem();
         floorSubsystem.changeLampStatus(ElevatorRequest.ButtonDirection.UP);
 
-        for (Floor floor : floorSubsystem.floorArray) {
-            assertTrue(floor.isUpLampOn);
-            assertFalse(floor.isDownLampOn);
+        for (Floor floor : floorSubsystem.getFloors()) {
+            assertTrue(floor.getUpLampOnStatus());
+            assertFalse(floor.getDownLampOnStatus());
         }
     }
 }
-
