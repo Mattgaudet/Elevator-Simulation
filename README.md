@@ -61,7 +61,7 @@ The goal of this project is to simulate an elevator system and showcase how elev
   - Added Log.java, which is used for logging informational messages throughout the project. 
 
 - Jarnail Singh
-  - README.txt: Added the README.md file, providing an overview and instructions for the project.
+  - README.md: Added the README.md file, providing an overview and instructions for the project.
   - Code Implementation: Added the project's starter code and implemented the logic for back-and-forth request ping between FloorSubsystem, Scheduler, and ElevatorSubsystem.
     
 - Laurence Lamarche-Cliche
