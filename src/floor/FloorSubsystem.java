@@ -20,6 +20,13 @@ public class FloorSubsystem implements Runnable {
     /** The filepath for the requests. */
     private final String filePath; // Field for the file path
 
+    /** The total number of requests */
+    private int numTotalRequests;
+
+    /** The number of executed requests */
+    private int numExecutedRequests;
+
+
     /**
      * Create a new floor subsystem.
      */
@@ -29,6 +36,7 @@ public class FloorSubsystem implements Runnable {
         this.filePath = filePath;
         elevatorRequests = new ArrayList<>();
         floorArray = new Floor[0];
+        numExecutedRequests = 0;
     }
 
     // Default constructor
@@ -43,6 +51,7 @@ public class FloorSubsystem implements Runnable {
      */
     public void addIn(ElevatorRequest elevatorRequest) {
         elevatorRequests.add(elevatorRequest);
+        numTotalRequests++;
     }
 
     /**
@@ -60,7 +69,12 @@ public class FloorSubsystem implements Runnable {
             e.printStackTrace();
         }
 
-        elevatorRequests.add(elevatorRequest);
+        numExecutedRequests++;
+        // Exit if all requests have been completed
+        if(numExecutedRequests == numTotalRequests) {
+            Log.print("Exiting: all requests completed");
+            System.exit(0);
+        }
     }
 
     /**
@@ -69,6 +83,7 @@ public class FloorSubsystem implements Runnable {
      */
     public void removeOut(int index) {
         elevatorRequests.remove(index);
+        numTotalRequests--;
     }
 
     /**
@@ -97,6 +112,9 @@ public class FloorSubsystem implements Runnable {
         CSVParser parser = new CSVParser();
         List<ElevatorRequest> elevatorRequestList = parser.parseCSV(filePath);
 
+        //save total number of requests
+        numTotalRequests = elevatorRequestList.size();
+
         // Add request to list
         elevatorRequests.addAll(elevatorRequestList);
 
@@ -104,6 +122,13 @@ public class FloorSubsystem implements Runnable {
         synchronized (elevatorRequests) {
                 elevatorRequests.notifyAll();
         }
+    }
 
+    /**
+     * Get the array of floors.
+     * @return The array of floors.
+     */
+    public Floor[] getFloors() {
+        return floorArray;
     }
 }

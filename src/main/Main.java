@@ -35,15 +35,5 @@ public class Main {
         schedulerThread.start();
         elevatorSubsystemThread.start();
         floorSubsystemThread.start();
-
-        // TODO: FIXME
-        try {
-            Thread.sleep(15000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        System.exit(0);
-
     }
 }

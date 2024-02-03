@@ -71,4 +71,20 @@ public class Floor {
     public ElevatorRequest getRecentButtonPress() {
         return recentButtonPress;
     }
+    
+    /**
+     * Check if the up lamp is on.
+     * @return If the up lamp is in.
+     */
+    public boolean getUpLampOnStatus() {
+        return isUpLampOn;
+    }
+    
+    /**
+     * Check if the down lamp is on.
+     * @return If the down lamp is in.
+     */
+    public boolean getDownLampOnStatus() {
+        return isDownLampOn;
+    }
 }
