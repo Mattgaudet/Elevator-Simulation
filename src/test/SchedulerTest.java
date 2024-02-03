@@ -11,7 +11,6 @@ import scheduler.Scheduler;
 import java.time.LocalTime;
 import java.util.ArrayList;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -42,7 +41,7 @@ public class SchedulerTest {
      * Display a summary message after each test.
      */
     @AfterEach
-    public void summery() {
+    public void summary() {
         counter++;
         System.out.println("Number of tests run: " + counter);
     }

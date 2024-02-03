@@ -108,6 +108,13 @@ public class FloorSubsystem implements Runnable {
         synchronized (elevatorRequests) {
                 elevatorRequests.notifyAll();
         }
+    }
 
+    /**
+     * Get the array of floors.
+     * @return The array of floors.
+     */
+    public Floor[] getFloors() {
+        return floorArray;
     }
 }

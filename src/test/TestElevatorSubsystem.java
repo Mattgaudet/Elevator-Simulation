@@ -97,9 +97,7 @@ class TestElevatorSubsystem {
         ElevatorRequest response = new ElevatorRequest(ButtonDirection.UP, 1, 2, LocalTime.now());
         elevatorSubsystem.addResponseList(response);
 
-        assertEquals(1, elevatorSubsystem.elevatorSubsystemResponseLog.size());
-        assertEquals(response, elevatorSubsystem.elevatorSubsystemResponseLog.get(0));
+        assertEquals(1, elevatorSubsystem.getElevatorSubsystemResponseLog().size());
+        assertEquals(response, elevatorSubsystem.getElevatorSubsystemResponseLog().get(0));
     }
 }
-
-

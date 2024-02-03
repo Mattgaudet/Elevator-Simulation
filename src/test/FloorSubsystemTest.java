@@ -38,7 +38,7 @@ public class FloorSubsystemTest {
      * Display a summary message after each test.
      */
     @AfterEach
-    public void summery() {
+    public void summary() {
         counter++;
         System.out.println("Number of tests run: " + counter);
     }
@@ -66,10 +66,9 @@ public class FloorSubsystemTest {
         floorSubsystem = new FloorSubsystem();
         floorSubsystem.changeLampStatus(ElevatorRequest.ButtonDirection.UP);
 
-        for (Floor floor : floorSubsystem.floorArray) {
-            assertTrue(floor.isUpLampOn);
-            assertFalse(floor.isDownLampOn);
+        for (Floor floor : floorSubsystem.getFloors()) {
+            assertTrue(floor.getUpLampOnStatus());
+            assertFalse(floor.getDownLampOnStatus());
         }
     }
 }
-
