@@ -17,13 +17,24 @@ public class FloorSubsystem implements Runnable {
     /** The array of floors. */
     private final Floor[] floorArray;
 
+    /** The filepath for the requests. */
+    private final String filePath; // Field for the file path
+
     /**
      * Create a new floor subsystem.
      */
-    public FloorSubsystem() {
+
+    // Constructor with filePath parameter, to be called from main
+    public FloorSubsystem(String filePath) {
+        this.filePath = filePath;
         elevatorRequests = new ArrayList<>();
         floorArray = new Floor[0];
+    }
 
+    // Default constructor
+    public FloorSubsystem() {
+        this("res/input.txt"); // Call the other constructor with the default file path
+        // No need to initialize other fields since the other constructor does that
     }
 
     /**
@@ -84,7 +95,7 @@ public class FloorSubsystem implements Runnable {
     @Override
     public void run() {
         CSVParser parser = new CSVParser();
-        List<ElevatorRequest> elevatorRequestList = parser.parseCSV("res/input.txt");
+        List<ElevatorRequest> elevatorRequestList = parser.parseCSV(filePath);
 
         // Add request to list
         elevatorRequests.addAll(elevatorRequestList);
