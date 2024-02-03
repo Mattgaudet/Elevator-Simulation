@@ -17,13 +17,19 @@ public class FloorSubsystem implements Runnable {
     /** The array of floors. */
     private final Floor[] floorArray;
 
+    /** The total number of requests */
+    private int numTotalRequests;
+
+    /** The number of executed requests */
+    private int numExecutedRequests;
+
     /**
      * Create a new floor subsystem.
      */
     public FloorSubsystem() {
         elevatorRequests = new ArrayList<>();
         floorArray = new Floor[0];
-
+        numExecutedRequests = 0;
     }
 
     /**
@@ -32,6 +38,7 @@ public class FloorSubsystem implements Runnable {
      */
     public void addIn(ElevatorRequest elevatorRequest) {
         elevatorRequests.add(elevatorRequest);
+        numTotalRequests++;
     }
 
     /**
@@ -49,7 +56,12 @@ public class FloorSubsystem implements Runnable {
             e.printStackTrace();
         }
 
-        elevatorRequests.add(elevatorRequest);
+        numExecutedRequests++;
+        // Exit if all requests have been completed
+        if(numExecutedRequests == numTotalRequests) {
+            Log.print("Exiting: all requests completed");
+            System.exit(0);
+        }
     }
 
     /**
@@ -58,6 +70,7 @@ public class FloorSubsystem implements Runnable {
      */
     public void removeOut(int index) {
         elevatorRequests.remove(index);
+        numTotalRequests--;
     }
 
     /**
@@ -85,6 +98,8 @@ public class FloorSubsystem implements Runnable {
     public void run() {
         CSVParser parser = new CSVParser();
         List<ElevatorRequest> elevatorRequestList = parser.parseCSV("res/input.txt");
+        //save total number of requests
+        numTotalRequests = elevatorRequestList.size();
 
         // Add request to list
         elevatorRequests.addAll(elevatorRequestList);
