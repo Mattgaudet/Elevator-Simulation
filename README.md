@@ -37,6 +37,11 @@ The goal of this project is to simulate an elevator system and showcase how elev
 
 - **test**
   - `CSVParserTest.java`: Tests the functionality of the CSV parser to ensure reliability.
+  - `FloorSubsystemTest.java`: Tests the functionality of the floor subsystem.
+  - `SchedulerTest.java`: Tests the functionality of the scheduler.
+  - `TestElevator.java`: Tests the functionality of the elevator class.
+  - `TestElevatorSubsystem.java`: Tests the functionality of the elevator subsystem.
+  - `TestFloor.java`: Tests the functionality of the floor class.
 
 ## Contributing - Group 7 (Lab A1)
 - Ali Abdollahian (101229396) 
