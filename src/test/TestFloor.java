@@ -42,7 +42,7 @@ public class TestFloor {
      * Display a summary message after each test.
      */
     @AfterEach
-    public void summery() {
+    public void summary() {
         counter++;
         System.out.println("Number of tests run: " + counter);
     }
