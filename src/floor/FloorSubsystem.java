@@ -18,7 +18,7 @@ public class FloorSubsystem implements Runnable {
     private final Floor[] floorArray;
 
     /** The total number of requests */
-    private int initialNumRequests;
+    private int numTotalRequests;
 
     /** The number of executed requests */
     private int numExecutedRequests;
@@ -38,6 +38,7 @@ public class FloorSubsystem implements Runnable {
      */
     public void addIn(ElevatorRequest elevatorRequest) {
         elevatorRequests.add(elevatorRequest);
+        numTotalRequests++;
     }
 
     /**
@@ -57,7 +58,7 @@ public class FloorSubsystem implements Runnable {
 
         numExecutedRequests++;
         // Exit if all requests have been completed
-        if(numExecutedRequests == initialNumRequests) {
+        if(numExecutedRequests == numTotalRequests) {
             Log.print("Exiting: all requests completed");
             System.exit(0);
         }
@@ -69,6 +70,7 @@ public class FloorSubsystem implements Runnable {
      */
     public void removeOut(int index) {
         elevatorRequests.remove(index);
+        numTotalRequests--;
     }
 
     /**
@@ -97,7 +99,7 @@ public class FloorSubsystem implements Runnable {
         CSVParser parser = new CSVParser();
         List<ElevatorRequest> elevatorRequestList = parser.parseCSV("res/input.txt");
         //save total number of requests
-        initialNumRequests = elevatorRequestList.size();
+        numTotalRequests = elevatorRequestList.size();
 
         // Add request to list
         elevatorRequests.addAll(elevatorRequestList);
