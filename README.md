@@ -54,7 +54,7 @@ The goal of this project is to simulate an elevator system and showcase how elev
 
 - Ali Abdollahian
   - UML Class Diagram: Created the UML class diagram to outline the project's structure and relationships between classes.
-  - Testing: Added several tests to evaluate the functionality of different classes, including FloorSubsystem, Scheduler, and ElevatorSubsystem. 
+  - Testing: Added several tests to evaluate the functionality of different classes, including FloorSubsystem, Scheduler, and ElevatorSubsystem, ensuring robust testing coverage for the project's components
 
 - Jaan Soulier
   - Javadocs: Responsible for creating Javadocs-style comments for the project, ensuring that all classes, methods, and functionalities are well-documented.
@@ -66,11 +66,11 @@ The goal of this project is to simulate an elevator system and showcase how elev
     
 - Laurence Lamarche-Cliche
   - CSV Reader Integration: Added and Merged the CSV reader functionality into the existing FloorSubsystem package.
-  - Command line file path stuff -- ??
-  - Testing: Created and managed tests in the src/test directory, ensuring robust testing coverage for the project's components.
+  - Added Command line file path option to specify which txt file should provide the input data to the Elevator System
+  - Testing: Created and placed tests in the src/test directory, ensuring complete testing coverage for the project's components.
 
 - Matthew Gaudet
   - UML Sequence Diagram: Created the UML sequence diagram to visualize the sequence of operations based on the project requirements.
-  - Added logic which enables the system to exit properly once all requests are completed.
+  - Added logic that enables the system to exit properly once all requests are completed.
 
 
