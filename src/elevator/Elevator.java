@@ -4,6 +4,9 @@ import config.Config;
 import floor.ElevatorRequest.ButtonDirection;
 import floor.ElevatorRequest;
 import java.time.LocalTime;
+import java.util.LinkedList;
+import java.util.Stack;
+
 import log.Log;
 
 /**
@@ -26,6 +29,8 @@ public class Elevator {
 
     /** The direction of movement of the elevator. Either up, down, or none. */
     private ButtonDirection currDirection = ButtonDirection.NONE;
+
+    private LinkedList<Integer> elevatorQueue;
 
     /**
      * The door status.
@@ -53,6 +58,7 @@ public class Elevator {
      */
     public Elevator(int elevatorId) {
         this.elevatorId = elevatorId;
+        this.elevatorQueue = new LinkedList<>();
     }
 
     /**
@@ -108,6 +114,20 @@ public class Elevator {
         }
         this.doorStatus = doorStatus;
         Log.print("Door is " + doorStatus.name().toLowerCase() + "!");
+    }
+
+    /**
+     * Function to add a request to this Elevator's request queue
+     * @param request a request received from the scheduler
+     */
+    public void addRequestToElevatorQueue(ElevatorRequest request) {
+        elevatorQueue.add(request.getButtonId());
+        if (request.getButtonDirection() == ButtonDirection.UP){
+            // order in ascending order
+        }
+        else{
+            // order in descending order
+        }
     }
 
     /**

@@ -53,7 +53,7 @@ public class ElevatorSubsystem implements Runnable {
                     ElevatorRequest request = this.scheduler.getRequestQueueFromScheduler().remove(0); // Remove request
                                                                                                        // from queue
                     this.elevatorSubsystemRequestsQueue.add(request); // Add request to task list
-
+                    this.elevatorCars[0].addRequestToElevatorQueue(request);
                     Log.print("(FORWARD) ElevatorSubsystem: Received ElevatorRequest(" + request + ") from Scheduler at "
                             + LocalTime.now());
 
