@@ -4,7 +4,9 @@ import config.Config;
 import floor.ElevatorRequest.ButtonDirection;
 import floor.ElevatorRequest;
 import java.time.LocalTime;
+import java.util.Comparator;
 import java.util.LinkedList;
+import java.util.PriorityQueue;
 import java.util.Stack;
 
 import log.Log;
@@ -30,7 +32,7 @@ public class Elevator {
     /** The direction of movement of the elevator. Either up, down, or none. */
     private ButtonDirection currDirection = ButtonDirection.NONE;
 
-    private LinkedList<Integer> elevatorQueue;
+    private PriorityQueue<Integer> elevatorQueue;
 
     /**
      * The door status.
@@ -58,7 +60,7 @@ public class Elevator {
      */
     public Elevator(int elevatorId) {
         this.elevatorId = elevatorId;
-        this.elevatorQueue = new LinkedList<>();
+        this.elevatorQueue = new PriorityQueue<>(Comparator.comparingInt(i -> i));
     }
 
     /**
@@ -121,13 +123,30 @@ public class Elevator {
      * @param request a request received from the scheduler
      */
     public void addRequestToElevatorQueue(ElevatorRequest request) {
+        if (elevatorQueue.isEmpty()) {
+            if (request.getButtonDirection() == ButtonDirection.UP) {
+                PriorityQueue<Integer> queue = new PriorityQueue<>(); // default is up
+            } else {
+                PriorityQueue<Integer> queue = new PriorityQueue<>(Comparator.reverseOrder());
+            }
+        } else {
+            if (request.getButtonDirection() == ButtonDirection.UP) {
+                assert request.getButtonId() >= elevatorQueue.peek(); // this should not happen
+            } else {
+                assert request.getButtonId() <= elevatorQueue.peek(); // this should not happen
+
+            }
+        }
         elevatorQueue.add(request.getButtonId());
-        if (request.getButtonDirection() == ButtonDirection.UP){
-            // order in ascending order
-        }
-        else{
-            // order in descending order
-        }
+    }
+
+    public void removeRequestFromElevatorQueue() {
+        Integer nextRequest = elevatorQueue.poll(); // Remove the next request if available, else will be null
+        // TODO: Don't need this assignment eventually, but useful for debugging
+    }
+
+    public PriorityQueue<Integer> getElevatorQueue(){
+        return this.elevatorQueue;
     }
 
     /**

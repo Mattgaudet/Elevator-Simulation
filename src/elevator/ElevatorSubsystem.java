@@ -70,6 +70,7 @@ public class ElevatorSubsystem implements Runnable {
                     // After processing the request, send it back to the scheduler - Iter 1
                     // (back and forth communication between FloorSubsystem <- Scheduler <- ElevatorSubsystem)
                     this.scheduler.receiveRequestFromElevator(request);
+                    // TODO: remove request from elevator when processed
 
                 }
             }
