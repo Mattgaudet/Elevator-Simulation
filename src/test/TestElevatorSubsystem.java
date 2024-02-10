@@ -13,6 +13,7 @@ import floor.ElevatorRequest;
 import floor.ElevatorRequest.ButtonDirection;
 
 import java.time.LocalTime;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * JUnit tests for the ElevatorSubsystem class.
@@ -63,25 +64,24 @@ class TestElevatorSubsystem {
 
     /**
      * Test the run method of the ElevatorSubsystem class.
+     * A CountDownLatch is created with an initial count of 1.
+     * The ElevatorSubsystem is started, and a listener is set to count down the latch when the elevator processing is done.
+     * The test thread waits for the latch to count down to zero using latch.await().
+     * The ElevatorSubsystem processes an elevator request and invokes the listener, decrementing the latch count.
+     * The test thread, waiting at latch.await(), proceeds, and assertions are made based on the processed request.
      */
     @Test
-    void testElevatorSubsystemRun() {
+    void testElevatorSubsystemRun() throws InterruptedException {
         FloorSubsystem floorSubsystem = new FloorSubsystem();
         Scheduler scheduler = new Scheduler(floorSubsystem);
         elevatorSubsystem = new ElevatorSubsystem(scheduler);
-
+        CountDownLatch latch = new CountDownLatch(1);
+        elevatorSubsystem.setListener(() -> latch.countDown());
         Thread elevatorSubsystemThread = new Thread(elevatorSubsystem);
         elevatorSubsystemThread.start();
-
         ElevatorRequest request = new ElevatorRequest(ButtonDirection.UP, 1, 2, LocalTime.now());
         scheduler.addToRequestQueue(request);
-
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
+        latch.await();
         assertEquals(1, elevatorSubsystem.getElevatorSubsystemRequestsQueue().size());
     }
 
