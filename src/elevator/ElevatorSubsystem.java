@@ -11,6 +11,8 @@ import scheduler.Scheduler;
  * The elevator system. Manages the scheduling of the elevators.
  */
 public class ElevatorSubsystem implements Runnable {
+    /** Listener variable */
+    private RequestProcessedListener listener;
 
     /** The elevators to schedule. */
     private Elevator[] elevatorCars = new Elevator[1]; // 1 elevator for now
@@ -23,6 +25,21 @@ public class ElevatorSubsystem implements Runnable {
 
     /** The responses from the elevators. */
     private ArrayList<ElevatorRequest> elevatorSubsystemResponseLog = new ArrayList<ElevatorRequest>();
+
+    /**
+     * Set the listener for request processing.
+     * @param listener The listener to set.
+     */
+    public void setListener(RequestProcessedListener listener) {
+        this.listener = listener;
+    }
+
+    /**
+     * Listener interface for notifying when a request is processed
+     */
+    public interface RequestProcessedListener {
+        void onRequestProcessed();
+    }
 
     /**
      * Create a new elevator subsystem. Creates only 1 elevator for now.
@@ -71,6 +88,9 @@ public class ElevatorSubsystem implements Runnable {
                     // (back and forth communication between FloorSubsystem <- Scheduler <- ElevatorSubsystem)
                     this.scheduler.receiveRequestFromElevator(request);
 
+                    if (listener != null) {
+                        listener.onRequestProcessed();
+                    }
                 }
             }
         }
