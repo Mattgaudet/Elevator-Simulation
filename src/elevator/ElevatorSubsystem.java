@@ -56,21 +56,20 @@ public class ElevatorSubsystem implements Runnable {
                     this.elevatorCars[0].addRequestToElevatorQueue(request);
                     Log.print("(FORWARD) ElevatorSubsystem: Received ElevatorRequest(" + request + ") from Scheduler at "
                             + LocalTime.now());
-
+                    // TODO: Replace print statement with move the elevator according to set logic
                     // To be removed (for debug only)
                     try {
                         Thread.sleep(500);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-
                     this.elevatorSubsystemRequestsQueue.notifyAll(); // Notify all threads waiting on task list
-
 
                     // After processing the request, send it back to the scheduler - Iter 1
                     // (back and forth communication between FloorSubsystem <- Scheduler <- ElevatorSubsystem)
+                    // TODO: remove request from elevator when processed elevatorCars[0].removeRequestFromElevatorQueue();
+                    // TODO: update the status of the elevator, and pass it to the scheduler
                     this.scheduler.receiveRequestFromElevator(request);
-                    // TODO: remove request from elevator when processed
 
                 }
             }
