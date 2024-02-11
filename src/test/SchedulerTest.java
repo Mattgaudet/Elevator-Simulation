@@ -53,7 +53,7 @@ public class SchedulerTest {
     void addToRequestQueue() {
         FloorSubsystem floorSubsystem = new FloorSubsystem();
         scheduler = new Scheduler(floorSubsystem);
-        ElevatorRequest elevatorRequest = new ElevatorRequest(ElevatorRequest.ButtonDirection.UP, 3, 4, LocalTime.now());
+        ElevatorRequest elevatorRequest = new ElevatorRequest(LocalTime.now(), 3, ElevatorRequest.ButtonDirection.UP,4);
 
         scheduler.addToRequestQueue(elevatorRequest);
         ArrayList<ElevatorRequest> requestQueue = scheduler.getRequestQueueFromScheduler();
@@ -68,7 +68,7 @@ public class SchedulerTest {
     void run() {
         FloorSubsystem floorSubsystem = new FloorSubsystem();
         scheduler = new Scheduler(floorSubsystem);
-        ElevatorRequest elevatorRequest = new ElevatorRequest(ElevatorRequest.ButtonDirection.UP, 3, 4, LocalTime.now());
+        ElevatorRequest elevatorRequest = new ElevatorRequest(LocalTime.now(), 3, ElevatorRequest.ButtonDirection.UP, 4);
 
         floorSubsystem.addIn(elevatorRequest);
         Thread schedulerThread = new Thread(scheduler);  // this is just to start the scheduler in a separate thread
@@ -90,7 +90,7 @@ public class SchedulerTest {
     void addToResponseLog() {
         FloorSubsystem floorSubsystem = new FloorSubsystem();
         scheduler = new Scheduler(floorSubsystem);
-        ElevatorRequest elevatorRequest = new ElevatorRequest(ElevatorRequest.ButtonDirection.UP, 3, 4, LocalTime.now());
+        ElevatorRequest elevatorRequest = new ElevatorRequest(LocalTime.now(), 3,ElevatorRequest.ButtonDirection.UP, 4);
 
         scheduler.addToResponseLog(elevatorRequest);
         ArrayList<ElevatorRequest> responseLog = scheduler.getSchedulerResponseLog();
