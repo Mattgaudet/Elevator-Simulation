@@ -185,41 +185,51 @@ public class Elevator {
     }
 
     /**
-     * Simulate an elevator movement. Moves according to the elevator request.
-     * @param elevatorRequest The elevator request.
+     * Simulate the movement of the elevator.
      */
-    public void simulateElevatorMovement(ElevatorRequest elevatorRequest) {
+    public void simulateElevatorMovement() {
 
-        // Extract information from the request
-        int destinationFloor = elevatorRequest.getFloorNumber();
-        boolean isUpDirection = elevatorRequest.getButtonDirection() == ButtonDirection.UP;
-        int initialFloor = this.currentFloor;
-        double tripTime = findTravelTime(this.currentFloor, destinationFloor);
+        // Print the current status of the elevator
+        Log.print("Elevator " + this.elevatorId + " is currently on floor " + this.currentFloor + " at " + LocalTime.now());
 
-        // Set the current direction of the elevator
-        this.currDirection = elevatorRequest.getButtonDirection();
-
-        // Turn on the motor
-        this.setMotorStatus(MotorStatus.ON);
-
-        // Move the elevator from the current floor to the destination floor
-        for (int floorsMoved = 0; floorsMoved <= Math.abs(initialFloor - destinationFloor); floorsMoved++) {
-            int nextFloor = isUpDirection ? initialFloor + floorsMoved : initialFloor - floorsMoved;
-            arrivedFloor(nextFloor);
-
-            // If the elevator hasn't reached the destination floor yet, pause for the time
-            // it takes to travel one floor
-            if (floorsMoved + 1 < Math.abs(initialFloor - destinationFloor)) {
-                try {
-                    Thread.sleep((int) tripTime);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt(); // Re-interrupt the thread
-                    throw new RuntimeException("Thread was interrupted", e);
+        while (!elevatorQueue.isEmpty()) {
+            // Extract the next destination floor from the queue
+            int destinationFloor = elevatorQueue.poll();
+    
+            // Determine the direction of movement
+            ButtonDirection direction = destinationFloor > currentFloor ? ButtonDirection.UP : ButtonDirection.DOWN;
+    
+            // Set the current direction of the elevator
+            this.currDirection = direction;
+    
+            // Turn on the motor
+            this.setMotorStatus(MotorStatus.ON);
+    
+            // Calculate the trip time
+            double tripTime = findTravelTime(this.currentFloor, destinationFloor);
+    
+            // Calculate the number of floors to move
+            int floorsToMove = Math.abs(currentFloor - destinationFloor);
+    
+            // Move the elevator from the current floor to the destination floor
+            for (int floorsMoved = 0; floorsMoved < floorsToMove; floorsMoved++) {
+                int nextFloor = direction == ButtonDirection.UP ? currentFloor + 1 : currentFloor - 1;
+                arrivedFloor(nextFloor);
+    
+                // If the elevator hasn't reached the destination floor yet, pause for the time
+                // it takes to travel one floor
+                if (floorsMoved + 1 < floorsToMove) {
+                    try {
+                        Thread.sleep((int) tripTime);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt(); // Re-interrupt the thread
+                        throw new RuntimeException("Thread was interrupted", e);
+                    }
                 }
             }
+    
+            // If the elevator has reached the destination floor, turn off the motor
+            this.setMotorStatus(MotorStatus.OFF);
         }
-
-        // If the elevator has reached the destination floor, turn off the motor
-        this.setMotorStatus(MotorStatus.OFF);
     }
 }

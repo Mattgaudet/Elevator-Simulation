@@ -54,6 +54,7 @@ public class ElevatorSubsystem implements Runnable {
                                                                                                        // from queue
                     this.elevatorSubsystemRequestsQueue.add(request); // Add request to task list
                     this.elevatorCars[0].addRequestToElevatorQueue(request);
+                    this.elevatorCars[0].simulateElevatorMovement(); // Simulate elevator movement
                     Log.print("(FORWARD) ElevatorSubsystem: Received ElevatorRequest(" + request + ") from Scheduler at "
                             + LocalTime.now());
                     // TODO: Replace print statement with move the elevator according to set logic
