@@ -52,8 +52,9 @@ public class TestElevator {
     @Test
     void testSimulateElevatorMovement() {
         elevator = new Elevator(1);
-        ElevatorRequest elevatorRequest = new ElevatorRequest(ElevatorRequest.ButtonDirection.UP, 3, 4, LocalTime.now());
-        elevator.simulateElevatorMovement(elevatorRequest);
+        ElevatorRequest elevatorRequest = new ElevatorRequest(LocalTime.now(), 3, ElevatorRequest.ButtonDirection.UP, 4);
+        elevator.addRequestToElevatorQueue(elevatorRequest);
+        elevator.simulateElevatorMovement();
         assertEquals(4, elevator.getCurrentFloor());
     }
 
@@ -130,8 +131,8 @@ public class TestElevator {
     @Test
     void testAddRequestToElevatorQueue() {
         elevator = new Elevator(1);
-        ElevatorRequest elevatorRequest = new ElevatorRequest(ElevatorRequest.ButtonDirection.UP, 4, 2, LocalTime.now());
-        ElevatorRequest elevatorRequest2 = new ElevatorRequest(ElevatorRequest.ButtonDirection.UP, 5, 2, LocalTime.now());
+        ElevatorRequest elevatorRequest = new ElevatorRequest(LocalTime.now(),4, ElevatorRequest.ButtonDirection.UP, 2);
+        ElevatorRequest elevatorRequest2 = new ElevatorRequest(LocalTime.now(), 5, ElevatorRequest.ButtonDirection.UP, 2);
 
         elevator.addRequestToElevatorQueue(elevatorRequest); // Add 5
         assertEquals(4, elevator.getElevatorQueue().peek()); // Check if 4 was added
@@ -140,14 +141,14 @@ public class TestElevator {
 
         // Try to add 3 (going up) when we are already going up to 4
         // We expect an error because we "missed" it
-        ElevatorRequest elevatorRequest3 = new ElevatorRequest(ElevatorRequest.ButtonDirection.UP, 3, 2, LocalTime.now());
+        ElevatorRequest elevatorRequest3 = new ElevatorRequest(LocalTime.now(), 3, ElevatorRequest.ButtonDirection.UP,2);
         assertThrows(AssertionError.class, () -> {
             elevator.addRequestToElevatorQueue(elevatorRequest3);
         });
 
         // Try to add 3 (going down) when we are on the way to 4
         // This should work because the user will have to wait for the elevator to head down to go to 3
-        ElevatorRequest elevatorRequest4 = new ElevatorRequest(ElevatorRequest.ButtonDirection.DOWN, 3, 2, LocalTime.now());
+        ElevatorRequest elevatorRequest4 = new ElevatorRequest(LocalTime.now(), 3, ElevatorRequest.ButtonDirection.DOWN,2);
         elevator.addRequestToElevatorQueue(elevatorRequest4); // Try to add 3 while going up to 4
         assertEquals(3, elevator.getElevatorQueue().size());
 
@@ -156,9 +157,9 @@ public class TestElevator {
     @Test
     void testRemoveRequestFromElevatorQueue() {
         elevator = new Elevator(1);
-        ElevatorRequest elevatorRequest = new ElevatorRequest(ElevatorRequest.ButtonDirection.UP, 4, 2, LocalTime.now());
-        ElevatorRequest elevatorRequest2 = new ElevatorRequest(ElevatorRequest.ButtonDirection.UP, 5, 2, LocalTime.now());
-        ElevatorRequest elevatorRequest3 = new ElevatorRequest(ElevatorRequest.ButtonDirection.UP, 3, 2, LocalTime.now());
+        ElevatorRequest elevatorRequest = new ElevatorRequest(LocalTime.now(), 4,ElevatorRequest.ButtonDirection.UP, 2);
+        ElevatorRequest elevatorRequest2 = new ElevatorRequest(LocalTime.now(), 5,ElevatorRequest.ButtonDirection.UP, 2);
+        ElevatorRequest elevatorRequest3 = new ElevatorRequest(LocalTime.now(), 3, ElevatorRequest.ButtonDirection.UP, 2);
         elevator.addRequestToElevatorQueue(elevatorRequest);
         elevator.addRequestToElevatorQueue(elevatorRequest2);
         assertEquals(4, elevator.getElevatorQueue().peek());
