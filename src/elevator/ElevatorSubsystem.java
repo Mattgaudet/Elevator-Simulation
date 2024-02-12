@@ -99,7 +99,8 @@ public class ElevatorSubsystem implements Runnable {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            elevatorCars[0].simulateElevatorMovement(request);
+            this.elevatorCars[0].addRequestToElevatorQueue(request);
+            elevatorCars[0].simulateElevatorMovement();
             state.completeProcessing();
             state.transitionToUnloadPassengers();
 
