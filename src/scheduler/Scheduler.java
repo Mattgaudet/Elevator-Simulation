@@ -72,7 +72,7 @@ public class Scheduler implements Runnable {
      * @param request The request from an elevator.
      */
     public synchronized void receiveRequestFromElevator(ElevatorRequest request) {
-        
+
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
