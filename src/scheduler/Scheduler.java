@@ -13,7 +13,6 @@ import log.Log;
  * it forwards the data to the Floor.
  */
 public class Scheduler implements Runnable {
-
     /** The requests to forward to the elevator subsystem. */
     private ArrayList<ElevatorRequest> schedulerRequestsQueue = new ArrayList<>();
 
@@ -22,6 +21,7 @@ public class Scheduler implements Runnable {
 
     /** The floor subsystem. */
     private FloorSubsystem floorSubsystem;
+    private SchedulerStateMachine stateMachine = new SchedulerStateMachine();
 
     /**
      * Create a new scheduler.
@@ -101,41 +101,57 @@ public class Scheduler implements Runnable {
      */
     @Override
     public void run() {
+        while (true) {
+            switch (stateMachine.getCurrentState()) {
+                case IDLE:
+                    handleIdleState();
+                    break;
+                case PROCESSING:
+                    handleProcessingState();
+                    break;
+            }
+        }
+    }
 
-        // Continuously check if there are any new jobs in the FloorSubsystem.
+    /**
+     * Handles the processing state of the scheduler. Processes elevator requests from the FloorSubsystem.
+     */
+    private void handleProcessingState() {
+        Log.print("Scheduler is processing requests...");
+        Log.print("\n***********************************************\n");
         synchronized (floorSubsystem.getAllElevatorRequestsFromFloorSubsystem()) {
-            while (true) {
-                if (floorSubsystem.getAllElevatorRequestsFromFloorSubsystem().isEmpty()) {
-                    try {
-                        floorSubsystem.getAllElevatorRequestsFromFloorSubsystem().wait();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+            while (floorSubsystem.getAllElevatorRequestsFromFloorSubsystem().isEmpty()) {
+                try {
+                    floorSubsystem.getAllElevatorRequestsFromFloorSubsystem().wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
+            }
 
-                synchronized (schedulerRequestsQueue) {
-
-                    // Remove the ElevatorRequest from the FloorSubsystem
+            synchronized (schedulerRequestsQueue) {
+                while (!floorSubsystem.getAllElevatorRequestsFromFloorSubsystem().isEmpty()) {
                     ElevatorRequest er = floorSubsystem.getAllElevatorRequestsFromFloorSubsystem().remove(0);
 
                     Log.print("(FORWARD) Scheduler: Received ElevatorRequest(" + er + ") from FloorSubsystem at "
                             + LocalTime.now() + ".");
 
-                    // To be removed (for debug only)
-                    try {
-                        Thread.sleep(500);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-
-                    // add it to the queue
                     schedulerRequestsQueue.add(er);
-
-                    // Notify all threads.
                     schedulerRequestsQueue.notifyAll();
+
+                    Log.print("(FORWARD) Added elevator request " + er + " to request queue");
                 }
             }
         }
+        Log.print("\n***********************************************\n");
+        stateMachine.completeProcessing();
+        Log.print("Scheduler goes back to idle state");
+    }
+
+    /**
+     * Handles the idle state of the scheduler. Starts processing if the current state is IDLE.
+     */
+    private synchronized void handleIdleState() {
+        stateMachine.startProcessing();
     }
 
     /**
