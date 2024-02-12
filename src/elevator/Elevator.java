@@ -187,9 +187,6 @@ public class Elevator {
     /**
      * Simulate the movement of the elevator.
      */
-    /**
-     * Simulate the movement of the elevator.
-     */
     public void simulateElevatorMovement() {
         Log.print("\n***********************************************\n");
         Log.print("Elevator " + this.elevatorId + " is currently on floor " + this.currentFloor + " with door " +
