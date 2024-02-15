@@ -110,7 +110,9 @@ public class CSVParser {
             e.printStackTrace();
         }
 
+        Log.print("\n***********************************************\n");
         return elevatorRequests;
+
     }
 
 // Unused for now:

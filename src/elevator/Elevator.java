@@ -188,34 +188,41 @@ public class Elevator {
      * Simulate the movement of the elevator.
      */
     public void simulateElevatorMovement() {
-
-        // Print the current status of the elevator
-        Log.print("Elevator " + this.elevatorId + " is currently on floor " + this.currentFloor + " at " + LocalTime.now());
+        Log.print("\n***********************************************\n");
+        Log.print("Elevator " + this.elevatorId + " is currently on floor " + this.currentFloor + " with door " +
+                this.doorStatus.name().toLowerCase() + " at " + LocalTime.now());
 
         while (!elevatorQueue.isEmpty()) {
             // Extract the next destination floor from the queue
             int destinationFloor = elevatorQueue.poll();
-    
+
             // Determine the direction of movement
             ButtonDirection direction = destinationFloor > currentFloor ? ButtonDirection.UP : ButtonDirection.DOWN;
-    
+
             // Set the current direction of the elevator
             this.currDirection = direction;
-    
+
             // Turn on the motor
             this.setMotorStatus(MotorStatus.ON);
-    
+
             // Calculate the trip time
             double tripTime = findTravelTime(this.currentFloor, destinationFloor);
-    
+
             // Calculate the number of floors to move
             int floorsToMove = Math.abs(currentFloor - destinationFloor);
-    
+
+            Log.print("Elevator " + this.elevatorId + " is moving " + direction.name().toLowerCase() +
+                    " from floor " + this.currentFloor + " to floor " + destinationFloor +
+                    ". Estimated travel time: " + tripTime + " ms");
+
             // Move the elevator from the current floor to the destination floor
             for (int floorsMoved = 0; floorsMoved < floorsToMove; floorsMoved++) {
                 int nextFloor = direction == ButtonDirection.UP ? currentFloor + 1 : currentFloor - 1;
                 arrivedFloor(nextFloor);
-    
+
+                Log.print("Elevator " + this.elevatorId + " reached floor " + nextFloor +
+                        ". Floors moved: " + (floorsMoved + 1) + "/" + floorsToMove);
+
                 // If the elevator hasn't reached the destination floor yet, pause for the time
                 // it takes to travel one floor
                 if (floorsMoved + 1 < floorsToMove) {
@@ -227,9 +234,12 @@ public class Elevator {
                     }
                 }
             }
-    
+
             // If the elevator has reached the destination floor, turn off the motor
             this.setMotorStatus(MotorStatus.OFF);
+            Log.print("Elevator " + this.elevatorId + " has arrived at floor " + destinationFloor +
+                    " with door " + this.doorStatus.name().toLowerCase() + " at " + LocalTime.now());
+            Log.print("\n***********************************************\n");
         }
     }
 }
