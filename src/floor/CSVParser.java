@@ -43,7 +43,7 @@ public class CSVParser {
                     continue;
                 }
 
-                // 2. floor number
+                // 2. floor number (i.e. The current floor)
                 int floorNumber;
                 try {
                     floorNumber = Integer.parseInt(parts[1].trim());
@@ -68,22 +68,22 @@ public class CSVParser {
                         continue;
                 }
 
-                // 4. car/Elevator number
-                int carNumber;
+                // 4. Button press inside elevator (i.e. The designation floor)
+                int buttonID;
                 try {
-                    carNumber = Integer.parseInt(parts[3].trim());
+                    buttonID = Integer.parseInt(parts[3].trim());
                 } catch (NumberFormatException e) {
-                    Log.print("Invalid car number: " + parts[3].trim());
+                    Log.print("Invalid button number: " + parts[3].trim());
                     continue;
                 }
 
                 // Create ElevatorRequest
-                ElevatorRequest elevatorRequest = new ElevatorRequest(direction, floorNumber, carNumber, time);
+                ElevatorRequest elevatorRequest = new ElevatorRequest(time, floorNumber, direction, buttonID);
 
                 // Print request
                 Log.print(
                         "FloorSubsystem: Read ElevatorRequest(" + elevatorRequest + ") from File >> " + "Time: " + time
-                                + ", Floor: " + floorNumber + ", Direction: " + direction + ", Car: " + carNumber);
+                                + ", CurrentFloor: " + floorNumber + ", Direction: " + direction + ", ButtonPress/Destination: " + buttonID);
 
                 // To be removed (for debug only)
                 try {
@@ -110,7 +110,9 @@ public class CSVParser {
             e.printStackTrace();
         }
 
+        Log.print("\n***********************************************\n");
         return elevatorRequests;
+
     }
 
 // Unused for now:

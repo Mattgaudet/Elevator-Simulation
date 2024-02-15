@@ -35,15 +35,15 @@ public class ElevatorRequest {
 	/**
 	 * Create a new elevator request.
 	 * @param buttonDirection The requested direction.
-	 * @param buttonId The button ID.
-	 * @param floorNumber The requested floor number.
+	 * @param floorNumber The current floor.
+	 * @param buttonId The button ID - The button pressed inside the elevator (i.e. the designation floor)
 	 * @param currTime The time of the request.
 	 */
-	public ElevatorRequest(ButtonDirection buttonDirection, int buttonId, int floorNumber, LocalTime currTime) {
-		this.buttonDirection = buttonDirection;
-		this.buttonId = buttonId;
-		this.floorNumber = floorNumber;
+	public ElevatorRequest( LocalTime currTime, int floorNumber, ButtonDirection buttonDirection,  int buttonId) {
 		this.currTime = currTime;
+		this.floorNumber = floorNumber;
+		this.buttonDirection = buttonDirection;
+		this.buttonId = buttonId; 
 	}
 
 	/**

@@ -8,6 +8,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalTime;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -49,7 +51,7 @@ public class FloorSubsystemTest {
     @Test
     void addInAndRemoveOut() {
         floorSubsystem = new FloorSubsystem();
-        ElevatorRequest buttonPress = new ElevatorRequest(ElevatorRequest.ButtonDirection.UP, 1, 1, null);
+        ElevatorRequest buttonPress = new ElevatorRequest(LocalTime.now(), 1, ElevatorRequest.ButtonDirection.UP,1);
 
         floorSubsystem.addIn(buttonPress);
         assertEquals(1, floorSubsystem.getAllElevatorRequestsFromFloorSubsystem().size());
