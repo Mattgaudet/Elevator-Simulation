@@ -88,25 +88,46 @@ public class ElevatorSubsystem implements Runnable {
      * Removes a request from the scheduler, simulates elevator movement, and transitions to the next state.
      */
     private void handleMovingState() {
+        ElevatorRequest request;
         synchronized (this.elevatorSubsystemRequestsQueue) {
-            ElevatorRequest request = this.scheduler.getRequestQueueFromScheduler().remove(0); // Remove request
-            // from queue
-            this.elevatorSubsystemRequestsQueue.add(request);
-            Log.print("(FORWARD) ElevatorSubsystem: Received ElevatorRequest(" + request + ") from Scheduler at "
-                    + LocalTime.now());
+            ArrayList<ElevatorRequest> schedulerRequestQueue = scheduler.getRequestQueueFromScheduler();
+            for(ElevatorRequest e : schedulerRequestQueue) {
+                Log.print("(FORWARD) ElevatorSubsystem: Received ElevatorRequest(" + e + ") from Scheduler at "
+                        + LocalTime.now());
+            }
+            this.elevatorSubsystemRequestsQueue.addAll(schedulerRequestQueue);
+            request = elevatorSubsystemRequestsQueue.remove(0);
+            // add all requests currently in scheduler to elevatorSubsystemQueue
+
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+            //add first request in scheduler's queue
             this.elevatorCars[0].addRequestToElevatorQueue(request);
-            elevatorCars[0].simulateElevatorMovement();
-            state.completeProcessing();
-            state.transitionToUnloadPassengers();
-
+            ArrayList<ElevatorRequest> sentRequests = new ArrayList<>();
+            sentRequests.add(request);
+            //add all other requests in the same direction currently in the queue (should be limited to a number in future)
+            ButtonDirection b = request.getButtonDirection();
+            for (ElevatorRequest e : schedulerRequestQueue) {
+                if (e.getButtonDirection() == b && e != request) {
+                    sentRequests.add(e);
+                    elevatorCars[0].addRequestToElevatorQueue(e);
+                }
+            }
             this.elevatorSubsystemRequestsQueue.notifyAll(); // Notify all threads waiting on task list
 
-            this.scheduler.receiveRequestFromElevator(request);
+            elevatorCars[0].simulateElevatorMovement();
+            state.completeProcessing();
+            //state.transitionToUnloadPassengers();
+
+            for(ElevatorRequest e : sentRequests) {
+                //remove assigned requests from elevatorSubsystemQueue
+                this.elevatorSubsystemRequestsQueue.remove(e);
+                //notify scheduler that the request has been processed
+                this.scheduler.receiveRequestFromElevator(e);
+            }
 
             if (listener != null) {
                 listener.onRequestProcessed();
@@ -133,8 +154,8 @@ public class ElevatorSubsystem implements Runnable {
                     e.printStackTrace();
                 }
             }
-            handleLoadingState();
-
+            //handleLoadingState();
+            state.transitionToMoving();
         }
     }
 

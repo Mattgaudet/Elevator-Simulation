@@ -74,7 +74,7 @@ public class TestElevator {
     @Test
     void testFindTravelTime() {
         elevator = new Elevator(1);
-        assertEquals(2000, elevator.findTravelTime(0, 4));
+        assertEquals(2000, elevator.findTravelTime(4));
     }
 
     /**

@@ -1,12 +1,13 @@
 package floor;
 
 import java.time.LocalTime;
+import java.util.Comparator;
 
 /**
  * Represents an entry in the CSV file. Contains information for the action an
  * elevator needs to perform.
  */
-public class ElevatorRequest {
+public class ElevatorRequest implements Comparable<ElevatorRequest> {
 
 	/**
 	 * The requested direction.
@@ -31,6 +32,10 @@ public class ElevatorRequest {
 
 	/** The time of the request. */
 	private LocalTime currTime = LocalTime.now();
+	/**
+	 * Track whether the elevator request has been loaded with the passenger
+	 */
+	private boolean loaded = false;
 
 	/**
 	 * Create a new elevator request.
@@ -85,4 +90,28 @@ public class ElevatorRequest {
 	public LocalTime getTime() {
 		return this.currTime;
 	}
+
+	/**
+	 * Set loaded to true
+	 */
+	public void setLoaded() {
+		loaded = true;
+	}
+
+	/**
+	 * Return loaded
+	 * @return if the elevatorRequest is loaded
+	 */
+	public boolean isLoaded() {return this.loaded;}
+
+	/**
+	 * Compare ElevatorRequests by floor number
+	 * @param e the ElevatorRequest to be compared.
+	 * @return result of comparison
+	 */
+	@Override
+	public int compareTo(ElevatorRequest e) {
+		return Integer.compare(this.getFloorNumber(), e.getFloorNumber());
+	}
+
 }
