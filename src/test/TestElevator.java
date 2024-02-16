@@ -146,7 +146,7 @@ public class TestElevator {
         ElevatorRequest elevatorRequest2 = new ElevatorRequest(LocalTime.now(), 2, ElevatorRequest.ButtonDirection.UP, 5);
 
         elevator.addRequestToElevatorQueue(elevatorRequest); // Add 1
-        assertEquals(4, elevator.getElevatorQueue().peek()); // Check if 1 was added
+        assertEquals(4, elevator.getElevatorQueue().peek().getButtonId()); // Check if 1 was added
         elevator.addRequestToElevatorQueue(elevatorRequest2); // Add 3
         assertEquals(2, elevator.getElevatorQueue().size()); // Check if size is now 2 
 
@@ -175,9 +175,9 @@ public class TestElevator {
         ElevatorRequest elevatorRequest3 = new ElevatorRequest(LocalTime.now(), 3, ElevatorRequest.ButtonDirection.UP, 3);
         elevator.addRequestToElevatorQueue(elevatorRequest);
         elevator.addRequestToElevatorQueue(elevatorRequest2);
-        assertEquals(1, elevator.getElevatorQueue().peek());
+        assertEquals(1, elevator.getElevatorQueue().peek().getButtonId());
         elevator.removeRequestFromElevatorQueue();
-        assertEquals(2, elevator.getElevatorQueue().peek());
+        assertEquals(2, elevator.getElevatorQueue().peek().getButtonId());
     }
 }
 
