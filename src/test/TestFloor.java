@@ -53,7 +53,7 @@ public class TestFloor {
     @Test
     void getFloorNumber() {
         Scheduler scheduler = new Scheduler(new FloorSubsystem());
-        floor = new Floor(1, scheduler);
+        floor = new Floor(1);
         assertEquals(1, floor.getFloorNumber());
     }
 
@@ -63,7 +63,7 @@ public class TestFloor {
     @Test
     void changeLampStatus() {
         Scheduler scheduler = new Scheduler(new FloorSubsystem());
-        floor = new Floor(1, scheduler);
+        floor = new Floor(1);
 
         floor.changeLampStatus(ElevatorRequest.ButtonDirection.UP);
         assertTrue(floor.getUpLampOnStatus());

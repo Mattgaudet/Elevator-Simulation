@@ -3,6 +3,7 @@ package elevator;
 import config.Config;
 import floor.ElevatorRequest.ButtonDirection;
 import floor.ElevatorRequest;
+import elevator.ElevatorSubsystem;
 import java.time.LocalTime;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -32,6 +33,9 @@ public class Elevator {
     /** The direction of movement of the elevator. Either up, down, or none. */
     private ButtonDirection currDirection = ButtonDirection.NONE;
 
+    /** The elevator subsystem to use. */
+    private ElevatorSubsystem elevatorSubsystem;
+
     private PriorityQueue<Integer> elevatorQueue;
 
     /**
@@ -58,9 +62,10 @@ public class Elevator {
      * Create a new elevator with a unique ID.
      * @param elevatorId
      */
-    public Elevator(int elevatorId) {
+    public Elevator(int elevatorId, ElevatorSubsystem elevatorSubsystem) {
         this.elevatorId = elevatorId;
         this.elevatorQueue = new PriorityQueue<>(Comparator.comparingInt(i -> i));
+        this.elevatorSubsystem = elevatorSubsystem;
     }
 
     /**
@@ -219,6 +224,17 @@ public class Elevator {
             for (int floorsMoved = 0; floorsMoved < floorsToMove; floorsMoved++) {
                 int nextFloor = direction == ButtonDirection.UP ? currentFloor + 1 : currentFloor - 1;
                 arrivedFloor(nextFloor);
+
+                // Change the lamp status of the floor based on the direction
+                if (direction == ButtonDirection.UP) {
+                    // for debug only (can be removed)
+                    // Log.print("Requesting -> Lamp status of floors should change to " + direction.name());
+                    elevatorSubsystem.changeLampStatus(ButtonDirection.UP);
+
+                } else {
+                    elevatorSubsystem.changeLampStatus(ButtonDirection.DOWN);
+                }
+
 
                 Log.print("Elevator " + this.elevatorId + " reached floor " + nextFloor +
                         ". Floors moved: " + (floorsMoved + 1) + "/" + floorsToMove);
