@@ -3,6 +3,7 @@ package elevator;
 import config.Config;
 import floor.ElevatorRequest.ButtonDirection;
 import floor.ElevatorRequest;
+import elevator.ElevatorSubsystem;
 import java.time.LocalTime;
 import java.util.*;
 
@@ -31,6 +32,9 @@ public class Elevator {
     /** The queue of requests assigned to the elevator */
     private PriorityQueue<ElevatorRequest> elevatorQueue;
 
+    /** The elevator subsystem to use. */
+    private ElevatorSubsystem elevatorSubsystem;
+
     /**
      * The door status.
      */
@@ -55,9 +59,10 @@ public class Elevator {
      * Create a new elevator with a unique ID.
      * @param elevatorId
      */
-    public Elevator(int elevatorId) {
+    public Elevator(int elevatorId, ElevatorSubsystem elevatorSubsystem) {
         this.elevatorId = elevatorId;
         this.elevatorQueue = new PriorityQueue<>();
+        this.elevatorSubsystem = elevatorSubsystem;
     }
 
     /**
@@ -241,6 +246,17 @@ public class Elevator {
             int nextFloor = direction == ButtonDirection.UP ? currentFloor + 1 : currentFloor - 1;
             ArrayList<ElevatorRequest> removeList = new ArrayList<>();
             arrivedFloor(nextFloor);
+
+                // Change the lamp status of the floor based on the direction
+                if (direction == ButtonDirection.UP) {
+                    // for debug only (can be removed)
+                    // Log.print("Requesting -> Lamp status of floors should change to " + direction.name());
+                    elevatorSubsystem.changeLampStatus(ButtonDirection.UP);
+
+                } else {
+                    elevatorSubsystem.changeLampStatus(ButtonDirection.DOWN);
+                }
+
             boolean doorsOpened = false;
             //check if any unload requests on this floor
             for(ElevatorRequest e : elevatorQueue) {

@@ -54,7 +54,7 @@ public class ElevatorSubsystem implements Runnable {
      */
     public ElevatorSubsystem(Scheduler scheduler) {
         this.scheduler = scheduler;
-        this.elevatorCars[0] = new Elevator(0);
+        this.elevatorCars[0] = new Elevator(0, this);
     }
 
 
@@ -71,6 +71,7 @@ public class ElevatorSubsystem implements Runnable {
                         break;
                     case PROCESSING:
                         handleStartMovingState();
+                        break;
                     case MOVING:
                         handleMovingState();
                         break;
