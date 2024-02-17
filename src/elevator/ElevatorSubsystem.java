@@ -72,13 +72,9 @@ public class ElevatorSubsystem implements Runnable {
                     case PROCESSING:
                         handleStartMovingState();
                         break;
-                    case MOVING:
+                    case TRANSPORTING:
                         handleMovingState();
                         break;
-                    case UNLOADING_FOR_PASSENGERS:
-                        handleLoadingState();
-                        break;
-
                 }
             }
         }
@@ -150,28 +146,28 @@ public class ElevatorSubsystem implements Runnable {
         synchronized (this.scheduler.getRequestQueueFromScheduler()) {
             if (this.scheduler.getRequestQueueFromScheduler().isEmpty()) {
                 try {
-                    this.scheduler.getRequestQueueFromScheduler().wait(); // Wait for requests
+                    this.scheduler.getRequestQueueFromScheduler().wait();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
-            //handleLoadingState();
-            state.transitionToMoving();
+            handleLoadingPassengers();
+
         }
     }
 
     /**
      * Handles the behavior when the elevator subsystem is in the LOADING state.
      */
-    private void handleLoadingState() {
-        System.out.println("Loading...");
+    private void handleLoadingPassengers() {
+        Log.print("ElevatorSubsystem: Loading passengers...");
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        System.out.println("Loading is done");
-        state.transitionToMoving();
+        Log.print("ElevatorSubsystem: Loading passengers completed.");
+        state.transitionToTransporting();
     }
 
 

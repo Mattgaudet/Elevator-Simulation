@@ -1,6 +1,7 @@
 package elevator;
 
 import config.ProcessingHandler;
+import log.Log;
 
 public class ElevatorSubsystemStateMachine implements ProcessingHandler {
     private ElevatorSubsystemState currentState;
@@ -10,8 +11,8 @@ public class ElevatorSubsystemStateMachine implements ProcessingHandler {
      */
     public enum ElevatorSubsystemState {
         IDLE,
-        MOVING,
-        PROCESSING, UNLOADING_FOR_PASSENGERS
+        TRANSPORTING,
+        PROCESSING
     }
 
     /**
@@ -20,7 +21,7 @@ public class ElevatorSubsystemStateMachine implements ProcessingHandler {
     @Override
     public void completeProcessing() {
         currentState = ElevatorSubsystemState.IDLE;
-        System.out.println("Elevator Subsystem reset to IDLE state and stopped! ");
+        Log.print("Elevator Subsystem: Reset to IDLE state");
     }
 
     /**
@@ -40,7 +41,7 @@ public class ElevatorSubsystemStateMachine implements ProcessingHandler {
      */
     private void transitionToProcessing() {
         currentState = ElevatorSubsystemState.PROCESSING;
-        System.out.println("Elevator Subsystem transitioned to Processing requests state.");
+        Log.print("Elevator Subsystem transitioned to Processing requests state.");
     }
 
     /**
@@ -48,7 +49,7 @@ public class ElevatorSubsystemStateMachine implements ProcessingHandler {
      */
     public ElevatorSubsystemStateMachine() {
         currentState = ElevatorSubsystemState.IDLE;
-        System.out.println("Elevator Subsystem State Machine initialized in state: " + currentState);
+        Log.print("Elevator Subsystem State Machine initialized in state: " + currentState);
     }
 
     /**
@@ -63,17 +64,9 @@ public class ElevatorSubsystemStateMachine implements ProcessingHandler {
     /**
      * Transitions the elevator subsystem to the MOVING state and prints a corresponding message.
      */
-    public void transitionToMoving() {
-        currentState = ElevatorSubsystemState.MOVING;
-        System.out.println("Transitioned to MOVING state.");
-    }
-
-    /**
-     * Transitions the elevator subsystem to the UNLOADING_FOR_PASSENGERS state and prints a corresponding message.
-     */
-    public void transitionToUnloadPassengers() {
-        currentState = ElevatorSubsystemState.UNLOADING_FOR_PASSENGERS;
-        System.out.println("Transitioned to UNLOADING_FOR_PASSENGERS state.");
+    public void transitionToTransporting() {
+        currentState = ElevatorSubsystemState.TRANSPORTING;
+        Log.print("Elevator Subsystem: Transitioned to TRANSPORTING state. En route to destination.");
     }
 }
 
