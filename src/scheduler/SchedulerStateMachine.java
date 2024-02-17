@@ -1,6 +1,7 @@
 package scheduler;
 
 import config.ProcessingHandler;
+import log.Log;
 
 public class SchedulerStateMachine implements ProcessingHandler {
     /**
@@ -18,7 +19,7 @@ public class SchedulerStateMachine implements ProcessingHandler {
      */
     public SchedulerStateMachine() {
         this.currentState = SchedulerState.IDLE;
-        System.out.println("Scheduler Subsystem State Machine initialized in state: " + currentState);
+        Log.print("Scheduler Subsystem State Machine initialized in state: " + currentState);
     }
 
     /**
