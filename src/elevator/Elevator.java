@@ -211,17 +211,16 @@ public class Elevator {
             //check if the elevator needs to move in opposite direction to get to starting floor
             if ((startingFloor < currentFloor && currDirection == ButtonDirection.UP) || (startingFloor > currentFloor &&
                     currDirection == ButtonDirection.DOWN)) {
-                //reverse direction
-                currDirection = currDirection == ButtonDirection.UP ? ButtonDirection.DOWN : ButtonDirection.UP;
-                //move the elevator
-                moveElevator(startingFloor, currDirection, true);
-                //reverse direction again
-                currDirection = currDirection == ButtonDirection.UP ? ButtonDirection.DOWN : ButtonDirection.UP;
+                //direction to starting floor is the opposite of the direction the destination
+                ButtonDirection directionToStartingFloor = currDirection == ButtonDirection.UP ?
+                        ButtonDirection.DOWN : ButtonDirection.UP;
+                //move the elevator to starting floor
+                moveElevator(startingFloor, directionToStartingFloor, true);
             }
             //move to destination
             moveElevator(request.getButtonId(), currDirection, false);
         }
-        // If the elevator has reached the destination floor, turn off the motor
+        // If the elevator has reached the destination floor and completed all requests, turn off the motor
         this.setMotorStatus(MotorStatus.OFF);
         Log.print("Elevator " + this.elevatorId + " is waiting for next request at floor " + currentFloor +
                 " with door " + this.doorStatus.name().toLowerCase() + " at " + LocalTime.now());
