@@ -4,7 +4,8 @@ import floor.ElevatorRequest.ButtonDirection;
 import floor.ElevatorRequest;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import log.Log;
+
+import common.Log;
 import scheduler.Scheduler;
 
 /**
@@ -57,7 +58,6 @@ public class ElevatorSubsystem implements Runnable {
         this.elevatorCars[0] = new Elevator(0);
     }
 
-
     /**
      * The entrypoint of the system. Pulls messages from the scheduler, forwards
      * them to the elevators, and sends them back to the scheduler.
@@ -70,21 +70,18 @@ public class ElevatorSubsystem implements Runnable {
                         handleIdleState();
                         break;
                     case PROCESSING:
-                        handleStartMovingState();
-                    case MOVING:
+                        handleProcessingState();
+                        break;
+                    case TRANSPORTING:
                         handleMovingState();
                         break;
-                    case UNLOADING_FOR_PASSENGERS:
-                        handleLoadingState();
-                        break;
-
                 }
             }
         }
     }
 
     /**
-     * Handles the behavior when the elevator subsystem is in the MOVING state.
+     * Handles the behavior when the elevator subsystem is in the TRANSPORTING state.
      * Removes a request from the scheduler, simulates elevator movement, and transitions to the next state.
      */
     private void handleMovingState() {
@@ -101,8 +98,7 @@ public class ElevatorSubsystem implements Runnable {
             }
             this.elevatorCars[0].addRequestToElevatorQueue(request);
             elevatorCars[0].simulateElevatorMovement();
-            state.completeProcessing();
-            state.transitionToUnloadPassengers();
+            state.startIdling();
 
             this.elevatorSubsystemRequestsQueue.notifyAll(); // Notify all threads waiting on task list
 
@@ -122,9 +118,9 @@ public class ElevatorSubsystem implements Runnable {
     }
 
     /**
-     * Handles the behavior when the elevator subsystem is in the MOVING state.
+     * Handles the behavior when the elevator subsystem is in the TRANSPORTING state.
      */
-    private void handleStartMovingState() {
+    private void handleProcessingState() {
         synchronized (this.scheduler.getRequestQueueFromScheduler()) {
             if (this.scheduler.getRequestQueueFromScheduler().isEmpty()) {
                 try {
@@ -133,25 +129,9 @@ public class ElevatorSubsystem implements Runnable {
                     e.printStackTrace();
                 }
             }
-            handleLoadingState();
-
         }
+        state.startTransporting();
     }
-
-    /**
-     * Handles the behavior when the elevator subsystem is in the LOADING state.
-     */
-    private void handleLoadingState() {
-        System.out.println("Loading...");
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        System.out.println("Loading is done");
-        state.transitionToMoving();
-    }
-
 
     /**
      * Get the requests from the scheduler for testing.

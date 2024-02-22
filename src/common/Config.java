@@ -1,4 +1,4 @@
-package config;
+package common;
 
 /**
  * Constants for floor, elevator, and scheduler systems.

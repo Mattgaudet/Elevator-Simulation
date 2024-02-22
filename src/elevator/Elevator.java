@@ -1,15 +1,12 @@
 package elevator;
 
-import config.Config;
+import common.Config;
+import common.Log;
 import floor.ElevatorRequest.ButtonDirection;
 import floor.ElevatorRequest;
 import java.time.LocalTime;
 import java.util.Comparator;
-import java.util.LinkedList;
 import java.util.PriorityQueue;
-import java.util.Stack;
-
-import log.Log;
 
 /**
  * Represents a single 'Elevator' or 'Elevator Car'. Used by the ElevatorSubsystem
@@ -125,9 +122,9 @@ public class Elevator {
     public void addRequestToElevatorQueue(ElevatorRequest request) {
         if (elevatorQueue.isEmpty()) {
             if (request.getButtonDirection() == ButtonDirection.UP) {
-                PriorityQueue<Integer> queue = new PriorityQueue<>(); // default is up
+                elevatorQueue  = new PriorityQueue<>(); // default is up
             } else {
-                PriorityQueue<Integer> queue = new PriorityQueue<>(Comparator.reverseOrder());
+                elevatorQueue = new PriorityQueue<>(Comparator.reverseOrder());
             }
         } else {
             if (request.getButtonDirection() == ButtonDirection.UP) {
