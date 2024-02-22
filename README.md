@@ -10,7 +10,7 @@ The goal of this project is to simulate an elevator system and showcase how elev
 
 ## Usage
 - Run `Main.java` to start the simulation.
-- Input requests can be modified in the CSV file specified by `input.txt` in the res folder.
+- Input requests can be modified in the CSV file specified by `input.csv` in the res folder.
 
 ## Components
 - **config**

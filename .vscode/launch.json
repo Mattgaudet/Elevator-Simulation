@@ -5,6 +5,13 @@
             "name": "Main",
             "request": "launch",
             "mainClass": "main.Main",
+            "projectName": "group_project_8009f3f7"
+        },
+        {
+            "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "main.Main",
             "projectName": "SYSC 3303 Group Project_444ed0b0"
         }
     ]

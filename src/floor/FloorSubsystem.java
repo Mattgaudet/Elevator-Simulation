@@ -4,7 +4,7 @@ import floor.ElevatorRequest.ButtonDirection;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
-import log.Log;
+import common.Log;
 
 /**
  * Create a new floor subsystem to manage the floors.
@@ -26,12 +26,9 @@ public class FloorSubsystem implements Runnable {
     /** The number of executed requests */
     private int numExecutedRequests;
 
-
     /**
      * Create a new floor subsystem.
      */
-
-    // Constructor with filePath parameter, to be called from main
     public FloorSubsystem(String filePath) {
         this.filePath = filePath;
         elevatorRequests = new ArrayList<>();
@@ -41,7 +38,7 @@ public class FloorSubsystem implements Runnable {
 
     // Default constructor
     public FloorSubsystem() {
-        this("res/input.txt"); // Call the other constructor with the default file path
+        this("res/input.csv"); // Call the other constructor with the default file path
         // No need to initialize other fields since the other constructor does that
     }
 
