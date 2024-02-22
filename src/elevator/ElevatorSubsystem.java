@@ -130,14 +130,6 @@ public class ElevatorSubsystem implements Runnable {
                 }
             }
         }
-
-        System.out.println("Loading...");
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        System.out.println("Loading is done");
         state.startTransporting();
     }
 
