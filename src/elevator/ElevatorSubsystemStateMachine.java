@@ -41,7 +41,7 @@ public class ElevatorSubsystemStateMachine {
     }
 
     /**
-     * Transitions the elevator subsystem to the MOVING state and prints a corresponding message.
+     * Transitions the elevator subsystem to the TRANSPORTING state and prints a corresponding message.
      */
     public void startTransporting() {
         currentState = ElevatorSubsystemState.TRANSPORTING;

@@ -81,7 +81,7 @@ public class ElevatorSubsystem implements Runnable {
     }
 
     /**
-     * Handles the behavior when the elevator subsystem is in the MOVING state.
+     * Handles the behavior when the elevator subsystem is in the TRANSPORTING state.
      * Removes a request from the scheduler, simulates elevator movement, and transitions to the next state.
      */
     private void handleMovingState() {
@@ -118,7 +118,7 @@ public class ElevatorSubsystem implements Runnable {
     }
 
     /**
-     * Handles the behavior when the elevator subsystem is in the MOVING state.
+     * Handles the behavior when the elevator subsystem is in the TRANSPORTING state.
      */
     private void handleProcessingState() {
         synchronized (this.scheduler.getRequestQueueFromScheduler()) {
