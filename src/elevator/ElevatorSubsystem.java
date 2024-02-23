@@ -55,7 +55,7 @@ public class ElevatorSubsystem implements Runnable {
      */
     public ElevatorSubsystem(Scheduler scheduler) {
         this.scheduler = scheduler;
-        this.elevatorCars[0] = new Elevator(0);
+        this.elevatorCars[0] = new Elevator(0, this);
     }
 
     /**
@@ -85,24 +85,45 @@ public class ElevatorSubsystem implements Runnable {
      * Removes a request from the scheduler, simulates elevator movement, and transitions to the next state.
      */
     private void handleMovingState() {
+        ElevatorRequest request;
         synchronized (this.elevatorSubsystemRequestsQueue) {
-            ElevatorRequest request = this.scheduler.getRequestQueueFromScheduler().remove(0); // Remove request
-            // from queue
-            this.elevatorSubsystemRequestsQueue.add(request);
-            Log.print("(FORWARD) ElevatorSubsystem: Received ElevatorRequest(" + request + ") from Scheduler at "
-                    + LocalTime.now());
+            ArrayList<ElevatorRequest> schedulerRequestQueue = scheduler.getRequestQueueFromScheduler();
+            for(ElevatorRequest e : schedulerRequestQueue) {
+                Log.print("(FORWARD) ElevatorSubsystem: Received ElevatorRequest(" + e + ") from Scheduler at "
+                        + LocalTime.now());
+            }
+            this.elevatorSubsystemRequestsQueue.addAll(schedulerRequestQueue);
+            request = elevatorSubsystemRequestsQueue.remove(0);
+            // add all requests currently in scheduler to elevatorSubsystemQueue
+
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+            //add first request in scheduler's queue
             this.elevatorCars[0].addRequestToElevatorQueue(request);
+            ArrayList<ElevatorRequest> sentRequests = new ArrayList<>();
+            sentRequests.add(request);
+            //add all other requests in the same direction currently in the queue (should be limited to a number in future)
+            ButtonDirection b = request.getButtonDirection();
+            for (ElevatorRequest e : schedulerRequestQueue) {
+                if (e.getButtonDirection() == b && e != request) {
+                    sentRequests.add(e);
+                    elevatorCars[0].addRequestToElevatorQueue(e);
+                }
+            }
+            this.elevatorSubsystemRequestsQueue.notifyAll(); // Notify all threads waiting on task list
+
             elevatorCars[0].simulateElevatorMovement();
             state.startIdling();
 
-            this.elevatorSubsystemRequestsQueue.notifyAll(); // Notify all threads waiting on task list
-
-            this.scheduler.receiveRequestFromElevator(request);
+            for(ElevatorRequest e : sentRequests) {
+                //remove assigned requests from elevatorSubsystemQueue
+                this.elevatorSubsystemRequestsQueue.remove(e);
+                //notify scheduler that the request has been processed
+                this.scheduler.receiveRequestFromElevator(e);
+            }
 
             if (listener != null) {
                 listener.onRequestProcessed();
@@ -124,7 +145,7 @@ public class ElevatorSubsystem implements Runnable {
         synchronized (this.scheduler.getRequestQueueFromScheduler()) {
             if (this.scheduler.getRequestQueueFromScheduler().isEmpty()) {
                 try {
-                    this.scheduler.getRequestQueueFromScheduler().wait(); // Wait for requests
+                    this.scheduler.getRequestQueueFromScheduler().wait();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -132,7 +153,7 @@ public class ElevatorSubsystem implements Runnable {
         }
         state.startTransporting();
     }
-
+  
     /**
      * Get the requests from the scheduler for testing.
      * @return The requests from the scheduler for testing.

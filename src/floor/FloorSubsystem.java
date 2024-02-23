@@ -32,7 +32,10 @@ public class FloorSubsystem implements Runnable {
     public FloorSubsystem(String filePath) {
         this.filePath = filePath;
         elevatorRequests = new ArrayList<>();
-        floorArray = new Floor[0];
+        floorArray = new Floor[10]; // 10 floors for now
+        for (int i = 0; i < floorArray.length; i++) {
+            floorArray[i] = new Floor(i+1); // Initialize each Floor object in the array
+        }
         numExecutedRequests = 0;
     }
 
@@ -96,9 +99,11 @@ public class FloorSubsystem implements Runnable {
      * @param direction The directional status of the lamp for all floors.
      */
     public void changeLampStatus(ButtonDirection direction) {
+
         for (Floor floor : floorArray) {
             floor.changeLampStatus(direction);
         }
+        
     }
 
     /**

@@ -4,9 +4,11 @@ import common.Config;
 import common.Log;
 import floor.ElevatorRequest.ButtonDirection;
 import floor.ElevatorRequest;
+import elevator.ElevatorSubsystem;
 import java.time.LocalTime;
 import java.util.Comparator;
 import java.util.PriorityQueue;
+import java.util.ArrayList;
 
 /**
  * Represents a single 'Elevator' or 'Elevator Car'. Used by the ElevatorSubsystem
@@ -28,8 +30,11 @@ public class Elevator {
 
     /** The direction of movement of the elevator. Either up, down, or none. */
     private ButtonDirection currDirection = ButtonDirection.NONE;
+    /** The queue of requests assigned to the elevator */
+    private PriorityQueue<ElevatorRequest> elevatorQueue;
 
-    private PriorityQueue<Integer> elevatorQueue;
+    /** The elevator subsystem to use. */
+    private ElevatorSubsystem elevatorSubsystem;
 
     /**
      * The door status.
@@ -55,9 +60,10 @@ public class Elevator {
      * Create a new elevator with a unique ID.
      * @param elevatorId
      */
-    public Elevator(int elevatorId) {
+    public Elevator(int elevatorId, ElevatorSubsystem elevatorSubsystem) {
         this.elevatorId = elevatorId;
-        this.elevatorQueue = new PriorityQueue<>(Comparator.comparingInt(i -> i));
+        this.elevatorQueue = new PriorityQueue<>();
+        this.elevatorSubsystem = elevatorSubsystem;
     }
 
     /**
@@ -122,27 +128,26 @@ public class Elevator {
     public void addRequestToElevatorQueue(ElevatorRequest request) {
         if (elevatorQueue.isEmpty()) {
             if (request.getButtonDirection() == ButtonDirection.UP) {
-                elevatorQueue  = new PriorityQueue<>(); // default is up
+                elevatorQueue = new PriorityQueue<>(); // default is up
             } else {
                 elevatorQueue = new PriorityQueue<>(Comparator.reverseOrder());
             }
         } else {
             if (request.getButtonDirection() == ButtonDirection.UP) {
-                assert request.getButtonId() >= elevatorQueue.peek(); // this should not happen
+                assert request.getButtonId() >= elevatorQueue.peek().getButtonId(); // this should not happen
             } else {
-                assert request.getButtonId() <= elevatorQueue.peek(); // this should not happen
-
+                assert request.getButtonId() <= elevatorQueue.peek().getButtonId(); // this should not happen
             }
         }
-        elevatorQueue.add(request.getButtonId());
+        elevatorQueue.add(request);
     }
 
     public void removeRequestFromElevatorQueue() {
-        Integer nextRequest = elevatorQueue.poll(); // Remove the next request if available, else will be null
+        ElevatorRequest nextRequest = elevatorQueue.poll(); // Remove the next request if available, else will be null
         // TODO: Don't need this assignment eventually, but useful for debugging
     }
 
-    public PriorityQueue<Integer> getElevatorQueue(){
+    public PriorityQueue<ElevatorRequest> getElevatorQueue(){
         return this.elevatorQueue;
     }
 
@@ -160,13 +165,11 @@ public class Elevator {
 
     /**
      * Calculate the travel time from one floor to another.
-     * @param startFloor The starting the floor.
-     * @param endFloor The destination floor.
+     * @param numFloors The number of floors.
      * @return The travel time in milliseconds.
      */
-    public int findTravelTime(int startFloor, int endFloor) {
-        int floorDistance = Math.abs(startFloor - endFloor);
-        double travelTime = floorDistance * 1.0 / Config.FLOORS_PER_SECOND; // Assuming the elevator travels at a speed of 0.5 seconds per floor
+    public int findTravelTime(int numFloors) {
+        double travelTime = numFloors * 1.0 / Config.FLOORS_PER_SECOND; // Assuming the elevator travels at a speed of 0.5 seconds per floor
         return (int) (Math.round(travelTime * 1000));
     }
 
@@ -177,7 +180,7 @@ public class Elevator {
      */
     public int arrivedFloor(int floorNum) {
         this.currentFloor = floorNum;
-        Log.print("Elevator " + this.elevatorId + " arrived at floor " + floorNum + " at " + LocalTime.now());
+        Log.print("Elevator " + this.elevatorId + " reached floor " + floorNum + " at " + LocalTime.now());
         return -1;
     }
 
@@ -188,55 +191,122 @@ public class Elevator {
         Log.print("\n***********************************************\n");
         Log.print("Elevator " + this.elevatorId + " is currently on floor " + this.currentFloor + " with door " +
                 this.doorStatus.name().toLowerCase() + " at " + LocalTime.now());
-
+        int destinationFloor;
         while (!elevatorQueue.isEmpty()) {
             // Extract the next destination floor from the queue
-            int destinationFloor = elevatorQueue.poll();
+            ElevatorRequest request = elevatorQueue.peek();
+            destinationFloor = request.getButtonId();
+            int startingFloor = request.getFloorNumber();
 
             // Determine the direction of movement
-            ButtonDirection direction = destinationFloor > currentFloor ? ButtonDirection.UP : ButtonDirection.DOWN;
-
-            // Set the current direction of the elevator
-            this.currDirection = direction;
+            currDirection = destinationFloor > startingFloor ? ButtonDirection.UP : ButtonDirection.DOWN;
 
             // Turn on the motor
             this.setMotorStatus(MotorStatus.ON);
 
-            // Calculate the trip time
-            double tripTime = findTravelTime(this.currentFloor, destinationFloor);
+            //open doors if already on same floor as the request
+            if (request.getFloorNumber() == currentFloor) {
+                loadElevator("loading", currentFloor);
+                request.setLoaded();
+            }
+            //check if the elevator needs to move in opposite direction to get to starting floor
+            if ((startingFloor < currentFloor && currDirection == ButtonDirection.UP) || (startingFloor > currentFloor &&
+                    currDirection == ButtonDirection.DOWN)) {
+                //direction to starting floor is the opposite of the direction the destination
+                ButtonDirection directionToStartingFloor = currDirection == ButtonDirection.UP ?
+                        ButtonDirection.DOWN : ButtonDirection.UP;
+                //move the elevator to starting floor
+                moveElevator(startingFloor, directionToStartingFloor, true);
+            }
+            //move to destination
+            moveElevator(request.getButtonId(), currDirection, false);
+        }
+        // If the elevator has reached the destination floor and completed all requests, turn off the motor
+        this.setMotorStatus(MotorStatus.OFF);
+        Log.print("Elevator " + this.elevatorId + " is waiting for next request at floor " + currentFloor +
+                " with door " + this.doorStatus.name().toLowerCase() + " at " + LocalTime.now());
+        Log.print("\n***********************************************\n");
+    }
 
-            // Calculate the number of floors to move
-            int floorsToMove = Math.abs(currentFloor - destinationFloor);
+    /**
+     * Move the elevator to destination floor by moving to pick up the first request in the queue, and also completes
+     * other requests when possible
+     * @param destinationFloor the floor to go to
+     * @param direction
+     * @param isInitialPickup true if elevator must move in opposite direction for initial pickup
+     */
+    public void moveElevator(int destinationFloor, ButtonDirection direction, boolean isInitialPickup) {
+        int floorsToMove = Math.abs(currentFloor - destinationFloor);
+        double tripTime = findTravelTime(floorsToMove);
+        Log.print("Elevator " + this.elevatorId + " is moving " + direction.name().toLowerCase() +
+                " from floor " + this.currentFloor + " to floor " + destinationFloor +
+                ". Estimated travel time: " + tripTime + " ms");
+        // Move the elevator from the current floor to the destination floor
+        for (int floorsMoved = 0; floorsMoved < floorsToMove; floorsMoved++) {
+            int nextFloor = direction == ButtonDirection.UP ? currentFloor + 1 : currentFloor - 1;
+            ArrayList<ElevatorRequest> removeList = new ArrayList<>();
+            arrivedFloor(nextFloor);
 
-            Log.print("Elevator " + this.elevatorId + " is moving " + direction.name().toLowerCase() +
-                    " from floor " + this.currentFloor + " to floor " + destinationFloor +
-                    ". Estimated travel time: " + tripTime + " ms");
+                // Change the lamp status of the floor based on the direction
+                if (direction == ButtonDirection.UP) {
+                    // for debug only (can be removed)
+                    // Log.print("Requesting -> Lamp status of floors should change to " + direction.name());
+                    elevatorSubsystem.changeLampStatus(ButtonDirection.UP);
 
-            // Move the elevator from the current floor to the destination floor
-            for (int floorsMoved = 0; floorsMoved < floorsToMove; floorsMoved++) {
-                int nextFloor = direction == ButtonDirection.UP ? currentFloor + 1 : currentFloor - 1;
-                arrivedFloor(nextFloor);
+                } else {
+                    elevatorSubsystem.changeLampStatus(ButtonDirection.DOWN);
+                }
 
-                Log.print("Elevator " + this.elevatorId + " reached floor " + nextFloor +
-                        ". Floors moved: " + (floorsMoved + 1) + "/" + floorsToMove);
-
-                // If the elevator hasn't reached the destination floor yet, pause for the time
-                // it takes to travel one floor
-                if (floorsMoved + 1 < floorsToMove) {
-                    try {
-                        Thread.sleep((int) tripTime);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt(); // Re-interrupt the thread
-                        throw new RuntimeException("Thread was interrupted", e);
+            boolean doorsOpened = false;
+            //check if any unload requests on this floor
+            for(ElevatorRequest e : elevatorQueue) {
+                if(nextFloor == e.getButtonId() && e.isLoaded()) {
+                    loadElevator("unloading", nextFloor); //unload the elevator
+                    removeList.add(e);
+                    doorsOpened = true;
+                }
+                //check if any load requests on this floor in same direction
+                else if(e.getFloorNumber() == nextFloor && ((e.getButtonDirection() != direction && isInitialPickup) ||
+                        (e.getButtonDirection() == direction && !isInitialPickup))){
+                    if(!doorsOpened) { //prevents doors from opening twice on same floor
+                        loadElevator("loading", nextFloor); //load the elevator
+                        doorsOpened = true;
                     }
+                    else { Log.print("Additional passenger got on elevator at floor " + nextFloor + "!");}
+                    //adjust floorsToMove and destination to accommodate new request if necessary
+                    if((direction == ButtonDirection.UP && e.getButtonId() > destinationFloor) ||
+                            (direction == ButtonDirection.DOWN && e.getButtonId() < destinationFloor)) {
+                        floorsToMove += Math.abs(e.getButtonId() - destinationFloor);
+                        destinationFloor = e.getButtonId();
+                    }
+                    e.setLoaded();
                 }
             }
-
-            // If the elevator has reached the destination floor, turn off the motor
-            this.setMotorStatus(MotorStatus.OFF);
-            Log.print("Elevator " + this.elevatorId + " has arrived at floor " + destinationFloor +
-                    " with door " + this.doorStatus.name().toLowerCase() + " at " + LocalTime.now());
-            Log.print("\n***********************************************\n");
+            //remove completed requests
+            for(ElevatorRequest e : removeList) { elevatorQueue.remove(e); }
+            // If the elevator hasn't reached the destination floor yet, pause for the time
+            // it takes to travel one floor
+            if (floorsMoved + 1 < floorsToMove) {
+                try {
+                    Thread.sleep((int) tripTime);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt(); // Re-interrupt the thread
+                    throw new RuntimeException("Thread was interrupted", e);
+                }
+            }
         }
+    }
+
+    /**
+     * Opens the doors, waits for passengers to load/unload, then closes doors
+     * @param loadingType use "loading" or "unloading"
+     * @param nextFloor the floor that the elevator is stopped at
+     */
+    public void loadElevator(String loadingType, int nextFloor) {
+        Log.print("Stopping for " + loadingType + " at floor " + nextFloor);
+        setDoorStatus(DoorStatus.OPEN);
+        timeToLoadPassengers(1);
+        //Log.print("Passenger " + loadingType + "!");
+        setDoorStatus(DoorStatus.CLOSED);
     }
 }

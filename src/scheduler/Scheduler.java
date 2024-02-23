@@ -90,7 +90,7 @@ public class Scheduler implements Runnable {
 
         // send the request to the floorSubsystem
         this.floorSubsystem.receiveRequestFromScheduler(request);
-
+        this.schedulerRequestsQueue.remove(request); //remove from queue
         notifyAll(); // Notify any threads that are waiting for new requests
     }
 

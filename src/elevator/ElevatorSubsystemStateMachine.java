@@ -1,5 +1,7 @@
 package elevator;
 
+import common.Log;
+
 /**
  * Represents the state of the elevator subsystem.
  */
@@ -20,16 +22,14 @@ public class ElevatorSubsystemStateMachine {
     /**
      * Initializes the elevator subsystem state machine in the IDLE state and prints an initialization message.
      */
-    public ElevatorSubsystemStateMachine() {
-        startIdling();
-    }
+    public ElevatorSubsystemStateMachine() { startIdling(); }
 
     /**
      * Resets the elevator subsystem to the IDLE state and prints a corresponding message.
      */
     public void startIdling() {
         currentState = ElevatorSubsystemState.IDLE;
-        System.out.println("Elevator Subsystem reset to IDLE state and stopped! ");
+        Log.print("Elevator Subsystem: Reset to IDLE state");
     }
 
     /**
@@ -37,7 +37,7 @@ public class ElevatorSubsystemStateMachine {
      */
     public void startProcessing() {
         currentState = ElevatorSubsystemState.PROCESSING;
-        System.out.println("Elevator Subsystem transitioned to Processing requests state.");
+        Log.print("Elevator Subsystem transitioned to Processing requests state.");
     }
 
     /**
@@ -45,7 +45,7 @@ public class ElevatorSubsystemStateMachine {
      */
     public void startTransporting() {
         currentState = ElevatorSubsystemState.TRANSPORTING;
-        System.out.println("Transitioned to TRANSPORTING state.");
+        Log.print("Transitioned to TRANSPORTING state.");
     }
 
     /**

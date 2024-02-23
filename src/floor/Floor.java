@@ -28,11 +28,9 @@ public class Floor {
     /**
      * Create a new floor.
      * @param floorNumber The floor number that the floor is on.
-     * @param scheduler The scheduler to use.
      */
-    public Floor(int floorNumber, Scheduler scheduler) {
+    public Floor(int floorNumber) {
         this.floorNumber = floorNumber;
-        this.scheduler = scheduler;
     }
 
     /**
@@ -50,7 +48,6 @@ public class Floor {
     public void changeLampStatus(ButtonDirection direction) {
         isUpLampOn = direction == ButtonDirection.UP;
         isDownLampOn = direction == ButtonDirection.DOWN;
-
         if (isUpLampOn) {
             Log.print("At Floor " + floorNumber + ", Up Lamp is On");
         } else if (isDownLampOn) {

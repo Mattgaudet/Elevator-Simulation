@@ -18,9 +18,7 @@ public class SchedulerStateMachine {
     /**
      * Initializes the scheduler subsystem state machine in the IDLE state and prints an initialization message.
      */
-    public SchedulerStateMachine() {
-        startIdling();
-    }
+    public SchedulerStateMachine() { startIdling(); }
 
     /**
      * Gets the current state of the scheduler subsystem.
