@@ -1,12 +1,8 @@
 package floor;
 
 import scheduler.Scheduler;
+import common.Log;
 import floor.ElevatorRequest.ButtonDirection;
-import log.Log;
-
-// Represents a floor of a building.
-// Stores basic data about the current status of the floor.
-// Processes the information in a table format.
 
 /**
  * Represents a floor of a building. Stores basic information about the current

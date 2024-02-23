@@ -14,7 +14,7 @@ class CSVParserTest {
     void parseCSVTest() {
         // testing
         CSVParser parser = new CSVParser();
-        List<ElevatorRequest> elevatorRequestList = parser.parseCSV("res/input.txt");
+        List<ElevatorRequest> elevatorRequestList = parser.parseCSV("res/input.csv");
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("H:mm:ss:SSS");
         String formattedTime = elevatorRequestList.get(0).getTime().format(formatter);

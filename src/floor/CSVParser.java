@@ -7,7 +7,8 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-import log.Log;
+
+import common.Log;
 
 /**
  * The CSV parser for the elevator requests.

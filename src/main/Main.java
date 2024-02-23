@@ -11,14 +11,14 @@ public class Main {
 
     /**
      * The entrypoint of the application. Creates all of the systems.
-     * @param args is the file path to the data. Default to res/input.txt
+     * @param args is the file path to the data. Default to res/input.csv
      *             if no arguments are provided.
      */
     public static void main(String[] args) {
 
         Thread schedulerThread, elevatorSubsystemThread, floorSubsystemThread;
 
-        String filePath = "res/input.txt"; // Default file path
+        String filePath = "res/input.csv"; // Default file path
         if (args.length > 0) {
             filePath = args[0]; // Use provided file path
         }

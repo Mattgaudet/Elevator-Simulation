@@ -1,13 +1,13 @@
 package elevator;
 
-import config.Config;
+import common.Config;
+import common.Log;
 import floor.ElevatorRequest.ButtonDirection;
 import floor.ElevatorRequest;
 import elevator.ElevatorSubsystem;
 import java.time.LocalTime;
-import java.util.*;
-
-import log.Log;
+import java.util.Comparator;
+import java.util.PriorityQueue;
 
 /**
  * Represents a single 'Elevator' or 'Elevator Car'. Used by the ElevatorSubsystem

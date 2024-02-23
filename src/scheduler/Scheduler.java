@@ -5,7 +5,7 @@ import floor.ElevatorRequest;
 import floor.FloorSubsystem;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import log.Log;
+import common.Log;
 
 /**
  * Communicates between the ElevatorSubsystem and the FloorSubsystem. The Scheduler
@@ -143,14 +143,14 @@ public class Scheduler implements Runnable {
             }
         }
         Log.print("\n***********************************************\n");
-        stateMachine.completeProcessing();
+        stateMachine.startIdling();
         Log.print("Scheduler goes back to idle state");
     }
 
     /**
      * Handles the idle state of the scheduler. Starts processing if the current state is IDLE.
      */
-    private synchronized void handleIdleState() {
+    private void handleIdleState() {
         stateMachine.startProcessing();
     }
 

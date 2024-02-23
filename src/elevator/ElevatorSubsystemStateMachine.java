@@ -1,9 +1,11 @@
 package elevator;
 
-import config.ProcessingHandler;
-import log.Log;
+/**
+ * Represents the state of the elevator subsystem.
+ */
+public class ElevatorSubsystemStateMachine {
 
-public class ElevatorSubsystemStateMachine implements ProcessingHandler {
+    /** The current state of the elevator subsystem.  */
     private ElevatorSubsystemState currentState;
 
     /**
@@ -16,10 +18,14 @@ public class ElevatorSubsystemStateMachine implements ProcessingHandler {
     }
 
     /**
+     * Initializes the elevator subsystem state machine in the IDLE state and prints an initialization message.
+     */
+    public ElevatorSubsystemStateMachine() { startIdling(); }
+
+    /**
      * Resets the elevator subsystem to the IDLE state and prints a corresponding message.
      */
-    @Override
-    public void completeProcessing() {
+    public void startIdling() {
         currentState = ElevatorSubsystemState.IDLE;
         Log.print("Elevator Subsystem: Reset to IDLE state");
     }
@@ -27,49 +33,24 @@ public class ElevatorSubsystemStateMachine implements ProcessingHandler {
     /**
      * Starts the processing if the current state is IDLE; otherwise, throws an IllegalStateException.
      */
-    @Override
     public void startProcessing() {
-        if (currentState == ElevatorSubsystemState.IDLE) {
-            transitionToProcessing();
-        } else {
-            throw new IllegalStateException("Invalid state transition to start processing");
-        }
-    }
-
-    /**
-     * Transitions the elevator subsystem to the PROCESSING state and prints a corresponding message.
-     */
-    private void transitionToProcessing() {
         currentState = ElevatorSubsystemState.PROCESSING;
         Log.print("Elevator Subsystem transitioned to Processing requests state.");
     }
 
     /**
-     * Initializes the elevator subsystem state machine in the IDLE state and prints an initialization message.
+     * Transitions the elevator subsystem to the TRANSPORTING state and prints a corresponding message.
      */
-    public ElevatorSubsystemStateMachine() {
-        currentState = ElevatorSubsystemState.IDLE;
-        Log.print("Elevator Subsystem State Machine initialized in state: " + currentState);
+    public void startTransporting() {
+        currentState = ElevatorSubsystemState.TRANSPORTING;
+        System.out.println("Transitioned to TRANSPORTING state.");
     }
 
     /**
      * Gets the current state of the elevator subsystem.
-     *
      * @return The current state of the elevator subsystem.
      */
     public ElevatorSubsystemState getCurrentState() {
         return currentState;
     }
-
-    /**
-     * Transitions the elevator subsystem to the MOVING state and prints a corresponding message.
-     */
-    public void transitionToTransporting() {
-        currentState = ElevatorSubsystemState.TRANSPORTING;
-        Log.print("Elevator Subsystem: Transitioned to TRANSPORTING state. En route to destination.");
-    }
 }
-
-
-
-
