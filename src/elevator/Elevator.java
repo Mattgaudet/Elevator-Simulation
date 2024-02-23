@@ -8,6 +8,7 @@ import elevator.ElevatorSubsystem;
 import java.time.LocalTime;
 import java.util.Comparator;
 import java.util.PriorityQueue;
+import java.util.ArrayList;
 
 /**
  * Represents a single 'Elevator' or 'Elevator Car'. Used by the ElevatorSubsystem

@@ -1,5 +1,7 @@
 package elevator;
 
+import common.Log;
+
 /**
  * Represents the state of the elevator subsystem.
  */
@@ -43,7 +45,7 @@ public class ElevatorSubsystemStateMachine {
      */
     public void startTransporting() {
         currentState = ElevatorSubsystemState.TRANSPORTING;
-        System.out.println("Transitioned to TRANSPORTING state.");
+        Log.print("Transitioned to TRANSPORTING state.");
     }
 
     /**

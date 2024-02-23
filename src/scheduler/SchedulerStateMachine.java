@@ -1,6 +1,5 @@
 package scheduler;
 
-public class SchedulerStateMachine {
 /**
  * Represents the state of the scheduler.
  */
