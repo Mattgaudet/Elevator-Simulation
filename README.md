@@ -58,7 +58,7 @@ The goal of this project is to simulate an elevator system and showcase how elev
 
 - Jaan Soulier
   - Provided insightful feedback to the team through GitHub commit reviews, ensuring code quality and collaboration.
-  - Created state machine diagrams for the Elevator Subsystem and Scheduler.
+  - Created state and class diagrams for the Elevator Subsystem and Scheduler.
 
 - Jarnail Singh
   - Made significant contributions to the simulateelevatormovement function, enhancing the elevator simulation.
@@ -73,6 +73,3 @@ The goal of this project is to simulate an elevator system and showcase how elev
   - Contributed to the simulateelevatormovement function, further developing the elevator simulation.
   - Implemented the moveElevator function, enabling core elevator movement functionality.
   - Ensured that the Elevator class can handle complete requests.
-
-
-
