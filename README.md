@@ -11,6 +11,7 @@ The goal of this project is to simulate an elevator system and showcase how elev
 ## Usage
 - Run `Main.java` to start the simulation.
 - Input requests can be modified in the CSV file specified by `input.csv` in the res folder.
+- To execute all tests, right-click on the test folder and select 'Run Tests in 'test''
 
 ## Components
 - **config**
@@ -50,27 +51,28 @@ The goal of this project is to simulate an elevator system and showcase how elev
 - Laurence Lamarche-Cliche (101173070) 
 - Matthew Gaudet (101193256)
 
-## Team Contributions for Iteration 1
+## Team Contributions for Iteration 2
 
 - Ali Abdollahian
-  - UML Class Diagram: Created the UML class diagram to outline the project's structure and relationships between classes.
-  - Testing: Added several tests to evaluate the functionality of different classes, including FloorSubsystem, Scheduler, and ElevatorSubsystem, ensuring robust testing coverage for the project's components
+  - State Logic: Added state logic for both the Scheduler and Elevator Subsystems, defining their behavior during operation.
 
 - Jaan Soulier
-  - Javadocs: Responsible for creating Javadocs-style comments for the project, ensuring that all classes, methods, and functionalities are well-documented.
-  - Added Log.java, which is used for logging informational messages throughout the project. 
+  - Provided insightful feedback to the team through GitHub commit reviews, ensuring code quality and collaboration.
+  - Created state machine diagrams for the Elevator Subsystem and Scheduler.
 
 - Jarnail Singh
-  - README.md: Added the README.md file, providing an overview and instructions for the project.
-  - Code Implementation: Added the project's starter code and implemented the logic for back-and-forth request ping between FloorSubsystem, Scheduler, and ElevatorSubsystem.
+  - Made significant contributions to the simulateelevatormovement function, enhancing the elevator simulation.
+  - Fixed related tests to maintain code correctness.
+  - Implemented lamp status logic in the Floor Subsystem, refining the simulation's detail.
     
 - Laurence Lamarche-Cliche
-  - CSV Reader Integration: Added and Merged the CSV reader functionality into the existing FloorSubsystem package.
-  - Added Command line file path option to specify which txt file should provide the input data to the Elevator System
-  - Testing: Created and placed tests in the src/test directory, ensuring complete testing coverage for the project's components.
+  - Created Iteration 2 sequence diagram, providing a visual representation of the system's updated interactions.
+  - Added starter logic to send requests from the Elevator Subsystem to the Elevator class.
 
 - Matthew Gaudet
-  - UML Sequence Diagram: Created the UML sequence diagram to visualize the sequence of operations based on the project requirements.
-  - Added logic that enables the system to exit properly once all requests are completed.
+  - Contributed to the simulateelevatormovement function, further developing the elevator simulation.
+  - Implemented the moveElevator function, enabling core elevator movement functionality.
+  - Ensured that the Elevator class can handle complete requests.
+
 
 
