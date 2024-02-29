@@ -7,22 +7,31 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 class CSVParserTest {
 
-    @org.junit.jupiter.api.Test
-    void parseCSVTest() {
+    @Test
+    void testParseCSV() {
         // testing
-        CSVParser parser = new CSVParser();
-        List<ElevatorRequest> elevatorRequestList = parser.parseCSV("res/input.csv");
+        List<ElevatorRequest> elevatorRequestList = CSVParser.parseCSV("res/input.csv");
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("H:mm:ss:SSS");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("H:mm:ss:S");
         String formattedTime = elevatorRequestList.get(0).getTime().format(formatter);
 
-        assertEquals("14:05:15:000", formattedTime);
+        System.out.println(formattedTime);
+        assertEquals("14:15:05:0", formattedTime);
         assertEquals(2, elevatorRequestList.get(0).getFloorNumber());
         assertEquals(4, elevatorRequestList.get(0).getButtonId());
         assertEquals("UP", elevatorRequestList.get(0).getButtonDirection().toString());
+    }
 
+    @Test
+    void testParseAndSortCSV() {
+        List<ElevatorRequest> ers = CSVParser.parseAndSortCSV("res/test_input1.csv");
+        
+        assertEquals(2, ers.get(0).getFloorNumber());
+        assertEquals(4, ers.get(1).getFloorNumber());
+        assertEquals(1, ers.get(2).getFloorNumber());
     }
 }

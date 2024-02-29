@@ -1,6 +1,9 @@
 package floor;
 
 import floor.ElevatorRequest.ButtonDirection;
+import scheduler.Scheduler;
+
+import java.time.Duration;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +15,7 @@ import common.Log;
 public class FloorSubsystem implements Runnable {
 
     /** The requests from the CSV file. */
-    private final List<ElevatorRequest> elevatorRequests;
+    private List<ElevatorRequest> elevatorRequests;
 
     /** The array of floors. */
     private final Floor[] floorArray;
@@ -26,8 +29,18 @@ public class FloorSubsystem implements Runnable {
     /** The number of executed requests */
     private int numExecutedRequests;
 
+    /** The starting time to subtract from the elevator request times. */
+    private LocalTime baseline;
+
+    /** The starting time for creation of the floor subsystem. */
+    private LocalTime t1;
+
+    /** The scheduler to push requests to. */
+    private Scheduler scheduler;
+
     /**
      * Create a new floor subsystem.
+     * @param filePath The CSV file path.
      */
     public FloorSubsystem(String filePath) {
         this.filePath = filePath;
@@ -37,12 +50,60 @@ public class FloorSubsystem implements Runnable {
             floorArray[i] = new Floor(i+1); // Initialize each Floor object in the array
         }
         numExecutedRequests = 0;
+
+        // parse CSV
+        elevatorRequests = CSVParser.parseAndSortCSV(filePath);
+        numTotalRequests = elevatorRequests.size();
+
+        // handle timings
+        baseline = LocalTime.now();
+        t1 = LocalTime.now();
     }
 
-    // Default constructor
+    /**
+     * Create a new floor subsystem with a custom baseline time.
+     * @param filePath The CSV file path.
+     * @param baseline The baseline time.
+     */
+    public FloorSubsystem(String filePath, LocalTime baseline) {
+        this(filePath);
+        this.baseline = baseline;
+    }
+
+    /**
+     * Create a new floor subsystem.
+     */
     public FloorSubsystem() {
         this("res/input.csv"); // Call the other constructor with the default file path
         // No need to initialize other fields since the other constructor does that
+    }
+
+    /**
+     * Set the scheduler to push requests to.
+     * @param scheduler The scheduler to push requests to.
+     */
+    public void setScheduler(Scheduler scheduler) {
+        this.scheduler = scheduler;
+    }
+
+    /**
+     * Wait until the elevator request's time has been reached and return the request.
+     * @return The elevator request or null if there are no more.
+     */
+    public ElevatorRequest waitForRequestTriggered() {
+        if (elevatorRequests.isEmpty()) {
+            return null;
+        }
+
+        // calculate the time accrued from ctor and add to the baseline
+        LocalTime t2 = LocalTime.now();
+        Duration duration = Duration.between(t1, t2);
+        LocalTime baseline = this.baseline.plus(duration); 
+
+        // pop the request and wait
+        ElevatorRequest er = elevatorRequests.remove(0);
+        er.waitForTime(baseline);
+        return er;
     }
 
     /**
@@ -78,15 +139,6 @@ public class FloorSubsystem implements Runnable {
     }
 
     /**
-     * Remove an elevator request at a specific index.
-     * @param index The index to remove at.
-     */
-    public void removeOut(int index) {
-        elevatorRequests.remove(index);
-        numTotalRequests--;
-    }
-
-    /**
      * Get all of the elevator requests.
      * @return All of the elevator requests.
      */
@@ -111,18 +163,12 @@ public class FloorSubsystem implements Runnable {
      */
     @Override
     public void run() {
-        CSVParser parser = new CSVParser();
-        List<ElevatorRequest> elevatorRequestList = parser.parseCSV(filePath);
-
-        //save total number of requests
-        numTotalRequests = elevatorRequestList.size();
-
-        // Add request to list
-        elevatorRequests.addAll(elevatorRequestList);
-
-        // Notify all threads once the file has been read
-        synchronized (elevatorRequests) {
-                elevatorRequests.notifyAll();
+        while (true) {
+            ElevatorRequest er = waitForRequestTriggered();
+            if (er == null) {
+                break;
+            }
+            scheduler.addToRequestQueue(er);
         }
     }
 

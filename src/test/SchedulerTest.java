@@ -11,7 +11,7 @@ import scheduler.Scheduler;
 import java.time.LocalTime;
 import java.util.ArrayList;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * JUnit tests for the Scheduler class.
@@ -66,13 +66,13 @@ public class SchedulerTest {
      */
     @Test
     void run() {
-        FloorSubsystem floorSubsystem = new FloorSubsystem();
+        FloorSubsystem floorSubsystem = new FloorSubsystem("res/test_input2.csv", LocalTime.of(14, 0));
         scheduler = new Scheduler(floorSubsystem);
-        ElevatorRequest elevatorRequest = new ElevatorRequest(LocalTime.now(), 3, ElevatorRequest.ButtonDirection.UP, 4);
-
-        floorSubsystem.addIn(elevatorRequest);
+        floorSubsystem.setScheduler(scheduler);
         Thread schedulerThread = new Thread(scheduler);  // this is just to start the scheduler in a separate thread
+        Thread floorSubsystemThread = new Thread(floorSubsystem);
         schedulerThread.start();
+        floorSubsystemThread.start();
 
         try {
             Thread.sleep(1000);
@@ -80,7 +80,7 @@ public class SchedulerTest {
             e.printStackTrace();
         }
         ArrayList<ElevatorRequest> requestQueue = scheduler.getRequestQueueFromScheduler();
-        assertTrue(requestQueue.contains(elevatorRequest));
+        assertEquals(requestQueue.get(0).getFloorNumber(), 2);
     }
 
     /**

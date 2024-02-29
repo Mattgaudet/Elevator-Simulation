@@ -2,6 +2,7 @@ package floor;
 
 import java.time.LocalTime;
 import java.util.Comparator;
+import java.time.temporal.ChronoUnit;
 
 /**
  * Represents an entry in the CSV file. Contains information for the action an
@@ -114,4 +115,28 @@ public class ElevatorRequest implements Comparable<ElevatorRequest> {
 		return Integer.compare(this.getFloorNumber(), e.getFloorNumber());
 	}
 
+	/**
+	 * Compare ElevatorRequests by time.
+	 * @param e ehe ElevatorRequest to be compared.
+	 * @return result of comparison
+	 */
+	public int compareByTime(ElevatorRequest e) {
+		return currTime.compareTo(e.getTime());
+	}
+
+	/**
+	 * Wait until ElevatorRequest time is reached. Baseline is used for comparison
+	 * to avoid having to set software clock time.
+	 * @param baseline The baseline time.
+	 */
+	public void waitForTime(LocalTime baseline) {
+		long time = 0;
+		time = baseline.until(currTime, ChronoUnit.MILLIS);
+		if (time <= 0) {
+			return;
+		}
+		try {
+			Thread.sleep(time);
+		} catch (InterruptedException e) {}
+	}
 }
