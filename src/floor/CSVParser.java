@@ -17,7 +17,7 @@ import common.Log;
 public class CSVParser {
 
     /** The time format in the elevator requests. */
-    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("H:mm:ss:SSS");
+    public static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("H:mm:ss:SSS");
 
     /**
      * Parse a CSV file and create a list of elevator requests. Expects a CSV file in the format:

@@ -73,7 +73,7 @@ public class Scheduler implements Runnable {
      * Get a request from an elevator and send the the floor subsystem.
      * @param request The request from an elevator.
      */
-    public synchronized void receiveRequestFromElevator(ElevatorRequest request) {
+    public void receiveRequestFromElevator(ElevatorRequest request) {
 
         try {
             Thread.sleep(1000);

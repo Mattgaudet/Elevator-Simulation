@@ -16,11 +16,9 @@ class CSVParserTest {
         // testing
         List<ElevatorRequest> elevatorRequestList = CSVParser.parseCSV("res/input.csv");
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("H:mm:ss:S");
-        String formattedTime = elevatorRequestList.get(0).getTime().format(formatter);
+        String formattedTime = elevatorRequestList.get(0).getTime().format(CSVParser.TIME_FORMATTER);
 
-        System.out.println(formattedTime);
-        assertEquals("14:15:05:0", formattedTime);
+        assertEquals("14:15:05:000", formattedTime);
         assertEquals(2, elevatorRequestList.get(0).getFloorNumber());
         assertEquals(4, elevatorRequestList.get(0).getButtonId());
         assertEquals("UP", elevatorRequestList.get(0).getButtonDirection().toString());
