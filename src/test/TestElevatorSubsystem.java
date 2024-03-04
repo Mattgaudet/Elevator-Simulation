@@ -55,7 +55,7 @@ class TestElevatorSubsystem {
     void testElevatorSubsystemInitialization() {
         FloorSubsystem floorSubsystem = new FloorSubsystem();
         Scheduler scheduler = new Scheduler(floorSubsystem);
-        elevatorSubsystem = new ElevatorSubsystem(scheduler);
+        elevatorSubsystem = new ElevatorSubsystem(scheduler, 1);
 
         assertNotNull(elevatorSubsystem);
         assertNotNull(elevatorSubsystem.getElevatorSubsystemRequestsQueue());
@@ -69,7 +69,7 @@ class TestElevatorSubsystem {
     void testElevatorSubsystemRun() {
         FloorSubsystem floorSubsystem = new FloorSubsystem();
         Scheduler scheduler = new Scheduler(floorSubsystem);
-        elevatorSubsystem = new ElevatorSubsystem(scheduler);
+        elevatorSubsystem = new ElevatorSubsystem(scheduler, 1);
 
         Thread elevatorSubsystemThread = new Thread(elevatorSubsystem);
         elevatorSubsystemThread.start();
@@ -93,7 +93,7 @@ class TestElevatorSubsystem {
     void testAddResponseList() {
         FloorSubsystem floorSubsystem = new FloorSubsystem();
         Scheduler scheduler = new Scheduler(floorSubsystem);
-        elevatorSubsystem = new ElevatorSubsystem(scheduler);
+        elevatorSubsystem = new ElevatorSubsystem(scheduler, 1);
 
         ElevatorRequest response = new ElevatorRequest(LocalTime.now(), 1, ButtonDirection.UP, 2);
         elevatorSubsystem.addResponseList(response);

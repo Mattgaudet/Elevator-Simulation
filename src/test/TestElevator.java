@@ -37,7 +37,7 @@ public class TestElevator {
         counter = 0;
         floorSubsystem = new FloorSubsystem();
         scheduler = new Scheduler(floorSubsystem);
-        elevatorSubsystem = new ElevatorSubsystem(scheduler);
+        elevatorSubsystem = new ElevatorSubsystem(scheduler, 1);
     }
 
     /**
@@ -63,9 +63,14 @@ public class TestElevator {
     @Test
     void testSimulateElevatorMovement() {
         elevator = new Elevator(1, elevatorSubsystem);
+        elevator.start();
         ElevatorRequest elevatorRequest = new ElevatorRequest(LocalTime.now(), 3, ElevatorRequest.ButtonDirection.UP, 4);
         elevator.addRequestToElevatorQueue(elevatorRequest);
-        elevator.simulateElevatorMovement();
+        try {
+            Thread.sleep(21000);
+        }catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         assertEquals(4, elevator.getCurrentFloor());
     }
 

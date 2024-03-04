@@ -28,7 +28,7 @@ public class Main {
         // Pass the file path to the FloorSubsystem constructor
         FloorSubsystem floorSubsystem = new FloorSubsystem(filePath, LocalTime.of(14, 15));
         Scheduler scheduler = new Scheduler(floorSubsystem);
-        ElevatorSubsystem elevatorSubsystem = new ElevatorSubsystem(scheduler);
+        ElevatorSubsystem elevatorSubsystem = new ElevatorSubsystem(scheduler, 3);
 
         floorSubsystem.setScheduler(scheduler);
 
