@@ -67,7 +67,7 @@ public class ElevatorTransportingState implements ElevatorState{
         Log.print("Elevator " + elevator.getElevatorId() + " is waiting for next request at floor " + elevator.getCurrentFloor() +
                 " with door " + elevator.getDoorStatus().name().toLowerCase() + " at " + LocalTime.now());
         Log.print("\n***********************************************\n");
-        elevator.setState("IdleState");
+        elevator.setState(Elevator.State.IDLE);
     }
 
     /**

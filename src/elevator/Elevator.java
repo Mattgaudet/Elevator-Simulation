@@ -17,7 +17,7 @@ public class Elevator extends Thread{
     private ElevatorState currentState;
 
     /** Holds all the states of the elevator */
-    private Map<String, ElevatorState> states;
+    private Map<State, ElevatorState> states;
 
     /** For helping to synchronize the elevatorQueue */
     private Object queueLock = 0;
@@ -61,6 +61,10 @@ public class Elevator extends Thread{
         /** The motor is off. */
         OFF
     }
+    public enum State {
+        IDLE,
+        TRANSPORTING
+    }
 
     /**
      * Create a new elevator with a unique ID.
@@ -71,8 +75,8 @@ public class Elevator extends Thread{
         this.elevatorQueue = new PriorityQueue<>();
         this.elevatorSubsystem = elevatorSubsystem;
         this.states = new HashMap<>();
-        addState("IdleState", new ElevatorIdleState());
-        addState("TransportingState", new ElevatorTransportingState());
+        addState(State.IDLE, new ElevatorIdleState());
+        addState(State.TRANSPORTING, new ElevatorTransportingState());
     }
 
     /**
@@ -215,13 +219,13 @@ public class Elevator extends Thread{
      * @param name String name of state to be added
      * @param state ElevatorState to be added
      */
-    public void addState(String name, ElevatorState state) { states.put(name, state); }
+    public void addState(State name, ElevatorState state) { states.put(name, state); }
 
     /**
      * Set the state
      * @param s String state name
      */
-    public void setState(String s) {
+    public void setState(State s) {
         this.currentState = getState(s);
         this.currentState.action(this);
 
@@ -232,7 +236,7 @@ public class Elevator extends Thread{
      * @param s string state name
      * @return Corresponding ElevatorState
      */
-    public ElevatorState getState(String s) { return states.get(s); }
+    public ElevatorState getState(State s) { return states.get(s); }
 
     /**
      * Sets the initial state to IdleState
@@ -240,6 +244,6 @@ public class Elevator extends Thread{
     @Override
     public void run() {
         Log.print("Elevator " + elevatorId + " created");
-        setState("IdleState");
+        setState(State.IDLE);
     }
 }

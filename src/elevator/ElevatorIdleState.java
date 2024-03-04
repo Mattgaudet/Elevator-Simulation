@@ -23,6 +23,6 @@ public class ElevatorIdleState implements ElevatorState{
                 }
             }
         }
-        elevator.setState("TransportingState");
+        elevator.setState(Elevator.State.TRANSPORTING);
     }
 }
