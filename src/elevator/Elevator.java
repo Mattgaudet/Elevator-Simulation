@@ -61,6 +61,10 @@ public class Elevator extends Thread{
         /** The motor is off. */
         OFF
     }
+
+    /**
+     * States for the elevator
+     */
     public enum State {
         IDLE,
         TRANSPORTING
