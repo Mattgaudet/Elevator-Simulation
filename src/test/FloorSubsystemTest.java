@@ -3,6 +3,8 @@ package test;
 import floor.ElevatorRequest;
 import floor.Floor;
 import floor.FloorSubsystem;
+import static test.Misc.assertWait;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -46,21 +48,6 @@ public class FloorSubsystemTest {
     }
 
     /**
-     * Test the addIn and removeOut methods of the FloorSubsystem class.
-     */
-    @Test
-    void addInAndRemoveOut() {
-        floorSubsystem = new FloorSubsystem();
-        ElevatorRequest buttonPress = new ElevatorRequest(LocalTime.now(), 1, ElevatorRequest.ButtonDirection.UP,1);
-
-        floorSubsystem.addIn(buttonPress);
-        assertEquals(1, floorSubsystem.getAllElevatorRequestsFromFloorSubsystem().size());
-
-        floorSubsystem.removeOut(0);
-        assertTrue(floorSubsystem.getAllElevatorRequestsFromFloorSubsystem().isEmpty());
-    }
-
-    /**
      * Test the changeLampStatus method of the FloorSubsystem class.
      */
     @Test
@@ -72,5 +59,33 @@ public class FloorSubsystemTest {
             assertTrue(floor.getUpLampOnStatus());
             assertFalse(floor.getDownLampOnStatus());
         }
+    }
+
+    @Test
+    void testWaitForRequestTriggered() {
+        floorSubsystem = new FloorSubsystem("res/test_input1.csv", LocalTime.of(14, 0, 0));
+
+        // NOTE: Lots of leniency here because CPU execution time adds to the baseline
+        // time meaning that waiting durations get smaller.
+
+        assertWait(() -> {
+            ElevatorRequest er = floorSubsystem.waitForRequestTriggered();
+            assertEquals(2, er.getFloorNumber());
+        }, 0, 2);
+
+        assertWait(() -> {
+            ElevatorRequest er = floorSubsystem.waitForRequestTriggered();
+            assertEquals(4, er.getFloorNumber());
+        }, 1, 3);
+
+        assertWait(() -> {
+            ElevatorRequest er = floorSubsystem.waitForRequestTriggered();
+            assertEquals(1, er.getFloorNumber());
+        }, 3, 5);
+
+        assertWait(() -> {
+            ElevatorRequest er = floorSubsystem.waitForRequestTriggered();
+            assertEquals(er, null);
+        }, 0, 1);
     }
 }

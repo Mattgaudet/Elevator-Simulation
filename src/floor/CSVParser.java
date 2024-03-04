@@ -5,6 +5,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 
@@ -16,7 +17,7 @@ import common.Log;
 public class CSVParser {
 
     /** The time format in the elevator requests. */
-    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("H:mm:ss:SSS");
+    public static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("H:mm:ss:SSS");
 
     /**
      * Parse a CSV file and create a list of elevator requests. Expects a CSV file in the format:
@@ -27,7 +28,7 @@ public class CSVParser {
      * @param filePath The path to the CSV file.
      * @return The list of elevator requests.
      */
-    public List<ElevatorRequest> parseCSV(String filePath) {
+    public static List<ElevatorRequest> parseCSV(String filePath) {
         List<ElevatorRequest> elevatorRequests = new ArrayList<>();
         try (Scanner scanner = new Scanner(new File(filePath))) {
             while (scanner.hasNextLine()) {
@@ -86,21 +87,8 @@ public class CSVParser {
                         "FloorSubsystem: Read ElevatorRequest(" + elevatorRequest + ") from File >> " + "Time: " + time
                                 + ", CurrentFloor: " + floorNumber + ", Direction: " + direction + ", ButtonPress/Destination: " + buttonID);
 
-                // To be removed (for debug only)
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
                 // Add request to list
                 elevatorRequests.add(elevatorRequest);
-
-            }
-
-            // Notify all threads once the file has been read
-            synchronized (elevatorRequests) {
-                elevatorRequests.notifyAll();
             }
 
             // Close the scanner
@@ -116,21 +104,24 @@ public class CSVParser {
 
     }
 
-// Unused for now:
-//    private String formatTime(String timeString) {
-//        // Split the time string to separate the milliseconds part
-//        String[] parts = timeString.split(":");
-//        if (parts.length == 4) {
-//            // Ensure the milliseconds part has 3 digits
-//            parts[3] = String.format("%-3s", parts[3]).replace(' ', '0');
-//            return String.join(":", parts);
-//        }
-//        return timeString; // Return original string if not in expected format
-//    }
-//
-//    public static void main(String[] args) {
-//
-//        // You can now work with the parsed data
-//    }
+    /**
+     * Parse a CSV file and create a list of elevator requests.
+     * 
+     * Expects a CSV file in the format:
+     * - time
+     * - floor number
+     * - direction
+     * - elevator number
+     * 
+     * The parsed elevator requests are sorted by time.
+     * 
+     * @param filePath The path to the CSV file.
+     * @return The list of elevator requests.
+     */
+    public static List<ElevatorRequest> parseAndSortCSV(String filePath)
+    {
+        List<ElevatorRequest> ers = parseCSV(filePath);
+        Collections.sort(ers, (e1, e2) -> e1.compareByTime(e2));
+        return ers;
+    }
 }
-

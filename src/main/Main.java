@@ -1,5 +1,7 @@
 package main;
 
+import java.time.LocalTime;
+
 import elevator.ElevatorSubsystem;
 import floor.FloorSubsystem;
 import scheduler.Scheduler;
@@ -24,9 +26,11 @@ public class Main {
         }
 
         // Pass the file path to the FloorSubsystem constructor
-        FloorSubsystem floorSubsystem = new FloorSubsystem(filePath);
+        FloorSubsystem floorSubsystem = new FloorSubsystem(filePath, LocalTime.of(14, 15));
         Scheduler scheduler = new Scheduler(floorSubsystem);
         ElevatorSubsystem elevatorSubsystem = new ElevatorSubsystem(scheduler);
+
+        floorSubsystem.setScheduler(scheduler);
 
         schedulerThread = new Thread(scheduler, "Scheduler Thread");
         elevatorSubsystemThread = new Thread(elevatorSubsystem, "Elevator Subsystem Thread");

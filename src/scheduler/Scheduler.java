@@ -61,17 +61,19 @@ public class Scheduler implements Runnable {
      * Add a request to the scheduler.
      * @param elevatorRequest The request to add to the scheduler.
      */
-    public synchronized void addToRequestQueue(ElevatorRequest elevatorRequest) {
-        schedulerRequestsQueue.add(elevatorRequest);
-        Log.print("(FORWARD) Added elevator request " + elevatorRequest + " to request queue");
-        notifyAll();
+    public void addToRequestQueue(ElevatorRequest elevatorRequest) {
+        synchronized (schedulerRequestsQueue) {
+            schedulerRequestsQueue.add(elevatorRequest);
+            Log.print("(FORWARD) Added elevator request " + elevatorRequest + " to request queue");
+            schedulerRequestsQueue.notifyAll();
+        }
     }
 
     /**
      * Get a request from an elevator and send the the floor subsystem.
      * @param request The request from an elevator.
      */
-    public synchronized void receiveRequestFromElevator(ElevatorRequest request) {
+    public void receiveRequestFromElevator(ElevatorRequest request) {
 
         try {
             Thread.sleep(1000);
@@ -88,10 +90,12 @@ public class Scheduler implements Runnable {
             e.printStackTrace();
         }
 
-        // send the request to the floorSubsystem
-        this.floorSubsystem.receiveRequestFromScheduler(request);
-        this.schedulerRequestsQueue.remove(request); //remove from queue
-        notifyAll(); // Notify any threads that are waiting for new requests
+        synchronized (schedulerRequestsQueue) {
+            // send the request to the floorSubsystem
+            floorSubsystem.receiveRequestFromScheduler(request);
+            schedulerRequestsQueue.remove(request); //remove from queue
+            schedulerRequestsQueue.notifyAll(); // Notify any threads that are waiting for new requests
+        }
     }
 
     /**
@@ -102,14 +106,7 @@ public class Scheduler implements Runnable {
     @Override
     public void run() {
         while (true) {
-            switch (stateMachine.getCurrentState()) {
-                case IDLE:
-                    handleIdleState();
-                    break;
-                case PROCESSING:
-                    handleProcessingState();
-                    break;
-            }
+
         }
     }
 
@@ -117,40 +114,15 @@ public class Scheduler implements Runnable {
      * Handles the processing state of the scheduler. Processes elevator requests from the FloorSubsystem.
      */
     private void handleProcessingState() {
-        Log.print("Scheduler is processing requests...");
-        Log.print("\n***********************************************\n");
-        synchronized (floorSubsystem.getAllElevatorRequestsFromFloorSubsystem()) {
-            while (floorSubsystem.getAllElevatorRequestsFromFloorSubsystem().isEmpty()) {
-                try {
-                    floorSubsystem.getAllElevatorRequestsFromFloorSubsystem().wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            synchronized (schedulerRequestsQueue) {
-                while (!floorSubsystem.getAllElevatorRequestsFromFloorSubsystem().isEmpty()) {
-                    ElevatorRequest er = floorSubsystem.getAllElevatorRequestsFromFloorSubsystem().remove(0);
-
-                    Log.print("(FORWARD) Scheduler: Received ElevatorRequest(" + er + ") from FloorSubsystem at "
-                            + LocalTime.now() + ".");
-
-                    schedulerRequestsQueue.add(er);
-                    schedulerRequestsQueue.notifyAll();
-
-                    Log.print("(FORWARD) Added elevator request " + er + " to request queue");
-                }
-            }
-        }
-        Log.print("\n***********************************************\n");
+        // TODO: Ali
         stateMachine.startIdling();
-        Log.print("Scheduler goes back to idle state");
     }
 
     /**
      * Handles the idle state of the scheduler. Starts processing if the current state is IDLE.
      */
     private void handleIdleState() {
+        // TODO: Ali
         stateMachine.startProcessing();
     }
 
