@@ -16,7 +16,7 @@ public class ElevatorSubsystem implements Runnable {
     private RequestProcessedListener listener;
 
     /** The elevators to schedule. */
-    private Elevator[] elevatorCars = new Elevator[1]; // 1 elevator for now
+    private Elevator[] elevatorCars = new Elevator[10]; // 10 elevators max for now
 
     /** The schedule to receive requests from. */
     private Scheduler scheduler;
@@ -26,13 +26,6 @@ public class ElevatorSubsystem implements Runnable {
 
     /** The responses from the elevators. */
     private ArrayList<ElevatorRequest> elevatorSubsystemResponseLog = new ArrayList<ElevatorRequest>();
-
-    /**
-     * Represents the state machine for the elevator subsystem.
-     * Manages transitions between different states.
-     */
-    private ElevatorSubsystemStateMachine state = new ElevatorSubsystemStateMachine();
-
 
     /**
      * Set the listener for request processing.
@@ -50,110 +43,48 @@ public class ElevatorSubsystem implements Runnable {
     }
 
     /**
-     * Create a new elevator subsystem. Creates only 1 elevator for now.
+     * Create a new elevator subsystem. Creates create and start specified number of elevators
      * @param scheduler The scheduler to use for requests.
+     * @param numElevators The number of elevators to create
      */
-    public ElevatorSubsystem(Scheduler scheduler) {
+    public ElevatorSubsystem(Scheduler scheduler, int numElevators) {
         this.scheduler = scheduler;
-        this.elevatorCars[0] = new Elevator(0, this);
+        for(int i = 0; i < numElevators; i++) { //create and start all elevators
+            this.elevatorCars[i] = new Elevator(i, this);
+            this.elevatorCars[i].start();
+        }
     }
 
+    /**
+     * Add a request to specified elevator's queue
+     * @param er elevatorRequest to be added
+     * @param elevatorId elevator number to use
+     */
+    public void assignRequest(ElevatorRequest er, int elevatorId) {
+        this.elevatorCars[elevatorId].addRequestToElevatorQueue(er);
+    }
     /**
      * The entrypoint of the system. Pulls messages from the scheduler, forwards
      * them to the elevators, and sends them back to the scheduler.
      */
     public void run() {
-        synchronized (this.scheduler.getRequestQueueFromScheduler()) {
-            while (true) {
-                switch (state.getCurrentState()) {
-                    case IDLE:
-                        handleIdleState();
-                        break;
-                    case PROCESSING:
-                        handleProcessingState();
-                        break;
-                    case TRANSPORTING:
-                        handleMovingState();
-                        break;
+        while(true) {
+            // todo receive via UDP instead of this
+            synchronized (this.scheduler.getRequestQueueFromScheduler()) {
+                while (this.scheduler.getRequestQueueFromScheduler().isEmpty()) {
+                    try {
+                        this.scheduler.getRequestQueueFromScheduler().wait();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
+                // assign request to the elevator
+                ElevatorRequest request = this.scheduler.getRequestQueueFromScheduler().remove(0);
+                assignRequest(request, 0);
             }
         }
     }
 
-    /**
-     * Handles the behavior when the elevator subsystem is in the TRANSPORTING state.
-     * Removes a request from the scheduler, simulates elevator movement, and transitions to the next state.
-     */
-    private void handleMovingState() {
-        ElevatorRequest request;
-        synchronized (this.elevatorSubsystemRequestsQueue) {
-            ArrayList<ElevatorRequest> schedulerRequestQueue = scheduler.getRequestQueueFromScheduler();
-            for(ElevatorRequest e : schedulerRequestQueue) {
-                Log.print("(FORWARD) ElevatorSubsystem: Received ElevatorRequest(" + e + ") from Scheduler at "
-                        + LocalTime.now());
-            }
-            this.elevatorSubsystemRequestsQueue.addAll(schedulerRequestQueue);
-            request = elevatorSubsystemRequestsQueue.remove(0);
-            // add all requests currently in scheduler to elevatorSubsystemQueue
-
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            //add first request in scheduler's queue
-            this.elevatorCars[0].addRequestToElevatorQueue(request);
-            ArrayList<ElevatorRequest> sentRequests = new ArrayList<>();
-            sentRequests.add(request);
-            //add all other requests in the same direction currently in the queue (should be limited to a number in future)
-            ButtonDirection b = request.getButtonDirection();
-            for (ElevatorRequest e : schedulerRequestQueue) {
-                if (e.getButtonDirection() == b && e != request) {
-                    sentRequests.add(e);
-                    elevatorCars[0].addRequestToElevatorQueue(e);
-                }
-            }
-            this.elevatorSubsystemRequestsQueue.notifyAll(); // Notify all threads waiting on task list
-
-            elevatorCars[0].simulateElevatorMovement();
-            state.startIdling();
-
-            for(ElevatorRequest e : sentRequests) {
-                //remove assigned requests from elevatorSubsystemQueue
-                this.elevatorSubsystemRequestsQueue.remove(e);
-                //notify scheduler that the request has been processed
-                this.scheduler.receiveRequestFromElevator(e);
-            }
-
-            if (listener != null) {
-                listener.onRequestProcessed();
-            }
-        }
-    }
-
-    /**
-     * Handles the behavior when the elevator subsystem is in the IDLE state.
-     */
-    private void handleIdleState() {
-        state.startProcessing();
-    }
-
-    /**
-     * Handles the behavior when the elevator subsystem is in the TRANSPORTING state.
-     */
-    private void handleProcessingState() {
-        synchronized (this.scheduler.getRequestQueueFromScheduler()) {
-            if (this.scheduler.getRequestQueueFromScheduler().isEmpty()) {
-                try {
-                    this.scheduler.getRequestQueueFromScheduler().wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        state.startTransporting();
-    }
-  
     /**
      * Get the requests from the scheduler for testing.
      * @return The requests from the scheduler for testing.
