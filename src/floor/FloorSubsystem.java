@@ -3,11 +3,14 @@ package floor;
 import floor.ElevatorRequest.ButtonDirection;
 import scheduler.Scheduler;
 
+import java.io.IOException;
+import java.net.*;
 import java.time.Duration;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import common.Log;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Create a new floor subsystem to manage the floors.
@@ -179,4 +182,50 @@ public class FloorSubsystem implements Runnable {
     public Floor[] getFloors() {
         return floorArray;
     }
+
+    public static void main(String[] args) {
+        String filePath = "res/input.csv"; // Default file path
+        int schedulerPort = 5000; // Example port number for Scheduler
+        String schedulerHost = "localhost"; // Scheduler host, change as needed
+
+        // Initialize the FloorSubsystem with the file path
+        FloorSubsystem floorSubsystem = new FloorSubsystem(filePath, LocalTime.of(14, 15));
+
+        try {
+            DatagramSocket socket = new DatagramSocket();
+            InetAddress schedulerAddress = InetAddress.getByName(schedulerHost);
+
+            while (true) { // Loop indefinitely
+                ElevatorRequest er = floorSubsystem.waitForRequestTriggered();
+                if (er != null) {
+                    byte[] sendData = er.getBytes();
+                    DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, schedulerAddress, schedulerPort);
+                    socket.send(sendPacket);
+
+                    // Print the data sent, for testing
+                    String sentDataString = new String(sendData, StandardCharsets.UTF_8);
+                    System.out.println("Data sent: " + sentDataString);
+                } else {
+                    // If no request is available, wait a bit before checking again
+                    try {
+                        Thread.sleep(100); // Wait for 100 milliseconds
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt(); // Restore interrupted status
+                        System.err.println("Interrupted while waiting for a request.");
+                        break; // Exit the loop if the thread is interrupted
+                    }
+                }
+            }
+
+            // Close the socket when exiting the loop
+            socket.close();
+        } catch (SocketException e) {
+            System.err.println("SocketException: " + e.getMessage());
+        } catch (UnknownHostException e) {
+            System.err.println("UnknownHostException: " + e.getMessage());
+        } catch (IOException e) {
+            System.err.println("IOException: " + e.getMessage());
+        }
+    }
+
 }

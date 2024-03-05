@@ -1,6 +1,8 @@
 package floor;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.time.temporal.ChronoUnit;
 
@@ -10,7 +12,7 @@ import java.time.temporal.ChronoUnit;
  */
 public class ElevatorRequest implements Comparable<ElevatorRequest> {
 
-	/**
+    /**
 	 * The requested direction.
 	 */
 	public enum ButtonDirection {
@@ -138,5 +140,35 @@ public class ElevatorRequest implements Comparable<ElevatorRequest> {
 		try {
 			Thread.sleep(time);
 		} catch (InterruptedException e) {}
+	}
+
+	/**
+	 * Returns a bytes representation of an elevator request for UDP transport
+	 * It first builds a string of the following format:
+	 * "requestTime;buttonDirection;floorNumber;buttonID;1"
+	 * Where requestTime is the time of the request
+	 * buttonDirection is either UP or DOWN
+	 * floorNumber is the current floor
+	 * buttonID is the destination floor
+	 */
+	public byte[] getBytes() {
+		// Use a delimiter to separate the properties in the string
+		String delimiter = ";";
+
+		// Serialize properties to string
+		StringBuilder sb = new StringBuilder();
+		// Format LocalTime to a string using a formatter
+		DateTimeFormatter timeFormatter = DateTimeFormatter.ISO_LOCAL_TIME;
+		sb.append(this.currTime.format(timeFormatter));
+		sb.append(delimiter);
+		sb.append(this.buttonDirection.name());
+		sb.append(delimiter);
+		sb.append(this.floorNumber);
+		sb.append(delimiter);
+		sb.append(this.buttonId);
+		sb.append(delimiter);
+		sb.append(this.loaded ? "1" : "0"); // Represent boolean as 1 (true) or 0 (false)
+		// Convert the serialized string to bytes
+		return sb.toString().getBytes(StandardCharsets.UTF_8);
 	}
 }
