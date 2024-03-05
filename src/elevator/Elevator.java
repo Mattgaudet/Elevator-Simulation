@@ -80,7 +80,7 @@ public class Elevator extends Thread{
         this.elevatorSubsystem = elevatorSubsystem;
         this.states = new HashMap<>();
         addState(State.IDLE, new ElevatorIdleState());
-        addState(State.TRANSPORTING, new ElevatorTransportingState());
+        addState(State.TRANSPORTING, new ElevatorTransportingState(elevatorSubsystem));
     }
 
     /**

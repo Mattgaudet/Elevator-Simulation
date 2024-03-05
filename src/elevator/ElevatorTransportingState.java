@@ -13,6 +13,15 @@ import java.util.ArrayList;
 public class ElevatorTransportingState implements ElevatorState{
     /** Elevator context */
     private Elevator elevator;
+    private ElevatorSubsystem elevatorSubsystem;
+
+    /**
+     * Constructor for the transporting state
+     * @param elevatorSubsystem the elevator subsystem
+     */
+    public ElevatorTransportingState(ElevatorSubsystem elevatorSubsystem) {
+        this.elevatorSubsystem = elevatorSubsystem;
+    }
 
     /**
      * Begins moving the elevator
@@ -83,21 +92,24 @@ public class ElevatorTransportingState implements ElevatorState{
         Log.print("Elevator " + elevator.getElevatorId() + " is moving " + direction.name().toLowerCase() +
                 " from floor " + elevator.getCurrentFloor() + " to floor " + destinationFloor +
                 ". Estimated travel time: " + tripTime + " ms");
+        
+        // Add a flag to track if the lamp status has been changed for the current request
+        boolean isLampStatusChanged = false;
+
         // Move the elevator from the current floor to the destination floor
         for (int floorsMoved = 0; floorsMoved < floorsToMove; floorsMoved++) {
             int nextFloor = direction == ElevatorRequest.ButtonDirection.UP ? elevator.getCurrentFloor() + 1 : elevator.getCurrentFloor() - 1;
             ArrayList<ElevatorRequest> removeList = new ArrayList<>();
             elevator.arrivedFloor(nextFloor);
 
-            // Change the lamp status of the floor based on the direction
-            if (direction == ElevatorRequest.ButtonDirection.UP) {
-                // todo make it print only when direction changes
-                //for debug only (can be removed)
-                //Log.print("Requesting -> Lamp status of floors should change to " + direction.name());
-                //elevatorSubsystem.changeLampStatus(ElevatorRequest.ButtonDirection.UP);
-
-            } else {
-                //elevatorSubsystem.changeLampStatus(ElevatorRequest.ButtonDirection.DOWN);
+             // Change the lamp status of the floor based on the direction
+            if (!isLampStatusChanged) {
+                if (direction == ElevatorRequest.ButtonDirection.UP) {
+                    elevatorSubsystem.changeLampStatus(ElevatorRequest.ButtonDirection.UP);
+                } else {
+                    elevatorSubsystem.changeLampStatus(ElevatorRequest.ButtonDirection.DOWN);
+                }
+                isLampStatusChanged = true;
             }
 
             boolean doorsOpened = false;
