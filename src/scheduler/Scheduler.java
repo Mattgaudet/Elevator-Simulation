@@ -28,6 +28,10 @@ public class Scheduler implements Runnable {
     private FloorSubsystem floorSubsystem;
     private SchedulerStateMachine stateMachine = new SchedulerStateMachine();
 
+    public Scheduler() {
+
+    }
+
     /**
      * Create a new scheduler.
      * @param floorSubsystem The floor subsystem for the scheduler.
@@ -142,6 +146,16 @@ public class Scheduler implements Runnable {
         }
     }
 
+    public ElevatorRequest parseRequestFromFloorSubsystem(byte[] requestData) {
+        ElevatorRequest newRequest = new ElevatorRequest(requestData);
+        return newRequest;
+    }
+
+    public void scheduleElevatorRequest(byte[] requestData) {
+        ElevatorRequest request = parseRequestFromFloorSubsystem(requestData);
+        // Additional logic for scheduling the elevator request, including getting elevator positions
+    }
+
     /**
      * Change the lamp directional status of the floor subsystem.
      * @param direction The lamp directional status.
@@ -151,33 +165,18 @@ public class Scheduler implements Runnable {
     }
 
     public static void main(String[] args) {
-        int listenPort = 5000; // The port on which the Scheduler listens for incoming requests
-
+        Scheduler scheduler = new Scheduler();
+        int listenPort = 5000; // Port to listen for incoming requests
         try (DatagramSocket serverSocket = new DatagramSocket(listenPort)) {
-            byte[] receiveData = new byte[1024]; // Buffer to store incoming data
-
-            System.out.println("Scheduler listening on port " + listenPort + "for FloorSubsystem data");
+            System.out.println("Scheduler listening on port " + listenPort);
 
             while (true) { // Run indefinitely
-                // Receive packet
+                byte[] receiveData = new byte[1024]; // Buffer for incoming data
                 DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
                 serverSocket.receive(receivePacket);
 
-                // Extract data from the received packet
-                String request = new String(receivePacket.getData(), 0, receivePacket.getLength());
-                System.out.println("Received request: " + request);
-
-                // TODO: Process the request as needed
-                // Convert the received string back to an ElevatorRequest object,
-                //          then add it to the Scheduler's processing queue
-
-                // Optionally, could send a response back to the FloorSubsystem
-                // String responseData = "Acknowledged request";
-                // byte[] responseDataBytes = responseData.getBytes();
-                // InetAddress returnAddress = receivePacket.getAddress();
-                // int returnPort = receivePacket.getPort();
-                // DatagramPacket sendPacket = new DatagramPacket(responseDataBytes, responseDataBytes.length, returnAddress, returnPort);
-                // serverSocket.send(sendPacket);
+                // Handle each request in a separate thread
+                new Thread(() -> scheduler.scheduleElevatorRequest(receivePacket.getData())).start();
             }
         } catch (SocketException e) {
             System.err.println("SocketException: " + e.getMessage());
@@ -185,4 +184,5 @@ public class Scheduler implements Runnable {
             System.err.println("IOException: " + e.getMessage());
         }
     }
+
 }

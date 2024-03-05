@@ -55,6 +55,25 @@ public class ElevatorRequest implements Comparable<ElevatorRequest> {
 	}
 
 	/**
+	 * Constructor to deserialize from byte array
+	 */
+
+	public ElevatorRequest(byte[] data) {
+		String dataString = new String(data, StandardCharsets.UTF_8);
+		String[] parts = dataString.split(";");
+
+		if (parts.length >= 5) {
+			this.currTime = LocalTime.parse(parts[0], DateTimeFormatter.ISO_LOCAL_TIME);
+			this.buttonDirection = ButtonDirection.valueOf(parts[1]);
+			this.floorNumber = Integer.parseInt(parts[2]);
+			this.buttonId = Integer.parseInt(parts[3]);
+			this.loaded = parts[4].equals("1");
+		} else {
+			throw new IllegalArgumentException("Invalid data for ElevatorRequest");
+		}
+	}
+
+	/**
 	 * Get the requested direction.
 	 * @return The requested direction.
 	 */
