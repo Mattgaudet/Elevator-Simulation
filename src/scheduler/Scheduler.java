@@ -117,7 +117,7 @@ public class Scheduler implements Runnable {
     @Override
     public void run() {
         while (true) {
-
+            // TODO: (Laurence) I placed this into a main method. Should it be in here instead?
         }
     }
 
