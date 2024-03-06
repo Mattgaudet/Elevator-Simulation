@@ -177,7 +177,7 @@ public class ElevatorSubsystem implements Runnable {
 
                 String received = new String(receivePacket.getData(), 0, receivePacket.getLength());
 
-                if ("GET-INFO".equals(received.trim())) {
+                if ("GET-INFO".equals(received.trim())) { // received an info request from Scheduler
                     System.out.println("Received GET-INFO request");
 
                     // Extract the address and port of the Scheduler from the received packet
@@ -186,12 +186,13 @@ public class ElevatorSubsystem implements Runnable {
 
                     // Reply back to the Scheduler with the elevator info
                     elevatorSubsystem.sendElevatorsInfo(serverSocket, schedulerAddress, schedulerPort);
-                } else {
+                } else { // received a request from the scheduler, with an elevator ID appended
                     // Handle regular elevator request, with the ID of the desired elevator
                     int elevatorID = ByteBuffer.wrap(receiveData, receiveData.length - 4, 4).getInt();
                     byte[] requestData = Arrays.copyOf(receiveData, receiveData.length - 4); // Exclude the last 4 bytes
                     ElevatorRequest request = new ElevatorRequest(requestData); // create new request from bytes
                     System.out.println("Received Elevator request: " + request + " assigned to elevator " + elevatorID);
+                    elevatorSubsystem.assignRequest(request, 0);
                 }
             }
         } catch (SocketException e) {
