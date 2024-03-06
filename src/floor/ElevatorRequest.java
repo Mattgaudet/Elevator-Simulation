@@ -162,6 +162,21 @@ public class ElevatorRequest implements Comparable<ElevatorRequest> {
 	}
 
 	/**
+	 * Returns a string representation of an elevator request
+	 */
+	@Override
+	public String toString() {
+		return "ElevatorRequest{" +
+				"buttonDirection=" + buttonDirection +
+				", buttonId=" + buttonId +
+				", floorNumber=" + floorNumber +
+				", currTime=" + currTime +
+				", loaded=" + loaded +
+				'}';
+	}
+
+
+	/**
 	 * Returns a bytes representation of an elevator request for UDP transport
 	 * It first builds a string of the following format:
 	 * "requestTime;buttonDirection;floorNumber;buttonID;1"

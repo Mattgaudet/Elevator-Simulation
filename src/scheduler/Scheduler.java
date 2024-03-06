@@ -153,7 +153,13 @@ public class Scheduler implements Runnable {
 
     public void scheduleElevatorRequest(byte[] requestData) {
         ElevatorRequest request = parseRequestFromFloorSubsystem(requestData);
-        // Additional logic for scheduling the elevator request, including getting elevator positions
+        // Print the details of the parsed request
+        if (request != null) {
+            System.out.println("Received and parsed request: " + request.toString());
+            // You might need to override the toString method in ElevatorRequest class to print meaningful data
+        } else {
+            System.out.println("Failed to parse the request from received data.");
+        }
     }
 
     /**
