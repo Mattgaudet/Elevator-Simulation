@@ -83,6 +83,9 @@ public class Elevator extends Thread{
         addState(State.TRANSPORTING, new ElevatorTransportingState());
     }
 
+    public ElevatorState getCurrentState(){
+        return currentState;
+    }
     /**
      * Get the current floor the elevator is on.
      * @return The current floor the elevator is on.
@@ -136,6 +139,10 @@ public class Elevator extends Thread{
         }
         this.doorStatus = doorStatus;
         Log.print("Elevator " + elevatorId +" door is " + doorStatus.name().toLowerCase() + "!");
+    }
+
+    public ButtonDirection getCurrDirection() {
+        return currDirection;
     }
 
     /**

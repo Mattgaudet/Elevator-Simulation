@@ -8,8 +8,10 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.nio.ByteBuffer;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import common.Log;
 import scheduler.Scheduler;
@@ -22,7 +24,7 @@ public class ElevatorSubsystem implements Runnable {
     private RequestProcessedListener listener;
 
     /** The elevators to schedule. */
-    private Elevator[] elevatorCars = new Elevator[10]; // 10 elevators max for now
+    private Elevator[] elevatorCars = new Elevator[5]; // 10 elevators max for now
 
     /** The schedule to receive requests from. */
     private Scheduler scheduler;
@@ -137,12 +139,25 @@ public class ElevatorSubsystem implements Runnable {
         this.scheduler.changeLampStatus(direction); // Change lamp status in scheduler
     }
 
-    public void sendElevatorsInfo(DatagramSocket socket, InetAddress schedulerAddress, int schedulerPort) throws IOException {
-        String info = "Elevator Info"; // Replace this with actual elevator information gathering logic
-        byte[] sendData = info.getBytes();
-
+    public void sendElevatorsInfo(DatagramSocket serverSocket, InetAddress schedulerAddress, int schedulerPort) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        for (Elevator elevator : elevatorCars) { // Assuming elevatorCars is an iterable list of Elevator
+            sb.append(elevator.getElevatorId())
+                    .append(';')
+                    .append(elevator.getCurrentState())
+                    .append(';')
+                    .append(elevator.getCurrentFloor())
+                    .append(';')
+                    .append(elevator.getCurrDirection())
+                    .append('\n');
+        }
+        byte[] sendData = sb.toString().getBytes();
         DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, schedulerAddress, schedulerPort);
-        socket.send(sendPacket);
+        try {
+            serverSocket.send(sendPacket);
+        } catch (IOException e) {
+            System.err.println("IOException in sendElevatorsInfo: " + e.getMessage());
+        }
         System.out.println("Sent elevators info to Scheduler.");
     }
 
@@ -173,6 +188,10 @@ public class ElevatorSubsystem implements Runnable {
                     elevatorSubsystem.sendElevatorsInfo(serverSocket, schedulerAddress, schedulerPort);
                 } else {
                     // Handle regular elevator request, with the ID of the desired elevator
+                    int elevatorID = ByteBuffer.wrap(receiveData, receiveData.length - 4, 4).getInt();
+                    byte[] requestData = Arrays.copyOf(receiveData, receiveData.length - 4); // Exclude the last 4 bytes
+                    ElevatorRequest request = new ElevatorRequest(requestData); // create new request from bytes
+                    System.out.println("Received Elevator request: " + request + " assigned to elevator " + elevatorID);
                 }
             }
         } catch (SocketException e) {
