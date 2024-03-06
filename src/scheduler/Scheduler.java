@@ -152,34 +152,47 @@ public class Scheduler implements Runnable {
         ElevatorRequest newRequest = new ElevatorRequest(requestData);
         return newRequest;
     }
-
     /**
+     /**
      * This parses the info received from the ElevatorSubsystem
      * about all the elevator cars and their current status
      * @param data the info received via UDP in the bytes format
-     * @return a string of format "1;elevator.ElevatorIdleState@4fca772d;0;NONE"
-     * Where 1 is the elevatorID, the state, 0 is the current floor, and NONE the direction
-     * TODO: Need to improve parsing so we can use more easily this info.
+     * @return an array of ElevatorInfo objects representing the current state of elevators
      */
-    public String parseElevatorsInfo(byte[] data){
+    public ElevatorInfo[] parseElevatorsInfo(byte[] data) {
         String receivedInfo = new String(data);
         String[] elevatorsInfo = receivedInfo.split("\n"); // Each elevator info is separated by a newline
-//
-//        for (String elevatorInfo : elevatorsInfo) {
-//            String[] info = elevatorInfo.split(";");
-//            if (info.length == 4) { // Ensure there are exactly 4 pieces of information
-//                int elevatorId = Integer.parseInt(info[0]);
-//                ElevatorState currentState = ElevatorState.valueOf(info[1]);
-//                int currentFloor = Integer.parseInt(info[2]);
-//                ButtonDirection currDirection = ButtonDirection.valueOf(info[3]);
-//
-//                // Now you have the information for each elevator
-//                // You can use it to update the scheduler's understanding of each elevator's state
-//            }
-//        }
-        //return elevatorsInfo; // need to make return type String[]
-        return receivedInfo;
+
+        List<ElevatorInfo> elevatorInfoList = new ArrayList<>();
+
+        for (String elevatorInfo : elevatorsInfo) {
+            String[] info = elevatorInfo.split(";");
+            if (info.length == 4) { 
+                int elevatorId = Integer.parseInt(info[0]);
+                String stateString = info[1];
+                Elevator.State currentState;
+
+                try {
+                    currentState = Elevator.State.valueOf(stateString);
+                } catch (IllegalArgumentException e) {
+   
+                    System.err.println("Invalid elevator state: " + stateString);
+                    currentState = Elevator.State.UNKNOWN;
+                }
+
+                int currentFloor = Integer.parseInt(info[2]);
+                ButtonDirection currDirection = ButtonDirection.valueOf(info[3]);
+
+                // Create an ElevatorInfo object for each elevator and add to the list
+                ElevatorInfo elevatorInfoObj = new ElevatorInfo(elevatorId, currentState, currentFloor, currDirection);
+                elevatorInfoList.add(elevatorInfoObj);
+            }
+        }
+
+        // Convert the list to an array
+        return elevatorInfoList.toArray(new ElevatorInfo[0]);
     }
+
 
     /**
      * This is asking the ElevatorSubsystem for the Elevators info
@@ -208,7 +221,7 @@ public class Scheduler implements Runnable {
             // Process the received data
             String response = new String(receivePacket.getData(), 0, receivePacket.getLength());
             System.out.println("Received elevators info: " + response);
-            elevatorsInfo = parseElevatorsInfo(receivePacket.getData());
+            elevatorsInfo = Arrays.toString(parseElevatorsInfo(receivePacket.getData()));
 
         } catch (UnknownHostException e) {
             System.err.println("UnknownHostException: " + e.getMessage());
@@ -222,17 +235,53 @@ public class Scheduler implements Runnable {
     }
 
     /**
-     * Selects the appropriate elevator based on the chosen logic
-     * TODO: select elevator logic
-     * @param request the request to be sent to the selected elevator
-     * @return the ID of the chosen elevator
+     * Selects the appropriate elevator based on the chosen logic.
+     *
+     * The method considers the elevator's current state, direction, and travel time to choose
+     * the most suitable elevator for the given request.
+     *
+     * @param request The request to be sent to the selected elevator.
+     * @param elevatorsInfo Information about all elevators, including their current state,
+     *                      floor, and direction, received from the ElevatorSubsystem.
+     * @return The ID of the chosen elevator. Returns -1 if no suitable elevator is found.
      */
-    public int selectElevator(ElevatorRequest request){
-        // get the elevator Info here and process how you want
-        getElevatorsInfo(); // used the parsed info
-        return 0; //
-    }
+    public int selectElevator(ElevatorRequest request, String elevatorsInfo) {
+        // Split the elevators' information into an array of strings
+        String[] elevatorInfoArray = elevatorsInfo.split("\n");
 
+        // Initialize variables to track the chosen elevator and minimum travel time
+        int selectedElevatorId = -1;
+        int minTravelTime = Integer.MAX_VALUE;
+
+        // Iterate through each elevator's information
+        for (String elevatorInfo : elevatorInfoArray) {
+            // Split the elevator's information into an array of strings
+            String[] info = elevatorInfo.split(";");
+            if (info.length == 4) {
+                // Extract relevant information from the split array
+                int elevatorId = Integer.parseInt(info[0]);
+                Elevator.State currentState = Elevator.State.valueOf(info[1]);
+                int currentFloor = Integer.parseInt(info[2]);
+                ButtonDirection currDirection = ButtonDirection.valueOf(info[3]);
+
+                // Check if the elevator is idle or moving in the requested direction
+                if (currentState == Elevator.State.IDLE || (currentState == Elevator.State.TRANSPORTING && currDirection == request.getButtonDirection())) {
+                    // Calculate the travel time for the current elevator
+                    int travelTime = Math.abs(currentFloor - request.getFloorNumber());
+
+                    // Update the selected elevator if it minimizes travel time
+                    if (travelTime < minTravelTime) {
+                        minTravelTime = travelTime;
+                        selectedElevatorId = elevatorId;
+                    }
+                }
+            }
+        }
+
+        // Return the ID of the chosen elevator or -1 if no suitable elevator is found
+        return selectedElevatorId;
+    }
+    
     /**
      * TODO: This is the processing state, probably.
      * This is where the scheduler is selecting which elevator to send the request too
