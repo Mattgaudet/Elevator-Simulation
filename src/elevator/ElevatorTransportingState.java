@@ -137,6 +137,7 @@ public class ElevatorTransportingState implements ElevatorState{
                 }
                 //remove completed requests
                 for (ElevatorRequest e : removeList) {
+                    e.setProcessed(); // this set the processed variable to true
                     elevator.getElevatorQueue().remove(e);
                 }
             }

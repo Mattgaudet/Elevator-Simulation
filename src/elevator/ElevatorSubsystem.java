@@ -99,6 +99,7 @@ public class ElevatorSubsystem implements Runnable {
                 }
                 // assign request to the elevator
                 ElevatorRequest request = this.scheduler.getRequestQueueFromScheduler().remove(0);
+                // TODO: (Laurence) need to make this happen as well by sending the request back
                 assignRequest(request, 0);
             }
         }

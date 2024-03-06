@@ -40,6 +40,8 @@ public class ElevatorRequest implements Comparable<ElevatorRequest> {
 	 */
 	private boolean loaded = false;
 
+	private boolean processed = false;
+
 	/**
 	 * Create a new elevator request.
 	 * @param buttonDirection The requested direction.
@@ -51,7 +53,7 @@ public class ElevatorRequest implements Comparable<ElevatorRequest> {
 		this.currTime = currTime;
 		this.floorNumber = floorNumber;
 		this.buttonDirection = buttonDirection;
-		this.buttonId = buttonId; 
+		this.buttonId = buttonId;
 	}
 
 	/**
@@ -120,6 +122,10 @@ public class ElevatorRequest implements Comparable<ElevatorRequest> {
 		loaded = true;
 	}
 
+	public void setProcessed() {
+		processed = true;
+	}
+
 	/**
 	 * Return loaded
 	 * @return if the elevatorRequest is loaded
@@ -172,6 +178,7 @@ public class ElevatorRequest implements Comparable<ElevatorRequest> {
 				", floorNumber=" + floorNumber +
 				", currTime=" + currTime +
 				", loaded=" + loaded +
+				", processed=" + processed +
 				'}';
 	}
 
@@ -202,6 +209,8 @@ public class ElevatorRequest implements Comparable<ElevatorRequest> {
 		sb.append(this.buttonId);
 		sb.append(delimiter);
 		sb.append(this.loaded ? "1" : "0"); // Represent boolean as 1 (true) or 0 (false)
+		sb.append(delimiter);
+		sb.append(this.processed ? "1" : "0"); // Represent boolean as 1 (true) or 0 (false)
 		// Convert the serialized string to bytes
 		return sb.toString().getBytes(StandardCharsets.UTF_8);
 	}
