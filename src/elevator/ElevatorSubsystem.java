@@ -2,6 +2,12 @@ package elevator;
 
 import floor.ElevatorRequest.ButtonDirection;
 import floor.ElevatorRequest;
+
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
 import java.time.LocalTime;
 import java.util.ArrayList;
 
@@ -49,6 +55,17 @@ public class ElevatorSubsystem implements Runnable {
      */
     public ElevatorSubsystem(Scheduler scheduler, int numElevators) {
         this.scheduler = scheduler;
+        for(int i = 0; i < numElevators; i++) { //create and start all elevators
+            this.elevatorCars[i] = new Elevator(i, this);
+            this.elevatorCars[i].start();
+        }
+    }
+
+    /**
+     * Create a new elevator subsystem. Creates create and start specified number of elevators
+     * @param numElevators The number of elevators to create
+     */
+    public ElevatorSubsystem(int numElevators) {
         for(int i = 0; i < numElevators; i++) { //create and start all elevators
             this.elevatorCars[i] = new Elevator(i, this);
             this.elevatorCars[i].start();
@@ -118,5 +135,50 @@ public class ElevatorSubsystem implements Runnable {
      */
     public void changeLampStatus(ButtonDirection direction) {
         this.scheduler.changeLampStatus(direction); // Change lamp status in scheduler
+    }
+
+    public void sendElevatorsInfo(DatagramSocket socket, InetAddress schedulerAddress, int schedulerPort) throws IOException {
+        String info = "Elevator Info"; // Replace this with actual elevator information gathering logic
+        byte[] sendData = info.getBytes();
+
+        DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, schedulerAddress, schedulerPort);
+        socket.send(sendPacket);
+        System.out.println("Sent elevators info to Scheduler.");
+    }
+
+
+    public static void main(String[] args) {
+        int listenPort = 6000; // Different port than Scheduler
+        ElevatorSubsystem elevatorSubsystem = new ElevatorSubsystem(5);
+
+        try (DatagramSocket serverSocket = new DatagramSocket(listenPort)) {
+            byte[] receiveData = new byte[1024]; // Buffer for incoming data
+
+            System.out.println("ElevatorSubsystem listening on port " + listenPort);
+
+            while (true) { // Run indefinitely
+                DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+                serverSocket.receive(receivePacket);
+
+                String received = new String(receivePacket.getData(), 0, receivePacket.getLength());
+
+                if ("GET-INFO".equals(received.trim())) {
+                    System.out.println("Received GET-INFO request");
+
+                    // Extract the address and port of the Scheduler from the received packet
+                    InetAddress schedulerAddress = receivePacket.getAddress();
+                    int schedulerPort = receivePacket.getPort();
+
+                    // Reply back to the Scheduler with the elevator info
+                    elevatorSubsystem.sendElevatorsInfo(serverSocket, schedulerAddress, schedulerPort);
+                } else {
+                    // Handle regular elevator request, with the ID of the desired elevator
+                }
+            }
+        } catch (SocketException e) {
+            System.err.println("SocketException: " + e.getMessage());
+        } catch (IOException e) {
+            System.err.println("IOException: " + e.getMessage());
+        }
     }
 }

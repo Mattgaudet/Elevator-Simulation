@@ -1,15 +1,16 @@
 package scheduler;
 
+import elevator.Elevator;
 import floor.ElevatorRequest.ButtonDirection;
 import floor.ElevatorRequest;
 import floor.FloorSubsystem;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.SocketException;
+import java.net.*;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.List;
+
 import common.Log;
 
 /**
@@ -151,15 +152,82 @@ public class Scheduler implements Runnable {
         return newRequest;
     }
 
+    public String parseElevatorsInfo(byte[] data){
+        String receivedInfo = new String(data);
+        String[] elevatorsInfo = receivedInfo.split("\n"); // Each elevator info is separated by a newline
+//
+//        for (String elevatorInfo : elevatorsInfo) {
+//            String[] info = elevatorInfo.split(";");
+//            if (info.length == 4) { // Ensure there are exactly 4 pieces of information
+//                int elevatorId = Integer.parseInt(info[0]);
+//                ElevatorState currentState = ElevatorState.valueOf(info[1]);
+//                int currentFloor = Integer.parseInt(info[2]);
+//                ButtonDirection currDirection = ButtonDirection.valueOf(info[3]);
+//
+//                // Now you have the information for each elevator
+//                // You can use it to update the scheduler's understanding of each elevator's state
+//            }
+//        }
+        //return elevatorsInfo; // need to make return type String[]
+        return receivedInfo;
+    }
+
+    /**
+     * This is asking the ElevatorSubsystem for the Elevators info.
+     */
+    public String getElevatorsInfo() {
+        String getInfoRequest = "GET-INFO";
+        int elevatorSubsystemPort = 6000; // The port the ElevatorSubsystem is listening on
+        String elevatorSubsystemHost = "localhost"; // Assuming the ElevatorSubsystem is on the same host
+        String elevatorsInfo = null;
+
+        try (DatagramSocket socket = new DatagramSocket()) {
+            InetAddress elevatorSubsystemAddress = InetAddress.getByName(elevatorSubsystemHost);
+            byte[] sendData = getInfoRequest.getBytes();
+
+            // Send the GET-INFO request
+            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, elevatorSubsystemAddress, elevatorSubsystemPort);
+            socket.send(sendPacket);
+
+            // Prepare to receive the response
+            byte[] receiveData = new byte[1024];
+            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+            socket.receive(receivePacket);
+
+            // Process the received data
+            String response = new String(receivePacket.getData(), 0, receivePacket.getLength());
+            System.out.println("Received elevators info: " + response);
+            elevatorsInfo = parseElevatorsInfo(receivePacket.getData());
+
+        } catch (UnknownHostException e) {
+            System.err.println("UnknownHostException: " + e.getMessage());
+        } catch (SocketException e) {
+            System.err.println("SocketException: " + e.getMessage());
+        } catch (IOException e) {
+            System.err.println("IOException: " + e.getMessage());
+        }
+
+        return elevatorsInfo;
+    }
+
+    /**
+     * TODO: This is the processing state, probably.
+     * This is where the scheduler is selecting which elevator to send the request too
+     * @param requestData the received request in bytes format via UDP
+     */
     public void scheduleElevatorRequest(byte[] requestData) {
         ElevatorRequest request = parseRequestFromFloorSubsystem(requestData);
         // Print the details of the parsed request
         if (request != null) {
             System.out.println("Received and parsed request: " + request.toString());
-            // You might need to override the toString method in ElevatorRequest class to print meaningful data
         } else {
             System.out.println("Failed to parse the request from received data.");
         }
+        addToRequestQueue(request); // reusing previous method
+        //ask for elevators info on the infoPort
+        getElevatorsInfo(); // send request for info to ElevatorSubsystem
+        // select elevator 0
+        // send the request to the selected elevator on the requestPort
     }
 
     /**
@@ -181,8 +249,8 @@ public class Scheduler implements Runnable {
                 DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
                 serverSocket.receive(receivePacket);
 
-                // Handle each request in a separate thread
-                new Thread(() -> scheduler.scheduleElevatorRequest(receivePacket.getData())).start();
+                // Handle the request
+                scheduler.scheduleElevatorRequest(receivePacket.getData());
             }
         } catch (SocketException e) {
             System.err.println("SocketException: " + e.getMessage());
