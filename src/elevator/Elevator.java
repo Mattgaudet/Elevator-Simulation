@@ -67,7 +67,7 @@ public class Elevator extends Thread{
      */
     public enum State {
         IDLE,
-        TRANSPORTING
+        TRANSPORTING,UNKNOWN
     }
 
     /**
