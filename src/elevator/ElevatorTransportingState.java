@@ -13,6 +13,15 @@ import java.util.ArrayList;
 public class ElevatorTransportingState implements ElevatorState{
     /** Elevator context */
     private Elevator elevator;
+    private ElevatorSubsystem elevatorSubsystem;
+
+    /**
+     * Constructor for the transporting state
+     * @param elevatorSubsystem the elevator subsystem
+     */
+    public ElevatorTransportingState(ElevatorSubsystem elevatorSubsystem) {
+        this.elevatorSubsystem = elevatorSubsystem;
+    }
 
     /**
      * Begins moving the elevator
@@ -138,7 +147,8 @@ public class ElevatorTransportingState implements ElevatorState{
                 //remove completed requests
                 for (ElevatorRequest e : removeList) {
                     e.setProcessed(); // this set the processed variable to true
-                    elevator.getElevatorQueue().remove(e);
+                    elevatorSubsystem.sendCompletedElevatorRequest(e); //notify scheduler request completed
+                    elevator.getElevatorQueue().remove(e); //remove from elevator queue
                 }
             }
             // If the elevator hasn't reached the destination floor yet, pause for the time

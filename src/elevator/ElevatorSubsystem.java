@@ -4,10 +4,7 @@ import floor.ElevatorRequest.ButtonDirection;
 import floor.ElevatorRequest;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.SocketException;
+import java.net.*;
 import java.nio.ByteBuffer;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -138,6 +135,26 @@ public class ElevatorSubsystem implements Runnable {
      */
     public void changeLampStatus(ButtonDirection direction) {
         this.scheduler.changeLampStatus(direction); // Change lamp status in scheduler
+    }
+
+    /**
+     * Sends completed requests back to the scheduler
+     * @param er the completed ElevatorRequest
+     */
+    public void sendCompletedElevatorRequest(ElevatorRequest er) {
+        byte[] sendData = er.getBytes();
+        try {
+            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, InetAddress.getByName("localhost"), 5000);
+            DatagramSocket serverSocket = new DatagramSocket(6000);
+            serverSocket.send(sendPacket);
+        } catch (SocketException e) {
+            System.err.println("SocketException: " + e.getMessage());
+        } catch (UnknownHostException e) {
+            System.err.println("UnknownHostException: " + e.getMessage());
+        } catch (IOException e) {
+            System.err.println("IOException: " + e.getMessage());
+        }
+        Log.print("ElevatorSubsystem: Sent completed " + er + " to Scheduler.");
     }
 
     public void sendElevatorsInfo(DatagramSocket serverSocket, InetAddress schedulerAddress, int schedulerPort) throws IOException {
