@@ -176,4 +176,8 @@ public class ElevatorTransportingState implements ElevatorState{
         //Log.print("Passenger " + loadingType + "!");
         elevator.setDoorStatus(Elevator.DoorStatus.CLOSED);
     }
+        @Override
+    public String toString() {
+        return "TRANSPORTING";
+    }
 }
