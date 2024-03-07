@@ -2,6 +2,7 @@ package scheduler;
 
 import elevator.Elevator;
 import elevator.ElevatorInfo;
+import elevator.ElevatorSubsystem;
 import floor.ElevatorRequest.ButtonDirection;
 import floor.ElevatorRequest;
 import floor.FloorSubsystem;
@@ -108,18 +109,6 @@ public class Scheduler implements Runnable {
             floorSubsystem.receiveRequestFromScheduler(request);
             schedulerRequestsQueue.remove(request); //remove from queue
             schedulerRequestsQueue.notifyAll(); // Notify any threads that are waiting for new requests
-        }
-    }
-
-    /**
-     * The entrypoint of the scheduler. Continuously checks if there are any jobs in the
-     * FloorSubsystem. If there are, it adds the jobs to the queue and removes it from the
-     * FloorSubsystem.
-     */
-    @Override
-    public void run() {
-        while (true) {
-            // TODO: (Laurence) I placed this into a main method. Should it be in here instead?
         }
     }
 
@@ -341,8 +330,13 @@ public class Scheduler implements Runnable {
         floorSubsystem.changeLampStatus(direction);
     }
 
-    public static void main(String[] args) {
-        Scheduler scheduler = new Scheduler();
+    /**
+     * The entrypoint of the scheduler. Continuously checks if there are any jobs in the
+     * FloorSubsystem. If there are, it adds the jobs to the queue and removes it from the
+     * FloorSubsystem.
+     */
+    @Override
+    public void run() {
         int listenPort = 5000; // Port to listen for incoming requests
         try (DatagramSocket serverSocket = new DatagramSocket(listenPort)) {
             System.out.println("Scheduler listening on port " + listenPort);
@@ -353,13 +347,25 @@ public class Scheduler implements Runnable {
                 serverSocket.receive(receivePacket);
 
                 // Handle the request
-                scheduler.scheduleElevatorRequest(receivePacket.getData());
+                scheduleElevatorRequest(receivePacket.getData());
             }
         } catch (SocketException e) {
             System.err.println("SocketException: " + e.getMessage());
         } catch (IOException e) {
             System.err.println("IOException: " + e.getMessage());
         }
+    }
+
+    public static void main(String[] args) {
+
+        // Instantiate the Scheduler object
+        Scheduler scheduler = new Scheduler();
+
+        // Create the Scheduler thread
+        Thread schedulerThread = new Thread(scheduler, "Scheduler Thread");
+
+        // Start the Scheduler Thread
+        schedulerThread.start();
     }
 
 }
