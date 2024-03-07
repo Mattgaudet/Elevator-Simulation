@@ -25,4 +25,8 @@ public class ElevatorIdleState implements ElevatorState{
         }
         elevator.setState(Elevator.State.TRANSPORTING);
     }
+        @Override
+    public String toString() {
+        return "IDLE";
+    }
 }
