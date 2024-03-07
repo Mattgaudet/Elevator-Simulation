@@ -1,6 +1,7 @@
 package scheduler;
 
 import elevator.Elevator;
+import elevator.ElevatorInfo;
 import floor.ElevatorRequest.ButtonDirection;
 import floor.ElevatorRequest;
 import floor.FloorSubsystem;
@@ -10,6 +11,7 @@ import java.net.*;
 import java.nio.ByteBuffer;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import common.Log;
@@ -296,7 +298,8 @@ public class Scheduler implements Runnable {
             System.out.println("Failed to parse the request from received data.");
         }
         addToRequestQueue(request); // reusing previous method
-        int elevatorID = selectElevator(request); // currently, always 0
+        String elevatorsInfo = getElevatorsInfo();
+        int elevatorID = selectElevator(request, elevatorsInfo); // currently, always 0
         // send the request to the selected elevator on the requestPort
         sendRequestToElevator(request, elevatorID);
     }
