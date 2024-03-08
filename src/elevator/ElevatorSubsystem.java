@@ -145,7 +145,7 @@ public class ElevatorSubsystem implements Runnable {
         byte[] sendData = er.getBytes();
         try {
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, InetAddress.getByName("localhost"), 5000);
-            DatagramSocket serverSocket = new DatagramSocket(6000);
+            DatagramSocket serverSocket = new DatagramSocket();
             serverSocket.send(sendPacket);
         } catch (SocketException e) {
             System.err.println("SocketException: " + e.getMessage());

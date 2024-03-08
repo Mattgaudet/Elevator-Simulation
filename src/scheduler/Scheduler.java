@@ -2,7 +2,6 @@ package scheduler;
 
 import elevator.Elevator;
 import elevator.ElevatorInfo;
-import elevator.ElevatorSubsystem;
 import floor.ElevatorRequest.ButtonDirection;
 import floor.ElevatorRequest;
 import floor.FloorSubsystem;
@@ -139,9 +138,8 @@ public class Scheduler implements Runnable {
         }
     }
 
-    public ElevatorRequest parseRequestFromFloorSubsystem(byte[] requestData) {
-        ElevatorRequest newRequest = new ElevatorRequest(requestData);
-        return newRequest;
+    public ElevatorRequest parseElevatorRequest(byte[] requestData) {
+        return new ElevatorRequest(requestData);
     }
     /**
      /**
@@ -276,21 +274,19 @@ public class Scheduler implements Runnable {
     /**
      * TODO: This is the processing state, probably.
      * This is where the scheduler is selecting which elevator to send the request too
-     * @param requestData the received request in bytes format via UDP
+     * @param request the received request
      */
-    public void scheduleElevatorRequest(byte[] requestData) {
-        ElevatorRequest request = parseRequestFromFloorSubsystem(requestData);
+    public void scheduleElevatorRequest(ElevatorRequest request) {
         // Print the details of the parsed request
         if (request != null) {
-            System.out.println("Received and parsed request: " + request.toString());
+            addToRequestQueue(request); // reusing previous method
+            String elevatorsInfo = getElevatorsInfo();
+            int elevatorID = selectElevator(request, elevatorsInfo); // currently, always 0
+            // send the request to the selected elevator on the requestPort
+            sendRequestToElevator(request, elevatorID);
         } else {
             System.out.println("Failed to parse the request from received data.");
         }
-        addToRequestQueue(request); // reusing previous method
-        String elevatorsInfo = getElevatorsInfo();
-        int elevatorID = selectElevator(request, elevatorsInfo); // currently, always 0
-        // send the request to the selected elevator on the requestPort
-        sendRequestToElevator(request, elevatorID);
     }
 
     public void sendRequestToElevator(ElevatorRequest request, int elevatorID){
@@ -347,7 +343,16 @@ public class Scheduler implements Runnable {
                 serverSocket.receive(receivePacket);
 
                 // Handle the request
-                scheduleElevatorRequest(receivePacket.getData());
+                ElevatorRequest request = parseElevatorRequest(receivePacket.getData());
+                if (request.isProcessed()) {
+                    // Handle completed request from the ElevatorSubsystem
+                    System.out.println("Received completed request from ElevatorSubsystem: " + request);
+                    // Further processing...
+                } else {
+                    // Handle new request from the FloorSubsystem
+                    System.out.println("Received new request from FloorSubsystem: " + request);
+                    scheduleElevatorRequest(request);
+                }
             }
         } catch (SocketException e) {
             System.err.println("SocketException: " + e.getMessage());

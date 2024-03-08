@@ -70,9 +70,18 @@ public class ElevatorRequest implements Comparable<ElevatorRequest> {
 			this.floorNumber = Integer.parseInt(parts[2]);
 			this.buttonId = Integer.parseInt(parts[3]);
 			this.loaded = parts[4].equals("1");
+			this.processed = parts[5].equals("1");
 		} else {
 			throw new IllegalArgumentException("Invalid data for ElevatorRequest");
 		}
+	}
+
+	/**
+	 * Get the processing status.
+	 * @return The requested direction.
+	 */
+	public boolean isProcessed() {
+		return this.processed;
 	}
 
 	/**
