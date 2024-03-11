@@ -2,6 +2,27 @@
     "configurations": [
         {
             "type": "java",
+            "name": "FloorSubsystem",
+            "request": "launch",
+            "mainClass": "floor.FloorSubsystem",
+            "projectName": "SYSC 3303 Group Project_444ed0b0"
+        },
+        {
+            "type": "java",
+            "name": "ElevatorSubsystem",
+            "request": "launch",
+            "mainClass": "elevator.ElevatorSubsystem",
+            "projectName": "SYSC 3303 Group Project_444ed0b0"
+        },
+        {
+            "type": "java",
+            "name": "Scheduler",
+            "request": "launch",
+            "mainClass": "scheduler.Scheduler",
+            "projectName": "SYSC 3303 Group Project_444ed0b0"
+        },
+        {
+            "type": "java",
             "name": "Main",
             "request": "launch",
             "mainClass": "main.Main",

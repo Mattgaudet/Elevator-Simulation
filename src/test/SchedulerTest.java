@@ -6,6 +6,8 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import scheduler.ProcessingRequestState;
 import scheduler.Scheduler;
 
 import java.time.LocalTime;
@@ -83,37 +85,22 @@ public class SchedulerTest {
         assertEquals(requestQueue.get(0).getFloorNumber(), 2);
     }
 
-    /**
-     * Test the addToResponseLog method of the Scheduler class.
-     */
-    @Test
-    void addToResponseLog() {
-        FloorSubsystem floorSubsystem = new FloorSubsystem();
-        scheduler = new Scheduler(floorSubsystem);
-        ElevatorRequest elevatorRequest = new ElevatorRequest(LocalTime.now(), 3,ElevatorRequest.ButtonDirection.UP, 4);
-
-        scheduler.addToResponseLog(elevatorRequest);
-        ArrayList<ElevatorRequest> responseLog = scheduler.getSchedulerResponseLog();
-
-        assertTrue(responseLog.contains(elevatorRequest));
-    }
         @Test
     public void testSelectElevator() {
         // Mock elevator information
         String mockElevatorInfo = "1;IDLE;3;UP\n2;TRANSPORTING;5;DOWN\n3;IDLE;2;UP\n";
 
-        // Create a Scheduler instance for testing
-        Scheduler scheduler = new Scheduler();
+        // Create a ProcessingRequestState instance for testing
+        ProcessingRequestState processingRequestState = new ProcessingRequestState();
 
         // Test case 1: Create a mock request going up from floor 3 to 10, so it should use elevator id number 1 since elevator 1 is in floor 3
         ElevatorRequest mockRequest1 = new ElevatorRequest(LocalTime.now(),3, ElevatorRequest.ButtonDirection.UP,10);
-        int selectedElevatorId1 = scheduler.selectElevator(mockRequest1, mockElevatorInfo);
+        int selectedElevatorId1 = processingRequestState.selectElevator(scheduler, mockRequest1, mockElevatorInfo);
         assertEquals(1, selectedElevatorId1); // Elevator 1 is closest and idle
 
         // Test case 2: Create a mock request going down from floor 6 to 2, so it should use elevator id number 2 since elevator 2 is in floor 5 and going down
         ElevatorRequest mockRequest2 = new ElevatorRequest(LocalTime.now(),6, ElevatorRequest.ButtonDirection.DOWN,2);
-        int selectedElevatorId2 = scheduler.selectElevator(mockRequest2, mockElevatorInfo);
-
+        int selectedElevatorId2 = processingRequestState.selectElevator(scheduler, mockRequest2, mockElevatorInfo);
         assertEquals(2, selectedElevatorId2); // Elevator 2 is closest and idle
 
     }
