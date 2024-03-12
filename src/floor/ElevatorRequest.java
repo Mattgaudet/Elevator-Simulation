@@ -61,16 +61,16 @@ public class ElevatorRequest implements Comparable<ElevatorRequest> {
 	 */
 
 	public ElevatorRequest(byte[] data) {
-		String dataString = new String(data, StandardCharsets.UTF_8);
+		String dataString = new String(data, StandardCharsets.UTF_8).trim(); // Also trim the whole string
 		String[] parts = dataString.split(";");
 
-		if (parts.length >= 5) {
-			this.currTime = LocalTime.parse(parts[0], DateTimeFormatter.ISO_LOCAL_TIME);
-			this.buttonDirection = ButtonDirection.valueOf(parts[1]);
-			this.floorNumber = Integer.parseInt(parts[2]);
-			this.buttonId = Integer.parseInt(parts[3]);
-			this.loaded = parts[4].equals("1");
-			this.processed = parts[5].equals("1");
+		if (parts.length >= 6) {
+			this.currTime = LocalTime.parse(parts[0].trim(), DateTimeFormatter.ISO_LOCAL_TIME);
+			this.buttonDirection = ButtonDirection.valueOf(parts[1].trim());
+			this.floorNumber = Integer.parseInt(parts[2].trim());
+			this.buttonId = Integer.parseInt(parts[3].trim());
+			this.loaded = parts[4].trim().startsWith("1");
+			this.processed = parts[5].trim().startsWith("1");
 		} else {
 			throw new IllegalArgumentException("Invalid data for ElevatorRequest");
 		}
