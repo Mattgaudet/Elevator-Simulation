@@ -14,6 +14,15 @@ public class ElevatorInfo {
         this.currentFloor = currentFloor;
         this.currDirection = currDirection;
     }
+    @Override
+    public String toString() {
+        return "ElevatorInfo{" +
+                "elevatorId=" + elevatorId +
+                ", currentState=" + currentState +
+                ", currentFloor=" + currentFloor +
+                ", currDirection=" + currDirection +
+                '}';
+    }
 
     public int getElevatorId() {
         return elevatorId;

@@ -205,12 +205,16 @@ public class ElevatorSubsystem implements Runnable {
                     // Reply back to the Scheduler with the elevator info
                     elevatorSubsystem.sendElevatorsInfo(serverSocket, schedulerAddress, schedulerPort);
                 } else { // received a request from the scheduler, with an elevator ID appended
-                    // Handle regular elevator request, with the ID of the desired elevator
-                    int elevatorID = ByteBuffer.wrap(receiveData, receiveData.length - 4, 4).getInt();
-                    byte[] requestData = Arrays.copyOf(receiveData, receiveData.length - 4); // Exclude the last 4 bytes
-                    ElevatorRequest request = new ElevatorRequest(requestData); // create new request from bytes
+                    // Extract elevator ID from the end of the received packet
+                    int elevatorID = ByteBuffer.wrap(receiveData, receivePacket.getLength() - 4, 4).getInt();
+
+                    // Exclude the last 4 bytes (elevator ID) from the received data
+                    byte[] requestData = Arrays.copyOf(receiveData, receivePacket.getLength() - 4);
+
+                    // Create new request from bytes
+                    ElevatorRequest request = new ElevatorRequest(requestData);
                     System.out.println("Received Elevator request: " + request + " assigned to elevator " + elevatorID);
-                    elevatorSubsystem.assignRequest(request, 0);
+                    elevatorSubsystem.assignRequest(request, elevatorID);
                 }
             }
         } catch (SocketException e) {
@@ -219,4 +223,5 @@ public class ElevatorSubsystem implements Runnable {
             System.err.println("IOException: " + e.getMessage());
         }
     }
+
 }
