@@ -5,6 +5,9 @@ import elevator.Elevator;
 import floor.ElevatorRequest;
 import floor.ElevatorRequest.ButtonDirection;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 
 public class ProcessingRequestState implements SchedulerState {
     @Override
@@ -17,11 +20,10 @@ public class ProcessingRequestState implements SchedulerState {
         }
         scheduler.addToRequestQueue(request);
         String elevatorsInfo = scheduler.getElevatorsInfo();
-        int elevatorID = selectElevator(scheduler, request, elevatorsInfo);   // currently, always 0 
+        int elevatorID = selectElevator(scheduler, request, elevatorsInfo);   // currently, always 0
         scheduler.setState(new ElevatorDispatchState());
         Log.print("Scheduler: State transitioned to ELEVATOR DISPATCH STATE.");
         scheduler.state.processRequest(scheduler, request, elevatorID);
-
     }
 
     private ElevatorRequest parseRequestFromFloorSubsystem(byte[] requestData) {
@@ -46,26 +48,25 @@ public class ProcessingRequestState implements SchedulerState {
      * @return The ID of the chosen elevator. Returns -1 if no suitable elevator is found.
      */
     public int selectElevator(Scheduler scheduler, ElevatorRequest request, String elevatorsInfo) {
-        // Split the elevators' information into an array of strings
-        String[] elevatorInfoArray = elevatorsInfo.split("\n");
+        // Extracting elevator information from the string representation
+        Pattern pattern = Pattern.compile("\\{elevatorId=(\\d+), currentState=(\\w+), currentFloor=(\\d+), currDirection=(\\w+)\\}");
+        Matcher matcher = pattern.matcher(elevatorsInfo);
 
         // Initialize variables to track the chosen elevator and minimum travel time
         int selectedElevatorId = -1;
         int minTravelTime = Integer.MAX_VALUE;
 
         // Iterate through each elevator's information
-        for (String elevatorInfo : elevatorInfoArray) {
-            // Split the elevator's information into an array of strings
-            String[] info = elevatorInfo.split(";");
-            if (info.length == 4) {
-                // Extract relevant information from the split array
-                int elevatorId = Integer.parseInt(info[0]);
-                Elevator.State currentState = Elevator.State.valueOf(info[1]);
-                int currentFloor = Integer.parseInt(info[2]);
-                ButtonDirection currDirection = ButtonDirection.valueOf(info[3]);
+        while (matcher.find()) {
+            try {
+                // Extract relevant information from the matched groups
+                int elevatorId = Integer.parseInt(matcher.group(1));
+                Elevator.State currentState = Elevator.State.valueOf(matcher.group(2));
+                int currentFloor = Integer.parseInt(matcher.group(3));
+                ButtonDirection currDirection = ButtonDirection.valueOf(matcher.group(4));
 
                 // Check if the elevator is idle or moving in the requested direction
-                if (currentState == Elevator.State.IDLE || (currentState == Elevator.State.TRANSPORTING && currDirection == request.getButtonDirection())) {
+                if (currentState == Elevator.State.IDLE || (currDirection != ButtonDirection.NONE && currDirection == request.getButtonDirection())) {
                     // Calculate the travel time for the current elevator
                     int travelTime = Math.abs(currentFloor - request.getFloorNumber());
 
@@ -75,10 +76,14 @@ public class ProcessingRequestState implements SchedulerState {
                         selectedElevatorId = elevatorId;
                     }
                 }
+            } catch (IllegalArgumentException e) {
+                System.err.println("Error parsing elevator information: " + e.getMessage());
+                e.printStackTrace();
             }
         }
-
+        System.out.println("Selected elevator ID is : "+selectedElevatorId);
         // Return the ID of the chosen elevator or -1 if no suitable elevator is found
         return selectedElevatorId;
     }
+
 }
