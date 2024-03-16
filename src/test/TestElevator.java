@@ -184,6 +184,36 @@ public class TestElevator {
         elevator.removeRequestFromElevatorQueue();
         assertEquals(2, elevator.getElevatorQueue().peek().getButtonId());
     }
+
+    /**
+     * Test Elevator state transitions
+     */
+    @Test
+    void testElevatorStates() {
+        elevator = new Elevator(1, elevatorSubsystem);
+        elevator.start();
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        assertEquals(elevator.getState(Elevator.State.IDLE), elevator.getCurrentState());
+        ElevatorRequest elevatorRequest = new ElevatorRequest(LocalTime.now(), 1,ElevatorRequest.ButtonDirection.UP, 2);
+        elevator.addRequestToElevatorQueue(elevatorRequest);
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        assertEquals(elevator.getState(Elevator.State.TRANSPORTING), elevator.getCurrentState());
+        try {
+            Thread.sleep(15000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        assertEquals(elevator.getCurrentState(), elevator.getState(Elevator.State.IDLE));
+    }
+
 }
 
 
