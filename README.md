@@ -9,9 +9,13 @@ The goal of this project is to simulate an elevator system and showcase how elev
 - Compile the Java files using your preferred IDE that supports Java. That said, it is recommended to use IntelliJ IDEA 2023.2.5 (Community Edition) for best results. 
 
 ## Usage
-- Run `Main.java` to start the simulation.
+- First start `ElevatorSubsystem.java`, then `Scheduler.java` and at the end `FloorSubsystem.java`
 - Input requests can be modified in the CSV file specified by `input.csv` in the res folder.
 - To execute all tests, right-click on the test folder and select 'Run Tests in 'test''
+
+![Execution Order.png](..%2F..%2F..%2F..%2F..%2F..%2F..%2FDownloads%2FExecution%20Order.png)
+
+
 
 ## Components
 - **config**
@@ -19,7 +23,11 @@ The goal of this project is to simulate an elevator system and showcase how elev
 
 - **elevator**
   - `Elevator.java`: Defines the elevator's properties and actions.
-  - `ElevatorSubsystem.java`: Acts as the control system for one or more elevators. It interfaces with the Scheduler to receive elevator requests and dispatches elevators to fulfill these requests. The subsystem manages the state and operation of each elevator, ensuring requests are processed efficiently.
+  - `ElevatorSubsystem.java`:  Manages the scheduling and coordination of multiple elevators.
+  - `ElevatorState.java`:  Defines the possible states an elevator can be in (e.g., idle, transporting).
+  - `ElevatorIdleState.java`:  Implements the behavior of an elevator waiting for new requests.
+  - `ElevatorTransportingState.java`: Implements the behavior of an elevator actively moving and handling requests.
+  - `ElevatorInfo.java`:  Stores information about an elevator's current state for communication purposes.
 
 - **floor**
   - `CSVParser.java`: Parses elevator request data from a CSV file into a list of `ElevatorRequest` objects. 
@@ -34,8 +42,11 @@ The goal of this project is to simulate an elevator system and showcase how elev
   - `Main.java`: The entry point of the application. It orchestrates the starting of all subsystems and manages their execution threads.
 
 - **scheduler**
-  - `Scheduler.java`: Implements the logic required to queue and dispatch elevator requests to the ElevatorSubsystem and then communicates the outcome of these requests back to the originating FloorSubsystem. This class effectively bridges the gap between the request generation (floors) and request fulfillment (elevators) components of the simulation.
-
+  - `Scheduler.java`: The main class of the scheduler. It manages the queue of requests, communicates with the ElevatorSubsystem and FloorSubsystem, and implements the state machine logic for request processing.
+  - `SchedulerState.java` : Interface defining the possible states of the Scheduler (e.g., AwaitingRequestState, ProcessingRequestState, ElevatorDispatchState). Each state implements specific request handling behavior.
+  - `AwaitingRequestState.java` : A concrete implementation of the SchedulerState interface, representing the state where the Scheduler is idle and waiting for new requests.
+  - `ProcessingRequestState.java`: Another implementation of SchedulerState, representing the state where the Scheduler is actively analyzing a received request to determine the best elevator assignment.
+  - `ElevatorDispatchState.java` : A SchedulerState implementation responsible for the state where an elevator has been selected and the Scheduler communicates the request to the ElevatorSubsystem.
 - **test**
   - `CSVParserTest.java`: Tests the functionality of the CSV parser to ensure reliability.
   - `FloorSubsystemTest.java`: Tests the functionality of the floor subsystem.
@@ -51,25 +62,22 @@ The goal of this project is to simulate an elevator system and showcase how elev
 - Laurence Lamarche-Cliche (101173070) 
 - Matthew Gaudet (101193256)
 
-## Team Contributions for Iteration 2
+## Team Contributions for Iteration 3
 
 - Ali Abdollahian
-  - State Logic: Added state logic for both the Scheduler and Elevator Subsystems, defining their behavior during operation.
+  - Selection Logic: Implemented the selectElevator function to optimize decision making on which elevator to assign for a given request.
 
 - Jaan Soulier
-  - Provided insightful feedback to the team through GitHub commit reviews, ensuring code quality and collaboration.
-  - Created state and class diagrams for the Elevator Subsystem and Scheduler.
-
+  -  Added new state and class diagrams covering Elevator state, Elevator Subsystem, Floor Subsystem, Scheduler state, and Scheduler Subsystem.
+  
 - Jarnail Singh
-  - Made significant contributions to the simulateelevatormovement function, enhancing the elevator simulation.
-  - Fixed related tests to maintain code correctness.
-  - Implemented lamp status logic in the Floor Subsystem, refining the simulation's detail.
-    
+  - Refined the floor lamps behavior to be more precise, ensuring they illuminate only at the start of requests.
+  - Implemented the State design pattern for the Scheduler, adding AwaitingRequestState, ElevatorDispatchState, and ProcessingRequestState to manage its behavior.
+  
 - Laurence Lamarche-Cliche
-  - Created Iteration 2 sequence diagram, providing a visual representation of the system's updated interactions.
-  - Added starter logic to send requests from the Elevator Subsystem to the Elevator class.
+  - Implemented logic for transferring requests using the UDP protocol, enabling communication between subsystems.
+  - Add the sequence diagram to illustrate interactions within the updated system.
 
 - Matthew Gaudet
-  - Contributed to the simulateelevatormovement function, further developing the elevator simulation.
-  - Implemented the moveElevator function, enabling core elevator movement functionality.
-  - Ensured that the Elevator class can handle complete requests.
+  - Implemented the State design pattern for the Elevator, adding ElevatorIdleState and ElevatorTransportingState for refined behavioral control.
+  - Added associated tests.

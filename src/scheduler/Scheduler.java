@@ -1,11 +1,16 @@
 package scheduler;
 
-import floor.ElevatorRequest.ButtonDirection;
+import elevator.Elevator;
+import elevator.ElevatorInfo;
 import floor.ElevatorRequest;
 import floor.FloorSubsystem;
-import java.time.LocalTime;
+import floor.ElevatorRequest.ButtonDirection;
+
+import java.io.IOException;
+import java.net.*;
 import java.util.ArrayList;
-import common.Log;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Communicates between the ElevatorSubsystem and the FloorSubsystem. The Scheduler
@@ -17,11 +22,16 @@ public class Scheduler implements Runnable {
     private ArrayList<ElevatorRequest> schedulerRequestsQueue = new ArrayList<>();
 
     /** The requests to forward to the floor subsystem. */
+    private FloorSubsystem floorSubsystem;
+    
+    /** The state of the scheduler. */
+    public SchedulerState state;
+
+    /** The requests to forward to the floor subsystem. */
     private ArrayList<ElevatorRequest> schedulerResponseLog = new ArrayList<>();
 
-    /** The floor subsystem. */
-    private FloorSubsystem floorSubsystem;
-    private SchedulerStateMachine stateMachine = new SchedulerStateMachine();
+    public Scheduler() {
+    }
 
     /**
      * Create a new scheduler.
@@ -31,7 +41,7 @@ public class Scheduler implements Runnable {
         this.floorSubsystem = floorSubsystem;
     }
 
-    /**
+        /**
      * Create a new scheduler with a specified queue of requests.
      * @param floorSubsystem The floor subsystem for the scheduler.
      * @param requestsQueue The queue of requests.
@@ -41,10 +51,14 @@ public class Scheduler implements Runnable {
         this.schedulerRequestsQueue = requestsQueue;
     }
 
-    /**
-     * Get the queue of requests.
-     * @return The queue of requests.
-     */
+    //  Set the state of the scheduler.
+    public void setState(SchedulerState state) {
+        this.state = state;
+    }
+
+    //  * Get the queue of requests.
+    //  * @return The queue of requests.
+    
     public ArrayList<ElevatorRequest> getRequestQueueFromScheduler() {
         return schedulerRequestsQueue;
     }
@@ -64,78 +78,90 @@ public class Scheduler implements Runnable {
     public void addToRequestQueue(ElevatorRequest elevatorRequest) {
         synchronized (schedulerRequestsQueue) {
             schedulerRequestsQueue.add(elevatorRequest);
-            Log.print("(FORWARD) Added elevator request " + elevatorRequest + " to request queue");
             schedulerRequestsQueue.notifyAll();
         }
     }
 
     /**
-     * Get a request from an elevator and send the the floor subsystem.
-     * @param request The request from an elevator.
+     * This is asking the ElevatorSubsystem for the Elevators info
+     * It sends a UDP request "GET-INFO" to the ElevatorSubsystem
+     * and gets a response back with the info
      */
-    public void receiveRequestFromElevator(ElevatorRequest request) {
+    public String getElevatorsInfo() {
+        String getInfoRequest = "GET-INFO";
+        int elevatorSubsystemPort = 6000; // The port the ElevatorSubsystem is listening on
+        String elevatorSubsystemHost = "localhost"; // Assuming the ElevatorSubsystem is on the same host
+        String elevatorsInfo = null;
 
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        try (DatagramSocket socket = new DatagramSocket()) {
+            InetAddress elevatorSubsystemAddress = InetAddress.getByName(elevatorSubsystemHost);
+            byte[] sendData = getInfoRequest.getBytes();
+
+            // Send the GET-INFO request
+            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, elevatorSubsystemAddress, elevatorSubsystemPort);
+            socket.send(sendPacket);
+
+            // Prepare to receive the response
+            byte[] receiveData = new byte[1024];
+            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+            socket.receive(receivePacket);
+
+            // Process the received data
+            String response = new String(receivePacket.getData(), 0, receivePacket.getLength());
+            System.out.println("Received elevators info: " + response);
+            elevatorsInfo = Arrays.toString(parseElevatorsInfo(receivePacket.getData()));
+
+        } catch (UnknownHostException e) {
+            System.err.println("UnknownHostException: " + e.getMessage());
+        } catch (SocketException e) {
+            System.err.println("SocketException: " + e.getMessage());
+        } catch (IOException e) {
+            System.err.println("IOException: " + e.getMessage());
         }
 
-        Log.print("(BACK) Scheduler: Received ElevatorRequest(" + request + ") BACK from ElevatorSubsystem at "
-                + LocalTime.now() + ".");
+        return elevatorsInfo;
+    }
 
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+     /**
+     * This parses the info received from the ElevatorSubsystem
+     * about all the elevator cars and their current status
+     * @param data the info received via UDP in the bytes format
+     * @return an array of ElevatorInfo objects representing the current state of elevators
+     */
+    public ElevatorInfo[] parseElevatorsInfo(byte[] data) {
+        String receivedInfo = new String(data);
+        String[] elevatorsInfo = receivedInfo.split("\n"); // Each elevator info is separated by a newline
+
+        List<ElevatorInfo> elevatorInfoList = new ArrayList<>();
+
+        for (String elevatorInfo : elevatorsInfo) {
+            String[] info = elevatorInfo.split(";");
+            if (info.length == 4) { 
+                int elevatorId = Integer.parseInt(info[0]);
+                String stateString = info[1];
+                Elevator.State currentState;
+
+                try {
+                    currentState = Elevator.State.valueOf(stateString);
+                } catch (IllegalArgumentException e) {
+   
+                    System.err.println("Invalid elevator state: " + stateString);
+                    currentState = Elevator.State.UNKNOWN;
+                }
+
+                int currentFloor = Integer.parseInt(info[2]);
+                ButtonDirection currDirection = ButtonDirection.valueOf(info[3]);
+
+                // Create an ElevatorInfo object for each elevator and add to the list
+                ElevatorInfo elevatorInfoObj = new ElevatorInfo(elevatorId, currentState, currentFloor, currDirection);
+                elevatorInfoList.add(elevatorInfoObj);
+            }
         }
 
-        synchronized (schedulerRequestsQueue) {
-            // send the request to the floorSubsystem
-            floorSubsystem.receiveRequestFromScheduler(request);
-            schedulerRequestsQueue.remove(request); //remove from queue
-            schedulerRequestsQueue.notifyAll(); // Notify any threads that are waiting for new requests
-        }
+        // Convert the list to an array
+        return elevatorInfoList.toArray(new ElevatorInfo[0]);
     }
 
-    /**
-     * The entrypoint of the scheduler. Continuously checks if there are any jobs in the
-     * FloorSubsystem. If there are, it adds the jobs to the queue and removes it from the
-     * FloorSubsystem.
-     */
-    @Override
-    public void run() {
-        while (true) {
-
-        }
-    }
-
-    /**
-     * Handles the processing state of the scheduler. Processes elevator requests from the FloorSubsystem.
-     */
-    private void handleProcessingState() {
-        // TODO: Ali
-        stateMachine.startIdling();
-    }
-
-    /**
-     * Handles the idle state of the scheduler. Starts processing if the current state is IDLE.
-     */
-    private void handleIdleState() {
-        // TODO: Ali
-        stateMachine.startProcessing();
-    }
-
-    /**
-     * Add an elevator request to the responses.
-     * @param elevatorRequest The elevator request to add.
-     */
-    public void addToResponseLog(ElevatorRequest elevatorRequest) {
-        synchronized (schedulerResponseLog) {
-            schedulerResponseLog.add(elevatorRequest);
-            schedulerResponseLog.notifyAll();
-        }
-    }
 
     /**
      * Change the lamp directional status of the floor subsystem.
@@ -144,4 +170,53 @@ public class Scheduler implements Runnable {
     public void changeLampStatus(ButtonDirection direction) {
         floorSubsystem.changeLampStatus(direction);
     }
+
+
+    /**
+     * The entrypoint of the scheduler. Continuously checks if there are any jobs in the
+     * FloorSubsystem. If there are, it adds the jobs to the queue and removes it from the
+     * FloorSubsystem.
+     */
+    @Override
+    public void run() {
+        // set the initial state to IDLE
+        setState(new AwaitingRequestState(this));
+        
+        int listenPort = 5000;
+        try (DatagramSocket serverSocket = new DatagramSocket(listenPort)) {
+            System.out.println("Scheduler listening on port " + listenPort);
+            while (true) {
+                byte[] receiveData = new byte[1024];
+                DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+                serverSocket.receive(receivePacket);
+                
+                // Parse the received data into an ElevatorRequest object
+                ElevatorRequest request = new ElevatorRequest(receivePacket.getData());
+                
+                if (request.isProcessed()) {
+                    // Handle completed request from the ElevatorSubsystem
+                    System.out.println("Received completed request from ElevatorSubsystem: " + request);
+                    // Further processing...
+                } else {
+                    // Handle new request from the FloorSubsystem
+                    System.out.println("Received new request from FloorSubsystem: " + request);
+                    state.processRequest(this, receivePacket.getData());
+                }
+            }
+        } catch (SocketException e) {
+            System.err.println("SocketException: " + e.getMessage());
+        } catch (IOException e) {
+            System.err.println("IOException: " + e.getMessage());
+        }
+    }
+    
+
+
+
+    public static void main(String[] args) {
+        Scheduler scheduler = new Scheduler();
+        Thread schedulerThread = new Thread(scheduler, "Scheduler Thread");
+        schedulerThread.start();
+    }
+
 }

@@ -149,7 +149,9 @@ public class ElevatorTransportingState implements ElevatorState{
                 }
                 //remove completed requests
                 for (ElevatorRequest e : removeList) {
-                    elevator.getElevatorQueue().remove(e);
+                    e.setProcessed(); // this set the processed variable to true
+                    elevatorSubsystem.sendCompletedElevatorRequest(e); //notify scheduler request completed
+                    elevator.getElevatorQueue().remove(e); //remove from elevator queue
                 }
             }
             // If the elevator hasn't reached the destination floor yet, pause for the time
@@ -176,5 +178,9 @@ public class ElevatorTransportingState implements ElevatorState{
         elevator.timeToLoadPassengers(1);
         //Log.print("Passenger " + loadingType + "!");
         elevator.setDoorStatus(Elevator.DoorStatus.CLOSED);
+    }
+        @Override
+    public String toString() {
+        return "TRANSPORTING";
     }
 }

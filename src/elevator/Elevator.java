@@ -14,7 +14,7 @@ import java.util.*;
  */
 public class Elevator extends Thread{
     /** Current state of the elevator */
-    private ElevatorState currentState;
+    private ElevatorState currentState; // SEND
 
     /** Holds all the states of the elevator */
     private Map<State, ElevatorState> states;
@@ -23,10 +23,10 @@ public class Elevator extends Thread{
     private Object queueLock = 0;
 
     /** The current floor the elevator is on. By default is 0. */
-    private int currentFloor = 0;
+    private int currentFloor = 0; // SEND
 
     /** A unique elevator ID for sending specific messages to an elevator.  */
-    private int elevatorId;
+    private int elevatorId; // SEND
 
     /** The status of the door. Either open or closed. By default is closed.  */
     private DoorStatus doorStatus = DoorStatus.CLOSED;
@@ -35,7 +35,7 @@ public class Elevator extends Thread{
     private MotorStatus motorStatus = MotorStatus.OFF;
 
     /** The direction of movement of the elevator. Either up, down, or none. */
-    private ButtonDirection currDirection = ButtonDirection.NONE;
+    private ButtonDirection currDirection = ButtonDirection.NONE; // SEND
     /** The queue of requests assigned to the elevator */
     private PriorityQueue<ElevatorRequest> elevatorQueue;
 
@@ -67,7 +67,7 @@ public class Elevator extends Thread{
      */
     public enum State {
         IDLE,
-        TRANSPORTING
+        TRANSPORTING,UNKNOWN
     }
 
     /**
@@ -83,6 +83,9 @@ public class Elevator extends Thread{
         addState(State.TRANSPORTING, new ElevatorTransportingState(elevatorSubsystem));
     }
 
+    public ElevatorState getCurrentState(){
+        return currentState;
+    }
     /**
      * Get the current floor the elevator is on.
      * @return The current floor the elevator is on.
@@ -136,6 +139,10 @@ public class Elevator extends Thread{
         }
         this.doorStatus = doorStatus;
         Log.print("Elevator " + elevatorId +" door is " + doorStatus.name().toLowerCase() + "!");
+    }
+
+    public ButtonDirection getCurrDirection() {
+        return currDirection;
     }
 
     /**

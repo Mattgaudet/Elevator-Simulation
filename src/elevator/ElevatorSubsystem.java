@@ -2,8 +2,13 @@ package elevator;
 
 import floor.ElevatorRequest.ButtonDirection;
 import floor.ElevatorRequest;
+
+import java.io.IOException;
+import java.net.*;
+import java.nio.ByteBuffer;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import common.Log;
 import scheduler.Scheduler;
@@ -16,7 +21,7 @@ public class ElevatorSubsystem implements Runnable {
     private RequestProcessedListener listener;
 
     /** The elevators to schedule. */
-    private Elevator[] elevatorCars = new Elevator[10]; // 10 elevators max for now
+    private Elevator[] elevatorCars = new Elevator[5]; // 10 elevators max for now
 
     /** The schedule to receive requests from. */
     private Scheduler scheduler;
@@ -56,6 +61,17 @@ public class ElevatorSubsystem implements Runnable {
     }
 
     /**
+     * Create a new elevator subsystem. Creates create and start specified number of elevators
+     * @param numElevators The number of elevators to create
+     */
+    public ElevatorSubsystem(int numElevators) {
+        for(int i = 0; i < numElevators; i++) { //create and start all elevators
+            this.elevatorCars[i] = new Elevator(i, this);
+            this.elevatorCars[i].start();
+        }
+    }
+
+    /**
      * Add a request to specified elevator's queue
      * @param er elevatorRequest to be added
      * @param elevatorId elevator number to use
@@ -80,6 +96,7 @@ public class ElevatorSubsystem implements Runnable {
                 }
                 // assign request to the elevator
                 ElevatorRequest request = this.scheduler.getRequestQueueFromScheduler().remove(0);
+                // TODO: (Laurence) need to make this happen as well by sending the request back
                 assignRequest(request, 0);
             }
         }
@@ -119,4 +136,92 @@ public class ElevatorSubsystem implements Runnable {
     public void changeLampStatus(ButtonDirection direction) {
         this.scheduler.changeLampStatus(direction); // Change lamp status in scheduler
     }
+
+    /**
+     * Sends completed requests back to the scheduler
+     * @param er the completed ElevatorRequest
+     */
+    public void sendCompletedElevatorRequest(ElevatorRequest er) {
+        byte[] sendData = er.getBytes();
+        try {
+            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, InetAddress.getByName("localhost"), 5000);
+            DatagramSocket serverSocket = new DatagramSocket();
+            serverSocket.send(sendPacket);
+        } catch (SocketException e) {
+            System.err.println("SocketException: " + e.getMessage());
+        } catch (UnknownHostException e) {
+            System.err.println("UnknownHostException: " + e.getMessage());
+        } catch (IOException e) {
+            System.err.println("IOException: " + e.getMessage());
+        }
+        Log.print("ElevatorSubsystem: Sent completed " + er + " to Scheduler.");
+    }
+
+    public void sendElevatorsInfo(DatagramSocket serverSocket, InetAddress schedulerAddress, int schedulerPort) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        for (Elevator elevator : elevatorCars) { // Assuming elevatorCars is an iterable list of Elevator
+            sb.append(elevator.getElevatorId())
+                    .append(';')
+                    .append(elevator.getCurrentState())
+                    .append(';')
+                    .append(elevator.getCurrentFloor())
+                    .append(';')
+                    .append(elevator.getCurrDirection())
+                    .append('\n');
+        }
+        byte[] sendData = sb.toString().getBytes();
+        DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, schedulerAddress, schedulerPort);
+        try {
+            serverSocket.send(sendPacket);
+        } catch (IOException e) {
+            System.err.println("IOException in sendElevatorsInfo: " + e.getMessage());
+        }
+        System.out.println("Sent elevators info to Scheduler.");
+    }
+
+
+    public static void main(String[] args) {
+        int listenPort = 6000; // Different port than Scheduler
+        ElevatorSubsystem elevatorSubsystem = new ElevatorSubsystem(5);
+
+        try (DatagramSocket serverSocket = new DatagramSocket(listenPort)) {
+            byte[] receiveData = new byte[1024]; // Buffer for incoming data
+
+            System.out.println("ElevatorSubsystem listening on port " + listenPort);
+
+            while (true) { // Run indefinitely
+                DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+                serverSocket.receive(receivePacket);
+
+                String received = new String(receivePacket.getData(), 0, receivePacket.getLength());
+
+                if ("GET-INFO".equals(received.trim())) { // received an info request from Scheduler
+                    System.out.println("Received GET-INFO request");
+
+                    // Extract the address and port of the Scheduler from the received packet
+                    InetAddress schedulerAddress = receivePacket.getAddress();
+                    int schedulerPort = receivePacket.getPort();
+
+                    // Reply back to the Scheduler with the elevator info
+                    elevatorSubsystem.sendElevatorsInfo(serverSocket, schedulerAddress, schedulerPort);
+                } else { // received a request from the scheduler, with an elevator ID appended
+                    // Extract elevator ID from the end of the received packet
+                    int elevatorID = ByteBuffer.wrap(receiveData, receivePacket.getLength() - 4, 4).getInt();
+
+                    // Exclude the last 4 bytes (elevator ID) from the received data
+                    byte[] requestData = Arrays.copyOf(receiveData, receivePacket.getLength() - 4);
+
+                    // Create new request from bytes
+                    ElevatorRequest request = new ElevatorRequest(requestData);
+                    System.out.println("Received Elevator request: " + request + " assigned to elevator " + elevatorID);
+                    elevatorSubsystem.assignRequest(request, elevatorID);
+                }
+            }
+        } catch (SocketException e) {
+            System.err.println("SocketException: " + e.getMessage());
+        } catch (IOException e) {
+            System.err.println("IOException: " + e.getMessage());
+        }
+    }
+
 }

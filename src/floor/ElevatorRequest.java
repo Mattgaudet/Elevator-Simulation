@@ -1,6 +1,8 @@
 package floor;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.time.temporal.ChronoUnit;
 
@@ -10,7 +12,7 @@ import java.time.temporal.ChronoUnit;
  */
 public class ElevatorRequest implements Comparable<ElevatorRequest> {
 
-	/**
+    /**
 	 * The requested direction.
 	 */
 	public enum ButtonDirection {
@@ -38,6 +40,8 @@ public class ElevatorRequest implements Comparable<ElevatorRequest> {
 	 */
 	private boolean loaded = false;
 
+	private boolean processed = false;
+
 	/**
 	 * Create a new elevator request.
 	 * @param buttonDirection The requested direction.
@@ -49,7 +53,35 @@ public class ElevatorRequest implements Comparable<ElevatorRequest> {
 		this.currTime = currTime;
 		this.floorNumber = floorNumber;
 		this.buttonDirection = buttonDirection;
-		this.buttonId = buttonId; 
+		this.buttonId = buttonId;
+	}
+
+	/**
+	 * Constructor to deserialize from byte array
+	 */
+
+	public ElevatorRequest(byte[] data) {
+		String dataString = new String(data, StandardCharsets.UTF_8).trim(); // Also trim the whole string
+		String[] parts = dataString.split(";");
+
+		if (parts.length >= 6) {
+			this.currTime = LocalTime.parse(parts[0].trim(), DateTimeFormatter.ISO_LOCAL_TIME);
+			this.buttonDirection = ButtonDirection.valueOf(parts[1].trim());
+			this.floorNumber = Integer.parseInt(parts[2].trim());
+			this.buttonId = Integer.parseInt(parts[3].trim());
+			this.loaded = parts[4].trim().startsWith("1");
+			this.processed = parts[5].trim().startsWith("1");
+		} else {
+			throw new IllegalArgumentException("Invalid data for ElevatorRequest");
+		}
+	}
+
+	/**
+	 * Get the processing status.
+	 * @return The requested direction.
+	 */
+	public boolean isProcessed() {
+		return this.processed;
 	}
 
 	/**
@@ -99,6 +131,10 @@ public class ElevatorRequest implements Comparable<ElevatorRequest> {
 		loaded = true;
 	}
 
+	public void setProcessed() {
+		processed = true;
+	}
+
 	/**
 	 * Return loaded
 	 * @return if the elevatorRequest is loaded
@@ -138,5 +174,53 @@ public class ElevatorRequest implements Comparable<ElevatorRequest> {
 		try {
 			Thread.sleep(time);
 		} catch (InterruptedException e) {}
+	}
+
+	/**
+	 * Returns a string representation of an elevator request
+	 */
+	@Override
+	public String toString() {
+		return "ElevatorRequest{" +
+				"buttonDirection=" + buttonDirection +
+				", buttonId=" + buttonId +
+				", floorNumber=" + floorNumber +
+				", currTime=" + currTime +
+				", loaded=" + loaded +
+				", processed=" + processed +
+				'}';
+	}
+
+
+	/**
+	 * Returns a bytes representation of an elevator request for UDP transport
+	 * It first builds a string of the following format:
+	 * "requestTime;buttonDirection;floorNumber;buttonID;1"
+	 * Where requestTime is the time of the request
+	 * buttonDirection is either UP or DOWN
+	 * floorNumber is the current floor
+	 * buttonID is the destination floor
+	 */
+	public byte[] getBytes() {
+		// Use a delimiter to separate the properties in the string
+		String delimiter = ";";
+
+		// Serialize properties to string
+		StringBuilder sb = new StringBuilder();
+		// Format LocalTime to a string using a formatter
+		DateTimeFormatter timeFormatter = DateTimeFormatter.ISO_LOCAL_TIME;
+		sb.append(this.currTime.format(timeFormatter));
+		sb.append(delimiter);
+		sb.append(this.buttonDirection.name());
+		sb.append(delimiter);
+		sb.append(this.floorNumber);
+		sb.append(delimiter);
+		sb.append(this.buttonId);
+		sb.append(delimiter);
+		sb.append(this.loaded ? "1" : "0"); // Represent boolean as 1 (true) or 0 (false)
+		sb.append(delimiter);
+		sb.append(this.processed ? "1" : "0"); // Represent boolean as 1 (true) or 0 (false)
+		// Convert the serialized string to bytes
+		return sb.toString().getBytes(StandardCharsets.UTF_8);
 	}
 }
