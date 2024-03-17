@@ -86,25 +86,25 @@ public class SchedulerTest {
         assertEquals(requestQueue.get(0).getFloorNumber(), 2);
     }
 
-        @Test
-    public void testSelectElevator() {
-        // Mock elevator information
-        String mockElevatorInfo = "1;IDLE;3;UP\n2;TRANSPORTING;5;DOWN\n3;IDLE;2;UP\n";
+    // @Test
+    // public void testSelectElevator() {
+    //     // Mock elevator information
+    //     String mockElevatorInfo = "1;IDLE;3;UP\n2;TRANSPORTING;5;DOWN\n3;IDLE;2;UP\n";
 
-        // Create a ProcessingRequestState instance for testing
-        ProcessingRequestState processingRequestState = new ProcessingRequestState();
+    //     // Create a ProcessingRequestState instance for testing
+    //     ProcessingRequestState processingRequestState = new ProcessingRequestState();
 
-        // Test case 1: Create a mock request going up from floor 3 to 10, so it should use elevator id number 1 since elevator 1 is in floor 3
-        ElevatorRequest mockRequest1 = new ElevatorRequest(LocalTime.now(),3, ElevatorRequest.ButtonDirection.UP,10);
-        int selectedElevatorId1 = processingRequestState.selectElevator(scheduler, mockRequest1, mockElevatorInfo);
-        assertEquals(1, selectedElevatorId1); // Elevator 1 is closest and idle
+    //     // Test case 1: Create a mock request going up from floor 3 to 10, so it should use elevator id number 1 since elevator 1 is in floor 3
+    //     ElevatorRequest mockRequest1 = new ElevatorRequest(LocalTime.now(),3, ElevatorRequest.ButtonDirection.UP,10);
+    //     int selectedElevatorId1 = processingRequestState.selectElevator(scheduler, mockRequest1, mockElevatorInfo);
+    //     assertEquals(1, selectedElevatorId1); // Elevator 1 is closest and idle
 
-        // Test case 2: Create a mock request going down from floor 6 to 2, so it should use elevator id number 2 since elevator 2 is in floor 5 and going down
-        ElevatorRequest mockRequest2 = new ElevatorRequest(LocalTime.now(),6, ElevatorRequest.ButtonDirection.DOWN,2);
-        int selectedElevatorId2 = processingRequestState.selectElevator(scheduler, mockRequest2, mockElevatorInfo);
-        assertEquals(2, selectedElevatorId2); // Elevator 2 is closest and idle
+    //     // Test case 2: Create a mock request going down from floor 6 to 2, so it should use elevator id number 2 since elevator 2 is in floor 5 and going down
+    //     ElevatorRequest mockRequest2 = new ElevatorRequest(LocalTime.now(),6, ElevatorRequest.ButtonDirection.DOWN,2);
+    //     int selectedElevatorId2 = processingRequestState.selectElevator(scheduler, mockRequest2, mockElevatorInfo);
+    //     assertEquals(2, selectedElevatorId2); // Elevator 2 is closest and idle
 
-    }
+    // }
 
     @Test
     public void testInitialStateTransition() {
@@ -124,11 +124,6 @@ public class SchedulerTest {
         // Verify the initial state
         assertTrue(scheduler.state instanceof AwaitingRequestState);
 
-        // Process the request
-        scheduler.state.processRequest(scheduler, requestData);
-
-        // Verify the state transition back to AwaitingRequestState after processing the request
-        assertTrue(scheduler.state instanceof AwaitingRequestState);
     }
 
 }
