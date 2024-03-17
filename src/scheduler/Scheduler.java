@@ -25,7 +25,7 @@ public class Scheduler implements Runnable {
     private FloorSubsystem floorSubsystem;
     
     /** The state of the scheduler. */
-    SchedulerState state;
+    public SchedulerState state;
 
     /** The requests to forward to the floor subsystem. */
     private ArrayList<ElevatorRequest> schedulerResponseLog = new ArrayList<>();

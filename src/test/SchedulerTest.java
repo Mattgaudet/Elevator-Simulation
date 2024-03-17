@@ -7,6 +7,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import scheduler.AwaitingRequestState;
 import scheduler.ProcessingRequestState;
 import scheduler.Scheduler;
 
@@ -104,5 +105,31 @@ public class SchedulerTest {
         assertEquals(2, selectedElevatorId2); // Elevator 2 is closest and idle
 
     }
+
+    @Test
+    public void testInitialStateTransition() {
+
+        // Create a new Scheduler instance
+        Scheduler scheduler = new Scheduler();
+
+        // Set the initial state to AwaitingRequestState
+        scheduler.setState(new AwaitingRequestState(scheduler));
+
+        // Create a sample ElevatorRequest
+        ElevatorRequest request = new ElevatorRequest(LocalTime.now(), 3, ElevatorRequest.ButtonDirection.UP, 4);
+
+        // Convert the request to byte array
+        byte[] requestData = request.getBytes();
+
+        // Verify the initial state
+        assertTrue(scheduler.state instanceof AwaitingRequestState);
+
+        // Process the request
+        scheduler.state.processRequest(scheduler, requestData);
+
+        // Verify the state transition back to AwaitingRequestState after processing the request
+        assertTrue(scheduler.state instanceof AwaitingRequestState);
+    }
+
 }
 

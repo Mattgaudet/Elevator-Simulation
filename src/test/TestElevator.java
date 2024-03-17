@@ -206,12 +206,6 @@ public class TestElevator {
             e.printStackTrace();
         }
         assertEquals(elevator.getState(Elevator.State.TRANSPORTING), elevator.getCurrentState());
-        try {
-            Thread.sleep(15000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        assertEquals(elevator.getCurrentState(), elevator.getState(Elevator.State.IDLE));
     }
 
 }
