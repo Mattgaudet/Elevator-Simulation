@@ -124,6 +124,15 @@ public class SchedulerTest {
         // Verify the initial state
         assertTrue(scheduler.state instanceof AwaitingRequestState);
 
+        // Set the initial state to ProcessingRequestState
+        scheduler.setState(new ProcessingRequestState());
+
+        // Verify the new state
+        assertTrue(scheduler.state instanceof ProcessingRequestState);
+
+        // Set the initial state to AwaitingRequestState
+        scheduler.setState(new AwaitingRequestState(scheduler));
+
     }
 
 }
