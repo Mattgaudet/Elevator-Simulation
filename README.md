@@ -72,6 +72,7 @@ The goal of this project is to simulate an elevator system and showcase how elev
   -  Added timed messages and timing tests
   
 - Jarnail Singh
+  - Added the floor lamps change, ensuring they illuminate correctly in floorSubsytem when the request is being processed by the Elevator.
   - Implemented the State design pattern for the Scheduler, adding AwaitingRequestState, ElevatorDispatchState, and ProcessingRequestState to manage its behavior.
   
 - Laurence Lamarche-Cliche

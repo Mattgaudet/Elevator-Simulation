@@ -3,6 +3,12 @@ package elevator;
 import common.Log;
 import floor.ElevatorRequest;
 
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalTime;
 import java.util.ArrayList;
 
@@ -92,25 +98,32 @@ public class ElevatorTransportingState implements ElevatorState{
         Log.print("Elevator " + elevator.getElevatorId() + " is moving " + direction.name().toLowerCase() +
                 " from floor " + elevator.getCurrentFloor() + " to floor " + destinationFloor +
                 ". Estimated travel time: " + tripTime + " ms");
+
+
+        // Send the elevator's current state to the FloorSubsystem ( for changing the Lamp status)
+        String InfoString = elevator.getElevatorId() + ";" + elevator.getCurrentState() + ";" + elevator.getCurrentFloor() + ";" + destinationFloor + ";" + direction;
+        byte[] directionBytes = InfoString.getBytes(StandardCharsets.UTF_8);
+        InetAddress address = null;
+        try {
+            address = InetAddress.getByName("localhost");
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        } // the FloorSubsystem listen address
+        int port = 12345; // the FloorSubsystem listen port
+        DatagramPacket packet = new DatagramPacket(directionBytes, directionBytes.length, address, port);
+        try (DatagramSocket socket = new DatagramSocket()) {
+            socket.send(packet);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         
-        // Add a flag to track if the lamp status has been changed for the current request
-        // boolean isLampStatusChanged = false;
 
         // Move the elevator from the current floor to the destination floor
         for (int floorsMoved = 0; floorsMoved < floorsToMove; floorsMoved++) {
             int nextFloor = direction == ElevatorRequest.ButtonDirection.UP ? elevator.getCurrentFloor() + 1 : elevator.getCurrentFloor() - 1;
             ArrayList<ElevatorRequest> removeList = new ArrayList<>();
             elevator.arrivedFloor(nextFloor);
-
-            //  // Change the lamp status of the floor based on the direction
-            // if (!isLampStatusChanged) {
-            //     if (direction == ElevatorRequest.ButtonDirection.UP) {
-            //         elevatorSubsystem.changeLampStatus(ElevatorRequest.ButtonDirection.UP);
-            //     } else {
-            //         elevatorSubsystem.changeLampStatus(ElevatorRequest.ButtonDirection.DOWN);
-            //     }
-            //     isLampStatusChanged = true;
-            // }
 
             boolean doorsOpened = false;
 

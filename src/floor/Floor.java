@@ -49,9 +49,9 @@ public class Floor {
         isUpLampOn = direction == ButtonDirection.UP;
         isDownLampOn = direction == ButtonDirection.DOWN;
         if (isUpLampOn) {
-            Log.print("At Floor " + floorNumber + ", Up Lamp is On");
+            Log.print("At Floor " + floorNumber + ", UP Lamp is On");
         } else if (isDownLampOn) {
-            Log.print("At Floor " + floorNumber + ", Down Lamp is On");
+            Log.print("At Floor " + floorNumber + ", DOWN Lamp is On");
         } else {
             Log.print("Both Up and Down lamps are Off");
         }

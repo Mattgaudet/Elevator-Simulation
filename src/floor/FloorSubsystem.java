@@ -154,11 +154,11 @@ public class FloorSubsystem implements Runnable {
      * @param direction The directional status of the lamp for all floors.
      */
     public void changeLampStatus(ButtonDirection direction) {
-
+        Log.print("++++++++++++++++++++++++");
         for (Floor floor : floorArray) {
             floor.changeLampStatus(direction);
         }
-        
+        Log.print("++++++++++++++++++++++++");
     }
 
     /**
@@ -195,6 +195,11 @@ public class FloorSubsystem implements Runnable {
             DatagramSocket socket = new DatagramSocket();
             InetAddress schedulerAddress = InetAddress.getByName(schedulerHost);
 
+            // Create a DatagramSocket to receive packets (For LampStatus changes)
+            DatagramSocket receiveSocket = new DatagramSocket(12345);
+            byte[] buffer = new byte[256];
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+
             while (true) { // Loop indefinitely
                 ElevatorRequest er = floorSubsystem.waitForRequestTriggered();
                 if (er != null) {
@@ -205,7 +210,23 @@ public class FloorSubsystem implements Runnable {
                     // Print the data sent, for testing
                     String sentDataString = new String(sendData, StandardCharsets.UTF_8);
                     System.out.println("Data sent: " + sentDataString);
+
                 } else {
+
+                    // Receive the packet (For LampStatus changes)
+                    receiveSocket.receive(packet);
+
+                    // Process the packet (For LampStatus changes)
+                    String received = new String(packet.getData(), 0, packet.getLength());
+                    System.out.println();
+                    System.out.println("Received: " + received); // example: 0;TRANSPORTING;0;4;UP
+
+                    Log.print("Elevator " + received.split(";")[0] + " is moving " + received.split(";")[4] +
+                    " from floor " + received.split(";")[2] + " to floor " + received.split(";")[3]);
+                    
+                    ButtonDirection direction = ButtonDirection.valueOf(received.split(";")[4]);
+                    floorSubsystem.changeLampStatus(direction);
+
                     // If no request is available, wait a bit before checking again
                     try {
                         Thread.sleep(100); // Wait for 100 milliseconds
