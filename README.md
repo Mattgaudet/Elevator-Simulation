@@ -69,6 +69,7 @@ The goal of this project is to simulate an elevator system and showcase how elev
 
 - Jaan Soulier
   -  Added new state and class diagrams covering Elevator state, Elevator Subsystem, Floor Subsystem, Scheduler state, and Scheduler Subsystem.
+  -  Added timed messages and timing tests
   
 - Jarnail Singh
   - Implemented the State design pattern for the Scheduler, adding AwaitingRequestState, ElevatorDispatchState, and ProcessingRequestState to manage its behavior.
