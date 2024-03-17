@@ -94,7 +94,7 @@ public class ElevatorTransportingState implements ElevatorState{
                 ". Estimated travel time: " + tripTime + " ms");
         
         // Add a flag to track if the lamp status has been changed for the current request
-        boolean isLampStatusChanged = false;
+        // boolean isLampStatusChanged = false;
 
         // Move the elevator from the current floor to the destination floor
         for (int floorsMoved = 0; floorsMoved < floorsToMove; floorsMoved++) {
@@ -102,15 +102,15 @@ public class ElevatorTransportingState implements ElevatorState{
             ArrayList<ElevatorRequest> removeList = new ArrayList<>();
             elevator.arrivedFloor(nextFloor);
 
-             // Change the lamp status of the floor based on the direction
-            if (!isLampStatusChanged) {
-                if (direction == ElevatorRequest.ButtonDirection.UP) {
-                    elevatorSubsystem.changeLampStatus(ElevatorRequest.ButtonDirection.UP);
-                } else {
-                    elevatorSubsystem.changeLampStatus(ElevatorRequest.ButtonDirection.DOWN);
-                }
-                isLampStatusChanged = true;
-            }
+            //  // Change the lamp status of the floor based on the direction
+            // if (!isLampStatusChanged) {
+            //     if (direction == ElevatorRequest.ButtonDirection.UP) {
+            //         elevatorSubsystem.changeLampStatus(ElevatorRequest.ButtonDirection.UP);
+            //     } else {
+            //         elevatorSubsystem.changeLampStatus(ElevatorRequest.ButtonDirection.DOWN);
+            //     }
+            //     isLampStatusChanged = true;
+            // }
 
             boolean doorsOpened = false;
 

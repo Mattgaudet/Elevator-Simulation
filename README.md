@@ -71,7 +71,6 @@ The goal of this project is to simulate an elevator system and showcase how elev
   -  Added new state and class diagrams covering Elevator state, Elevator Subsystem, Floor Subsystem, Scheduler state, and Scheduler Subsystem.
   
 - Jarnail Singh
-  - Refined the floor lamps behavior to be more precise, ensuring they illuminate only at the start of requests.
   - Implemented the State design pattern for the Scheduler, adding AwaitingRequestState, ElevatorDispatchState, and ProcessingRequestState to manage its behavior.
   
 - Laurence Lamarche-Cliche
