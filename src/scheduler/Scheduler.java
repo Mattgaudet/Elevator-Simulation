@@ -157,11 +157,9 @@ public class Scheduler implements Runnable {
                 elevatorInfoList.add(elevatorInfoObj);
             }
         }
-
         // Convert the list to an array
         return elevatorInfoList.toArray(new ElevatorInfo[0]);
     }
-
 
     /**
      * Change the lamp directional status of the floor subsystem.
@@ -209,10 +207,11 @@ public class Scheduler implements Runnable {
             System.err.println("IOException: " + e.getMessage());
         }
     }
-    
 
-
-
+    /**
+     * Creates and starts a Scheduler thread
+     * @param args command line (not used)
+     */
     public static void main(String[] args) {
         Scheduler scheduler = new Scheduler();
         Thread schedulerThread = new Thread(scheduler, "Scheduler Thread");

@@ -106,6 +106,9 @@ public class SchedulerTest {
 
     // }
 
+    /**
+     * Test Scheduler state transitions
+     */
     @Test
     public void testInitialStateTransition() {
 

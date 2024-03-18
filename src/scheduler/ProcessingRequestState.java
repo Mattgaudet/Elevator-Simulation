@@ -8,7 +8,9 @@ import floor.ElevatorRequest.ButtonDirection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
+/**
+ * This state requests elevator locations from the scheduler and then selects the best elevator to use
+ */
 public class ProcessingRequestState implements SchedulerState {
     @Override
     public void processRequest(Scheduler scheduler, byte[] requestData) {
@@ -26,6 +28,11 @@ public class ProcessingRequestState implements SchedulerState {
         scheduler.state.processRequest(scheduler, request, elevatorID);
     }
 
+    /**
+     * Create an elevatorRequest object from a byte array
+     * @param requestData the request data
+     * @return the new ElevatorRequest created
+     */
     private ElevatorRequest parseRequestFromFloorSubsystem(byte[] requestData) {
         return new ElevatorRequest(requestData);
     }
@@ -34,7 +41,6 @@ public class ProcessingRequestState implements SchedulerState {
     public void processRequest(Scheduler scheduler, ElevatorRequest request, int elevatorID) {
         // Not needed
     }
-
 
     /**
      * Selects the appropriate elevator based on the chosen logic.

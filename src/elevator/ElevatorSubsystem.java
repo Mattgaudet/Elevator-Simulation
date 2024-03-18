@@ -84,21 +84,45 @@ public class ElevatorSubsystem implements Runnable {
      * them to the elevators, and sends them back to the scheduler.
      */
     public void run() {
-        while(true) {
-            // todo receive via UDP instead of this
-            synchronized (this.scheduler.getRequestQueueFromScheduler()) {
-                while (this.scheduler.getRequestQueueFromScheduler().isEmpty()) {
-                    try {
-                        this.scheduler.getRequestQueueFromScheduler().wait();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+        int listenPort = 6000; // Different port than Scheduler
+
+        try (DatagramSocket serverSocket = new DatagramSocket(listenPort)) {
+            byte[] receiveData = new byte[1024]; // Buffer for incoming data
+
+            System.out.println("ElevatorSubsystem listening on port " + listenPort);
+
+            while (true) { // Run indefinitely
+                DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+                serverSocket.receive(receivePacket);
+
+                String received = new String(receivePacket.getData(), 0, receivePacket.getLength());
+
+                if ("GET-INFO".equals(received.trim())) { // received an info request from Scheduler
+                    System.out.println("Received GET-INFO request");
+
+                    // Extract the address and port of the Scheduler from the received packet
+                    InetAddress schedulerAddress = receivePacket.getAddress();
+                    int schedulerPort = receivePacket.getPort();
+
+                    // Reply back to the Scheduler with the elevator info
+                    sendElevatorsInfo(serverSocket, schedulerAddress, schedulerPort);
+                } else { // received a request from the scheduler, with an elevator ID appended
+                    // Extract elevator ID from the end of the received packet
+                    int elevatorID = ByteBuffer.wrap(receiveData, receivePacket.getLength() - 4, 4).getInt();
+
+                    // Exclude the last 4 bytes (elevator ID) from the received data
+                    byte[] requestData = Arrays.copyOf(receiveData, receivePacket.getLength() - 4);
+
+                    // Create new request from bytes
+                    ElevatorRequest request = new ElevatorRequest(requestData);
+                    System.out.println("Received Elevator request: " + request + " assigned to elevator " + elevatorID);
+                    assignRequest(request, elevatorID);
                 }
-                // assign request to the elevator
-                ElevatorRequest request = this.scheduler.getRequestQueueFromScheduler().remove(0);
-                // TODO: (Laurence) need to make this happen as well by sending the request back
-                assignRequest(request, 0);
             }
+        } catch (SocketException e) {
+            System.err.println("SocketException: " + e.getMessage());
+        } catch (IOException e) {
+            System.err.println("IOException: " + e.getMessage());
         }
     }
 
@@ -157,6 +181,13 @@ public class ElevatorSubsystem implements Runnable {
         Log.print("ElevatorSubsystem: Sent completed " + er + " to Scheduler.");
     }
 
+    /**
+     * Sends information about the current status of each elevator to the Scheduler via UDP
+     * @param serverSocket socket to send from
+     * @param schedulerAddress InetAddress of the Scheduler
+     * @param schedulerPort port of the scheduler
+     * @throws IOException
+     */
     public void sendElevatorsInfo(DatagramSocket serverSocket, InetAddress schedulerAddress, int schedulerPort) throws IOException {
         StringBuilder sb = new StringBuilder();
         for (Elevator elevator : elevatorCars) { // Assuming elevatorCars is an iterable list of Elevator
@@ -179,49 +210,13 @@ public class ElevatorSubsystem implements Runnable {
         System.out.println("Sent elevators info to Scheduler.");
     }
 
-
+    /**
+     * Creates and starts an ElevatorSubsystem thread
+     * @param args command line (not used)
+     */
     public static void main(String[] args) {
-        int listenPort = 6000; // Different port than Scheduler
         ElevatorSubsystem elevatorSubsystem = new ElevatorSubsystem(5);
-
-        try (DatagramSocket serverSocket = new DatagramSocket(listenPort)) {
-            byte[] receiveData = new byte[1024]; // Buffer for incoming data
-
-            System.out.println("ElevatorSubsystem listening on port " + listenPort);
-
-            while (true) { // Run indefinitely
-                DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-                serverSocket.receive(receivePacket);
-
-                String received = new String(receivePacket.getData(), 0, receivePacket.getLength());
-
-                if ("GET-INFO".equals(received.trim())) { // received an info request from Scheduler
-                    System.out.println("Received GET-INFO request");
-
-                    // Extract the address and port of the Scheduler from the received packet
-                    InetAddress schedulerAddress = receivePacket.getAddress();
-                    int schedulerPort = receivePacket.getPort();
-
-                    // Reply back to the Scheduler with the elevator info
-                    elevatorSubsystem.sendElevatorsInfo(serverSocket, schedulerAddress, schedulerPort);
-                } else { // received a request from the scheduler, with an elevator ID appended
-                    // Extract elevator ID from the end of the received packet
-                    int elevatorID = ByteBuffer.wrap(receiveData, receivePacket.getLength() - 4, 4).getInt();
-
-                    // Exclude the last 4 bytes (elevator ID) from the received data
-                    byte[] requestData = Arrays.copyOf(receiveData, receivePacket.getLength() - 4);
-
-                    // Create new request from bytes
-                    ElevatorRequest request = new ElevatorRequest(requestData);
-                    System.out.println("Received Elevator request: " + request + " assigned to elevator " + elevatorID);
-                    elevatorSubsystem.assignRequest(request, elevatorID);
-                }
-            }
-        } catch (SocketException e) {
-            System.err.println("SocketException: " + e.getMessage());
-        } catch (IOException e) {
-            System.err.println("IOException: " + e.getMessage());
-        }
+        Thread elevatorSubsystemThread = new Thread(elevatorSubsystem,"ElevatorSubsystem Thread");
+        elevatorSubsystemThread.start();
     }
-
 }

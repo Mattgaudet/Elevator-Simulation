@@ -59,7 +59,6 @@ public class ElevatorRequest implements Comparable<ElevatorRequest> {
 	/**
 	 * Constructor to deserialize from byte array
 	 */
-
 	public ElevatorRequest(byte[] data) {
 		String dataString = new String(data, StandardCharsets.UTF_8).trim(); // Also trim the whole string
 		String[] parts = dataString.split(";");

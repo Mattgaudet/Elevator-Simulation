@@ -5,12 +5,17 @@ import java.io.IOException;
 import java.net.*;
 import java.nio.ByteBuffer;
 
-
-
-
+/**
+ * This state sends the request and chosen elevatorID to the ElevatorSubsystem
+ */
 public class ElevatorDispatchState implements SchedulerState {
-    
 
+    /**
+     * Send the request and transition to AwaitingRequestState
+     * @param scheduler the scheduler
+     * @param request the request to send
+     * @param elevatorID the chosen elevator
+     */
     @Override
     public void processRequest(Scheduler scheduler, ElevatorRequest request, int elevatorID) {
         sendRequestToElevator(request, elevatorID);
@@ -27,6 +32,11 @@ public class ElevatorDispatchState implements SchedulerState {
         
     }
 
+    /**
+     * Send the elevatorRequest and elevatorID to the ElevatorSubsystem via UDP
+     * @param request the request
+     * @param elevatorID the chosen elevatorID
+     */
     public void sendRequestToElevator(ElevatorRequest request, int elevatorID){
         byte[] requestData = request.getBytes();
         byte[] elevatorIDData = ByteBuffer.allocate(4).putInt(elevatorID).array(); // 4 bytes for an int
