@@ -13,8 +13,7 @@ The goal of this project is to simulate an elevator system and showcase how elev
 - Input requests can be modified in the CSV file specified by `input.csv` in the res folder.
 - To execute all tests, right-click on the test folder and select 'Run Tests in 'test''
 
-![Execution Order.png](..%2F..%2F..%2F..%2F..%2F..%2F..%2FDownloads%2FExecution%20Order.png)
-
+![alt text](<Iteration 3_for Readme_Execution Order.png>)
 
 
 ## Components
