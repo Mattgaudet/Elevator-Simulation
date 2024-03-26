@@ -23,7 +23,9 @@ public class CSVParser {
         BAD_REQUEST,
         DOOR_NOT_OPEN,
         DOOR_NOT_CLOSE,
-
+        TIMEOUT_FAULT,
+        WRONG_FLOOR,
+        DEATH,
         NO_FAULT;
 
         public static ElevatorFault fromString(String string) {

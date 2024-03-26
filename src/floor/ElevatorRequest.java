@@ -86,6 +86,10 @@ public class ElevatorRequest implements Comparable<ElevatorRequest> {
 		this.fault = fault;
 	}
 
+	public String getFault() {
+		return this.fault.toString();
+	}
+
 	/**
 	 * Get the processing status.
 	 * @return The requested direction.
