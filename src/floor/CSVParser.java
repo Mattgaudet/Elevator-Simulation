@@ -19,6 +19,23 @@ public class CSVParser {
     /** The time format in the elevator requests. */
     public static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("H:mm:ss:SSS");
 
+    enum ElevatorFault {
+        BAD_REQUEST,
+        DOOR_NOT_OPEN,
+        DOOR_NOT_CLOSE,
+
+        NO_FAULT;
+
+        public static ElevatorFault fromString(String string) {
+            for (ElevatorFault ef : ElevatorFault.values()) {
+                if (ef.name().toUpperCase().equals(string)) {
+                    return ef;
+                }
+            }
+            return ElevatorFault.NO_FAULT;
+        }
+    };
+
     /**
      * Parse a CSV file and create a list of elevator requests. Expects a CSV file in the format:
      * - time
@@ -79,8 +96,18 @@ public class CSVParser {
                     continue;
                 }
 
-                // Create ElevatorRequest
+                // Create ElevatorRequest as usual
                 ElevatorRequest elevatorRequest = new ElevatorRequest(time, floorNumber, direction, buttonID);
+
+                // 5. Optional fault string
+                ElevatorFault fault = ElevatorFault.NO_FAULT;
+                if (parts.length >= 5) {
+                    String faultString = parts[4].trim();
+                    fault = ElevatorFault.fromString(faultString); // Assuming ElevatorFault.fromString() handles conversion
+                    // create ElevatorRequest with fault appended
+                    elevatorRequest.addFault(fault);
+                }
+
 
                 // Print request
                 Log.print(

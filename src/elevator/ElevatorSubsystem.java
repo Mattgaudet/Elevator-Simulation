@@ -107,6 +107,7 @@ public class ElevatorSubsystem implements Runnable {
                     // Reply back to the Scheduler with the elevator info
                     sendElevatorsInfo(serverSocket, schedulerAddress, schedulerPort);
                 } else { // received a request from the scheduler, with an elevator ID appended
+                    //TODO: add if statement to handle fault
                     // Extract elevator ID from the end of the received packet
                     int elevatorID = ByteBuffer.wrap(receiveData, receivePacket.getLength() - 4, 4).getInt();
 

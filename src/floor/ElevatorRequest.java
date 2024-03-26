@@ -12,7 +12,9 @@ import java.time.temporal.ChronoUnit;
  */
 public class ElevatorRequest implements Comparable<ElevatorRequest> {
 
-    /**
+	private CSVParser.ElevatorFault fault;
+
+	/**
 	 * The requested direction.
 	 */
 	public enum ButtonDirection {
@@ -42,6 +44,8 @@ public class ElevatorRequest implements Comparable<ElevatorRequest> {
 
 	private boolean processed = false;
 
+
+
 	/**
 	 * Create a new elevator request.
 	 * @param buttonDirection The requested direction.
@@ -70,9 +74,16 @@ public class ElevatorRequest implements Comparable<ElevatorRequest> {
 			this.buttonId = Integer.parseInt(parts[3].trim());
 			this.loaded = parts[4].trim().startsWith("1");
 			this.processed = parts[5].trim().startsWith("1");
+			if (parts.length >= 7) { // Check if there is a seventh part for fault
+				this.fault = CSVParser.ElevatorFault.fromString(parts[6].trim());
+			}
 		} else {
 			throw new IllegalArgumentException("Invalid data for ElevatorRequest");
 		}
+	}
+
+	public void addFault(CSVParser.ElevatorFault fault) {
+		this.fault = fault;
 	}
 
 	/**
@@ -187,6 +198,7 @@ public class ElevatorRequest implements Comparable<ElevatorRequest> {
 				", currTime=" + currTime +
 				", loaded=" + loaded +
 				", processed=" + processed +
+				", fault=" + (fault != null ? fault.toString() : "None") +
 				'}';
 	}
 
@@ -219,6 +231,10 @@ public class ElevatorRequest implements Comparable<ElevatorRequest> {
 		sb.append(this.loaded ? "1" : "0"); // Represent boolean as 1 (true) or 0 (false)
 		sb.append(delimiter);
 		sb.append(this.processed ? "1" : "0"); // Represent boolean as 1 (true) or 0 (false)
+		if (this.fault != null) {
+			sb.append(delimiter);
+			sb.append(this.fault); // TODO: verify that this prints what we want
+		}
 		// Convert the serialized string to bytes
 		return sb.toString().getBytes(StandardCharsets.UTF_8);
 	}
