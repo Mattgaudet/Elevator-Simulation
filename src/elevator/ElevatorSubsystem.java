@@ -107,7 +107,17 @@ public class ElevatorSubsystem implements Runnable {
                     // Reply back to the Scheduler with the elevator info
                     sendElevatorsInfo(serverSocket, schedulerAddress, schedulerPort);
                 } else { // received a request from the scheduler, with an elevator ID appended
-                    //TODO: add if statement to handle fault
+                   
+                // HANDLE FAULTS
+                    // if the received message contains "BAD_REQUEST", "DOOR_NOT_CLOSE", or "DEATH" faults then set the elevator to FAULT state 
+                    if (received.contains("BAD_REQUEST") || received.contains("DOOR_NOT_CLOSE") || received.contains("DEATH"))  {
+                        int elevatorID = ByteBuffer.wrap(receiveData, receivePacket.getLength() - 4, 4).getInt();
+                        System.out.println(">> Elevator " + elevatorID + " has encountered some unexpected fault!! :( ");
+                        System.out.println("Setting elevator " + elevatorID + " to FAULT state");
+                        elevatorCars[elevatorID].setState(Elevator.State.FAULT);
+                    }
+
+                    else {
                     // Extract elevator ID from the end of the received packet
                     int elevatorID = ByteBuffer.wrap(receiveData, receivePacket.getLength() - 4, 4).getInt();
 
@@ -118,6 +128,7 @@ public class ElevatorSubsystem implements Runnable {
                     ElevatorRequest request = new ElevatorRequest(requestData);
                     System.out.println("Received Elevator request: " + request + " assigned to elevator " + elevatorID);
                     assignRequest(request, elevatorID);
+                    }
                 }
             }
         } catch (SocketException e) {

@@ -67,7 +67,9 @@ public class Elevator extends Thread{
      */
     public enum State {
         IDLE,
-        TRANSPORTING,UNKNOWN
+        TRANSPORTING,
+        FAULT,
+        UNKNOWN
     }
 
     /**
@@ -81,6 +83,7 @@ public class Elevator extends Thread{
         this.states = new HashMap<>();
         addState(State.IDLE, new ElevatorIdleState());
         addState(State.TRANSPORTING, new ElevatorTransportingState(elevatorSubsystem));
+        addState(State.FAULT, new ElevatorFaultState());
     }
 
     public ElevatorState getCurrentState(){
