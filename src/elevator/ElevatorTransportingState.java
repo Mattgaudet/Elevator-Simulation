@@ -21,6 +21,10 @@ public class ElevatorTransportingState implements ElevatorState{
     private Elevator elevator;
     private ElevatorSubsystem elevatorSubsystem;
 
+    /** Timeout threshold for transporting state in milliseconds */
+    private static final long TRANSPORTING_TIMEOUT = 60000; // 1 minute
+
+
     /**
      * Constructor for the transporting state
      * @param elevatorSubsystem the elevator subsystem
@@ -84,6 +88,13 @@ public class ElevatorTransportingState implements ElevatorState{
         Log.print("\n***********************************************\n");
         elevator.setState(Elevator.State.IDLE);
     }
+    /**
+     * Handle timeout error when elevator remains in transporting state for too long
+     */
+    private void handleTimeoutError() {
+        Log.print("Elevator " + elevator.getElevatorId() + " timed out in transporting state.");
+        elevator.setState(Elevator.State.FAULT);
+    }
 
     /**
      * Move the elevator to destination floor by moving to pick up the first request in the queue, and also completes
@@ -117,10 +128,21 @@ public class ElevatorTransportingState implements ElevatorState{
             e.printStackTrace();
         }
 
-        
 
+        long startTime = System.currentTimeMillis();
         // Move the elevator from the current floor to the destination floor
         for (int floorsMoved = 0; floorsMoved < floorsToMove; floorsMoved++) {
+            // Calculate elapsed time at each iteration
+            long currentTime = System.currentTimeMillis();
+            long elapsedTime = currentTime - startTime;
+            Log.print("Elevator " + elevator.getElevatorId() +": Elapsed time since start: " + elapsedTime + " ms");
+
+            // Check if elapsed time exceeds the timeout threshold
+            if (elapsedTime > TRANSPORTING_TIMEOUT) {
+                Log.print("Transporting state exceeded timeout threshold.");
+                handleTimeoutError(); // Handle timeout error
+                return; // Exit method to stop further processing
+            }
             int nextFloor = direction == ElevatorRequest.ButtonDirection.UP ? elevator.getCurrentFloor() + 1 : elevator.getCurrentFloor() - 1;
             ArrayList<ElevatorRequest> removeList = new ArrayList<>();
             elevator.arrivedFloor(nextFloor);
