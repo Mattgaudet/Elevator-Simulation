@@ -210,6 +210,11 @@ public class ElevatorTransportingState implements ElevatorState{
      */
     public void loadElevator(String loadingType, int nextFloor, ElevatorRequest er) {
         Log.print("Elevator " + elevator.getElevatorId() + " is stopping for " + loadingType + " at floor " + nextFloor);
+        while(elevator.getElevatorQueue().peek().getFault().equals("DOOR_NOT_OPEN")) {
+            Log.print(">> Elevator " + elevator.getElevatorId() + " door opening failed due to fault, retrying doors");
+            elevator.timeToLoadPassengers(1);
+            er.removeFault();
+        }
         elevator.setDoorStatus(Elevator.DoorStatus.OPEN);
         elevator.timeToLoadPassengers(1);
         //if there is a DOOR_NOT_CLOSE fault, handle as transient fault: reopen door and wait, then try to close again
