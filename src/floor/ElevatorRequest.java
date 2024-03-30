@@ -87,8 +87,13 @@ public class ElevatorRequest implements Comparable<ElevatorRequest> {
 	}
 
 	public String getFault() {
-		return this.fault.toString();
+		if(this.fault != null) {
+			return this.fault.toString();
+		}
+		return "NO_FAULT"; //in case there is no fault set in the csv file
 	}
+
+	public void removeFault() {this.fault = CSVParser.ElevatorFault.NO_FAULT;}
 
 	/**
 	 * Get the processing status.

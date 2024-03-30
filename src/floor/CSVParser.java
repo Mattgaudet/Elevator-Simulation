@@ -19,7 +19,7 @@ public class CSVParser {
     /** The time format in the elevator requests. */
     public static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("H:mm:ss:SSS");
 
-    enum ElevatorFault {
+    public enum ElevatorFault {
         BAD_REQUEST,
         DOOR_NOT_OPEN,
         DOOR_NOT_CLOSE,

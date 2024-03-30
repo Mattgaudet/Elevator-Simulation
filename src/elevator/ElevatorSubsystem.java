@@ -109,8 +109,8 @@ public class ElevatorSubsystem implements Runnable {
                 } else { // received a request from the scheduler, with an elevator ID appended
                    
                 // HANDLE FAULTS
-                    // if the received message contains "BAD_REQUEST", "DOOR_NOT_CLOSE", or "DEATH" faults then set the elevator to FAULT state 
-                    if (received.contains("BAD_REQUEST") || received.contains("DOOR_NOT_CLOSE") || received.contains("DEATH"))  {
+                    // if the received message contains "BAD_REQUEST", "DOOR_NOT_OPEN", or "DEATH" faults then set the elevator to FAULT state
+                    if (received.contains("BAD_REQUEST") || received.contains("DOOR_NOT_OPEN") || received.contains("DEATH"))  {
                         int elevatorID = ByteBuffer.wrap(receiveData, receivePacket.getLength() - 4, 4).getInt();
                         System.out.println(">> Elevator " + elevatorID + " has encountered some unexpected fault!! :( ");
                         System.out.println("Setting elevator " + elevatorID + " to FAULT state");

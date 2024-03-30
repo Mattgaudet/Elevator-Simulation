@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import elevator.Elevator;
 import elevator.ElevatorSubsystem;
+import elevator.ElevatorTransportingState;
+import floor.CSVParser;
 import floor.ElevatorRequest;
 import floor.FloorSubsystem;
 import scheduler.Scheduler;
@@ -206,6 +208,34 @@ public class TestElevator {
             e.printStackTrace();
         }
         assertEquals(elevator.getState(Elevator.State.TRANSPORTING), elevator.getCurrentState());
+    }
+
+    /**
+     * Unit test for DOOR_NOT_CLOSE transient fault
+     */
+    @Test
+    void testDoorNotCloseFault() {
+        elevator = new Elevator(1, elevatorSubsystem);
+        elevator.start();
+
+        ElevatorRequest er = new ElevatorRequest(LocalTime.now(), 0,ElevatorRequest.ButtonDirection.UP, 2);
+        er.addFault(CSVParser.ElevatorFault.DOOR_NOT_CLOSE);
+        elevator.addRequestToElevatorQueue(er);
+        assertEquals(Elevator.DoorStatus.CLOSED, elevator.getDoorStatus()); //doors initially closed
+        try {
+            Thread.sleep(4000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        assertEquals(Elevator.DoorStatus.OPEN, elevator.getDoorStatus()); //doors opened on for loading on floor 0
+        //fault is processed in the loadElevator method in ElevatorTransportingState
+        try {
+            Thread.sleep(8000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        assertEquals(Elevator.DoorStatus.CLOSED, elevator.getDoorStatus()); //doors closed after
+        assertEquals("NO_FAULT", er.getFault()); //fault is removed after
     }
 
 }

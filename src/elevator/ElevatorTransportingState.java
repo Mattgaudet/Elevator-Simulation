@@ -1,6 +1,7 @@
 package elevator;
 
 import common.Log;
+import floor.CSVParser;
 import floor.ElevatorRequest;
 
 import java.io.IOException;
@@ -66,7 +67,7 @@ public class ElevatorTransportingState implements ElevatorState{
 
             //open doors if already on same floor as the request
             if (request.getFloorNumber() == elevator.getCurrentFloor()) {
-                loadElevator("loading", elevator.getCurrentFloor());
+                loadElevator("loading", elevator.getCurrentFloor(), request);
                 request.setLoaded();
             }
             //check if the elevator needs to move in opposite direction to get to starting floor
@@ -160,7 +161,7 @@ public class ElevatorTransportingState implements ElevatorState{
                 //check if any unload requests on this floor
                 for (ElevatorRequest e : elevator.getElevatorQueue()) {
                     if (nextFloor == e.getButtonId() && e.isLoaded()) {
-                        loadElevator("unloading", nextFloor); //unload the elevator
+                        loadElevator("unloading", nextFloor, e); //unload the elevator
                         removeList.add(e);
                         doorsOpened = true;
                     }
@@ -168,7 +169,7 @@ public class ElevatorTransportingState implements ElevatorState{
                     else if (e.getFloorNumber() == nextFloor && (e.getButtonDirection() == direction && !isInitialPickup ||
                             isInitialPickup && e.getFloorNumber() == newFloor && e.getButtonDirection() != direction)) {
                         if (!doorsOpened) { //prevents doors from opening twice on same floor
-                            loadElevator("loading", nextFloor); //load the elevator
+                            loadElevator("loading", nextFloor, e); //load the elevator
                             doorsOpened = true;
                         } else {
                             Log.print("Additional passenger got on elevator at floor " + nextFloor + "!");
@@ -207,11 +208,18 @@ public class ElevatorTransportingState implements ElevatorState{
      * @param loadingType use "loading" or "unloading"
      * @param nextFloor the floor that the elevator is stopped at
      */
-    public void loadElevator(String loadingType, int nextFloor) {
+    public void loadElevator(String loadingType, int nextFloor, ElevatorRequest er) {
         Log.print("Elevator " + elevator.getElevatorId() + " is stopping for " + loadingType + " at floor " + nextFloor);
         elevator.setDoorStatus(Elevator.DoorStatus.OPEN);
         elevator.timeToLoadPassengers(1);
-        //Log.print("Passenger " + loadingType + "!");
+        //if there is a DOOR_NOT_CLOSE fault, handle as transient fault: reopen door and wait, then try to close again
+        while(elevator.getElevatorQueue().peek().getFault().equals("DOOR_NOT_CLOSE")) {
+            Log.print(">> Elevator " + elevator.getElevatorId() + " door closing failed due to fault, reopening doors");
+            elevator.setDoorStatus(Elevator.DoorStatus.OPEN);
+            elevator.timeToLoadPassengers(1);
+            er.removeFault();
+        }
+
         elevator.setDoorStatus(Elevator.DoorStatus.CLOSED);
     }
         @Override
