@@ -69,7 +69,7 @@ public class TestElevator {
         ElevatorRequest elevatorRequest = new ElevatorRequest(LocalTime.now(), 3, ElevatorRequest.ButtonDirection.UP, 4);
         elevator.addRequestToElevatorQueue(elevatorRequest);
         try {
-            Thread.sleep(21000);
+            Thread.sleep(22000);
         }catch (InterruptedException e) {
             e.printStackTrace();
         }
