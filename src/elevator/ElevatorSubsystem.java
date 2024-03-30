@@ -107,16 +107,30 @@ public class ElevatorSubsystem implements Runnable {
                     // Reply back to the Scheduler with the elevator info
                     sendElevatorsInfo(serverSocket, schedulerAddress, schedulerPort);
                 } else { // received a request from the scheduler, with an elevator ID appended
-                    // Extract elevator ID from the end of the received packet
-                    int elevatorID = ByteBuffer.wrap(receiveData, receivePacket.getLength() - 4, 4).getInt();
+                   
+                // HANDLE FAULTS
+                    // if the received message contains "DEATH" fault then set the elevator to FAULT state
+                    if (received.contains("DEATH"))  {
+                        int elevatorID = ByteBuffer.wrap(receiveData, receivePacket.getLength() - 4, 4).getInt();
+                        System.out.println(">> Elevator " + elevatorID + " has encountered some unexpected fault!! :( ");
+                        System.out.println("Setting elevator " + elevatorID + " to FAULT state");
+                        elevatorCars[elevatorID].setState(Elevator.State.FAULT);
+                    }
+                    else if (received.contains("BAD_REQUEST")) { //ignore bad requests
+                        Log.print(">> ElevatorSubsystem: received BAD_REQUEST, ignoring request");
+                    }
+                    else {
+                        // Extract elevator ID from the end of the received packet
+                        int elevatorID = ByteBuffer.wrap(receiveData, receivePacket.getLength() - 4, 4).getInt();
 
-                    // Exclude the last 4 bytes (elevator ID) from the received data
-                    byte[] requestData = Arrays.copyOf(receiveData, receivePacket.getLength() - 4);
+                        // Exclude the last 4 bytes (elevator ID) from the received data
+                        byte[] requestData = Arrays.copyOf(receiveData, receivePacket.getLength() - 4);
 
-                    // Create new request from bytes
-                    ElevatorRequest request = new ElevatorRequest(requestData);
-                    System.out.println("Received Elevator request: " + request + " assigned to elevator " + elevatorID);
-                    assignRequest(request, elevatorID);
+                        // Create new request from bytes
+                        ElevatorRequest request = new ElevatorRequest(requestData);
+                        System.out.println("Received Elevator request: " + request + " assigned to elevator " + elevatorID);
+                        assignRequest(request, elevatorID);
+                    }
                 }
             }
         } catch (SocketException e) {
@@ -151,6 +165,12 @@ public class ElevatorSubsystem implements Runnable {
             this.elevatorSubsystemResponseLog.add(elevatorRequest); // Add response to response list
             this.elevatorSubsystemResponseLog.notifyAll(); // Notify all threads waiting on response list
         }
+    }
+    /**
+     * Return the list of elevators (for unit tests)
+     */
+    public Elevator[] getElevatorCars() {
+        return elevatorCars;
     }
 
     /**

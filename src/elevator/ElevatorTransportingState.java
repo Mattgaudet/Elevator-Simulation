@@ -1,6 +1,7 @@
 package elevator;
 
 import common.Log;
+import floor.CSVParser;
 import floor.ElevatorRequest;
 
 import java.io.IOException;
@@ -20,6 +21,10 @@ public class ElevatorTransportingState implements ElevatorState{
     /** Elevator context */
     private Elevator elevator;
     private ElevatorSubsystem elevatorSubsystem;
+    private long startTime;
+    /** Timeout threshold for transporting state in milliseconds */
+    private static final long TRANSPORTING_TIMEOUT = 60000; // 1 minute
+
 
     /**
      * Constructor for the transporting state
@@ -62,7 +67,7 @@ public class ElevatorTransportingState implements ElevatorState{
 
             //open doors if already on same floor as the request
             if (request.getFloorNumber() == elevator.getCurrentFloor()) {
-                loadElevator("loading", elevator.getCurrentFloor());
+                loadElevator("loading", elevator.getCurrentFloor(), request);
                 request.setLoaded();
             }
             //check if the elevator needs to move in opposite direction to get to starting floor
@@ -78,11 +83,20 @@ public class ElevatorTransportingState implements ElevatorState{
             moveElevator(elevator.getElevatorQueue().peek().getButtonId(), currDirection, false);
         }
         // If the elevator has reached the destination floor and completed all requests, turn off the motor
-        elevator.setMotorStatus(Elevator.MotorStatus.OFF);
-        Log.print("Elevator " + elevator.getElevatorId() + " is waiting for next request at floor " + elevator.getCurrentFloor() +
-                " with door " + elevator.getDoorStatus().name().toLowerCase() + " at " + LocalTime.now());
-        Log.print("\n***********************************************\n");
-        elevator.setState(Elevator.State.IDLE);
+        if(elevator.getCurrentState() instanceof ElevatorTransportingState) { //only do if still in transporting state
+            elevator.setMotorStatus(Elevator.MotorStatus.OFF);
+            Log.print("Elevator " + elevator.getElevatorId() + " is waiting for next request at floor " + elevator.getCurrentFloor() +
+                    " with door " + elevator.getDoorStatus().name().toLowerCase() + " at " + LocalTime.now());
+            Log.print("\n***********************************************\n");
+            elevator.setState(Elevator.State.IDLE);
+        }
+    }
+    /**
+     * Handle timeout error when elevator remains in transporting state for too long
+     */
+    private void handleTimeoutError() {
+        Log.print("Elevator " + elevator.getElevatorId() + " timed out in transporting state.");
+        elevator.setState(Elevator.State.FAULT);
     }
 
     /**
@@ -117,10 +131,21 @@ public class ElevatorTransportingState implements ElevatorState{
             e.printStackTrace();
         }
 
-        
 
+        startTime = System.currentTimeMillis();
         // Move the elevator from the current floor to the destination floor
         for (int floorsMoved = 0; floorsMoved < floorsToMove; floorsMoved++) {
+            // Calculate elapsed time at each iteration
+            long currentTime = System.currentTimeMillis();
+            long elapsedTime = currentTime - startTime;
+            Log.print("Elevator " + elevator.getElevatorId() +": Elapsed time since start: " + elapsedTime + " ms");
+
+            // Check if elapsed time exceeds the timeout threshold
+            if (elapsedTime > TRANSPORTING_TIMEOUT) {
+                Log.print("Transporting state exceeded timeout threshold.");
+                handleTimeoutError(); // Handle timeout error
+                return; // Exit method to stop further processing
+            }
             int nextFloor = direction == ElevatorRequest.ButtonDirection.UP ? elevator.getCurrentFloor() + 1 : elevator.getCurrentFloor() - 1;
             ArrayList<ElevatorRequest> removeList = new ArrayList<>();
             elevator.arrivedFloor(nextFloor);
@@ -138,7 +163,7 @@ public class ElevatorTransportingState implements ElevatorState{
                 //check if any unload requests on this floor
                 for (ElevatorRequest e : elevator.getElevatorQueue()) {
                     if (nextFloor == e.getButtonId() && e.isLoaded()) {
-                        loadElevator("unloading", nextFloor); //unload the elevator
+                        loadElevator("unloading", nextFloor, e); //unload the elevator
                         removeList.add(e);
                         doorsOpened = true;
                     }
@@ -146,7 +171,7 @@ public class ElevatorTransportingState implements ElevatorState{
                     else if (e.getFloorNumber() == nextFloor && (e.getButtonDirection() == direction && !isInitialPickup ||
                             isInitialPickup && e.getFloorNumber() == newFloor && e.getButtonDirection() != direction)) {
                         if (!doorsOpened) { //prevents doors from opening twice on same floor
-                            loadElevator("loading", nextFloor); //load the elevator
+                            loadElevator("loading", nextFloor, e); //load the elevator
                             doorsOpened = true;
                         } else {
                             Log.print("Additional passenger got on elevator at floor " + nextFloor + "!");
@@ -185,12 +210,32 @@ public class ElevatorTransportingState implements ElevatorState{
      * @param loadingType use "loading" or "unloading"
      * @param nextFloor the floor that the elevator is stopped at
      */
-    public void loadElevator(String loadingType, int nextFloor) {
+    public void loadElevator(String loadingType, int nextFloor, ElevatorRequest er) {
         Log.print("Elevator " + elevator.getElevatorId() + " is stopping for " + loadingType + " at floor " + nextFloor);
+        while(elevator.getElevatorQueue().peek().getFault().equals("DOOR_NOT_OPEN")) {
+            Log.print(">> Elevator " + elevator.getElevatorId() + " door opening failed due to fault, retrying doors");
+            elevator.timeToLoadPassengers(1);
+            er.removeFault();
+        }
         elevator.setDoorStatus(Elevator.DoorStatus.OPEN);
         elevator.timeToLoadPassengers(1);
-        //Log.print("Passenger " + loadingType + "!");
+        //if there is a DOOR_NOT_CLOSE fault, handle as transient fault: reopen door and wait, then try to close again
+        while(elevator.getElevatorQueue().peek().getFault().equals("DOOR_NOT_CLOSE")) {
+            Log.print(">> Elevator " + elevator.getElevatorId() + " door closing failed due to fault, reopening doors");
+            elevator.setDoorStatus(Elevator.DoorStatus.OPEN);
+            elevator.timeToLoadPassengers(1);
+            er.removeFault();
+        }
+
         elevator.setDoorStatus(Elevator.DoorStatus.CLOSED);
+    }
+
+    /**
+     * Allow unit tests to modify start time to simulate timeout fault
+     * @param time
+     */
+    public void editStartTime(long time) {
+        startTime = startTime - time;
     }
         @Override
     public String toString() {

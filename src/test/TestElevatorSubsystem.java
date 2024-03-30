@@ -72,7 +72,7 @@ class TestElevatorSubsystem {
         elevatorSubsystem = new ElevatorSubsystem(scheduler, 1);
 
         Thread elevatorSubsystemThread = new Thread(elevatorSubsystem);
-        elevatorSubsystemThread.start();
+        //elevatorSubsystemThread.start();
 
         ElevatorRequest request = new ElevatorRequest(LocalTime.now(), 1, ButtonDirection.UP,2);
         scheduler.addToRequestQueue(request);

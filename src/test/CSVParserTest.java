@@ -32,4 +32,23 @@ class CSVParserTest {
         assertEquals(4, ers.get(1).getFloorNumber());
         assertEquals(1, ers.get(2).getFloorNumber());
     }
+
+    @Test
+    void testParseCSVWithFaults() {
+        // testing
+        List<ElevatorRequest> elevatorRequestList = CSVParser.parseCSV("res/input_faults.csv");
+
+        assertEquals("BAD_REQUEST", elevatorRequestList.get(0).getFault());
+        assertEquals("DOOR_NOT_CLOSE", elevatorRequestList.get(1).getFault());
+        assertEquals("DEATH", elevatorRequestList.get(2).getFault());
+    }
+
+    @Test
+    void testParseAndSortCSVWithFaults() {
+        List<ElevatorRequest> ers = CSVParser.parseAndSortCSV("res/test_input1.csv");
+
+        assertEquals(2, ers.get(0).getFloorNumber());
+        assertEquals(4, ers.get(1).getFloorNumber());
+        assertEquals(1, ers.get(2).getFloorNumber());
+    }
 }

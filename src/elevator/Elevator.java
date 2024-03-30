@@ -67,7 +67,9 @@ public class Elevator extends Thread{
      */
     public enum State {
         IDLE,
-        TRANSPORTING,UNKNOWN
+        TRANSPORTING,
+        FAULT,
+        UNKNOWN
     }
 
     /**
@@ -81,6 +83,7 @@ public class Elevator extends Thread{
         this.states = new HashMap<>();
         addState(State.IDLE, new ElevatorIdleState());
         addState(State.TRANSPORTING, new ElevatorTransportingState(elevatorSubsystem));
+        addState(State.FAULT, new ElevatorFaultState());
     }
 
     public ElevatorState getCurrentState(){
@@ -212,6 +215,13 @@ public class Elevator extends Thread{
     public int findTravelTime(int numFloors) {
         double travelTime = numFloors * 1.0 / Config.FLOORS_PER_SECOND; // Assuming the elevator travels at a speed of 0.5 seconds per floor
         return (int) (Math.round(travelTime * 1000));
+    }
+
+    /**
+     * Allows for test thread to edit the start time of transporting state to simulate timeout fault
+     */
+    public void changeTime() {
+        ((ElevatorTransportingState) this.currentState).editStartTime(60000);
     }
 
     /**
