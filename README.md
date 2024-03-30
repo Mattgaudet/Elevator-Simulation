@@ -27,6 +27,8 @@ The goal of this project is to simulate an elevator system and showcase how elev
   - `ElevatorIdleState.java`:  Implements the behavior of an elevator waiting for new requests.
   - `ElevatorTransportingState.java`: Implements the behavior of an elevator actively moving and handling requests.
   - `ElevatorInfo.java`:  Stores information about an elevator's current state for communication purposes.
+  - `ElevatorFaultState.java`: Represents the fault state of an elevator. It clears the request queue, stops the elevator at the nearest floor, opens the doors, displays an error message, and logs relevant information when the elevator enters the fault state.
+
 
 - **floor**
   - `CSVParser.java`: Parses elevator request data from a CSV file into a list of `ElevatorRequest` objects. 
@@ -46,6 +48,7 @@ The goal of this project is to simulate an elevator system and showcase how elev
   - `AwaitingRequestState.java` : A concrete implementation of the SchedulerState interface, representing the state where the Scheduler is idle and waiting for new requests.
   - `ProcessingRequestState.java`: Another implementation of SchedulerState, representing the state where the Scheduler is actively analyzing a received request to determine the best elevator assignment.
   - `ElevatorDispatchState.java` : A SchedulerState implementation responsible for the state where an elevator has been selected and the Scheduler communicates the request to the ElevatorSubsystem.
+
 - **test**
   - `CSVParserTest.java`: Tests the functionality of the CSV parser to ensure reliability.
   - `FloorSubsystemTest.java`: Tests the functionality of the floor subsystem.
@@ -53,6 +56,7 @@ The goal of this project is to simulate an elevator system and showcase how elev
   - `TestElevator.java`: Tests the functionality of the elevator class.
   - `TestElevatorSubsystem.java`: Tests the functionality of the elevator subsystem.
   - `TestFloor.java`: Tests the functionality of the floor class.
+  - `TestFaults.java`: Tests for handling various faults in the elevator system, including BAD_REQUEST, DEATH, DOOR_NOT_CLOSE, DOOR_NOT_OPEN, and timeout faults.
 
 ## Contributing - Group 7 (Lab A1)
 - Ali Abdollahian (101229396) 
@@ -61,23 +65,28 @@ The goal of this project is to simulate an elevator system and showcase how elev
 - Laurence Lamarche-Cliche (101173070) 
 - Matthew Gaudet (101193256)
 
-## Team Contributions for Iteration 3
+## Team Contributions for Iteration 4
 
 - Ali Abdollahian
-  - Selection Logic: Implemented the selectElevator function to optimize decision making on which elevator to assign for a given request.
+  - Added elapsed timer for processing requests that has a limit of 1 minute. If the processing time exceeds one minute, it moves the elevator to a fault state
 
 - Jaan Soulier
-  -  Added new state and class diagrams covering Elevator state, Elevator Subsystem, Floor Subsystem, Scheduler state, and Scheduler Subsystem.
-  -  Added timed messages and timing tests
+  - Added new diagrams covering the Elevator Subsystem, Floor Subsystem, Scheduler Subsystem and timing diagrams.
   
 - Jarnail Singh
-  - Added the floor lamps change, ensuring they illuminate correctly in floorSubsytem when the request is being processed by the Elevator.
-  - Implemented the State design pattern for the Scheduler, adding AwaitingRequestState, ElevatorDispatchState, and ProcessingRequestState to manage its behavior.
+  - Added the Elevatorfaultstate.
+  - ElevatorSubsystem looks at the request received from the scheduler and if it has a fault text such as "DEATH" or "BAD_REQUEST" or "DOOR_NOT_CLOSE", it sets the elevator that is supposed to receive this request to the FAULT state or ignores the request or passes the request.
   
 - Laurence Lamarche-Cliche
-  - Implemented logic for transferring requests using the UDP protocol, enabling communication between subsystems.
-  - Add the sequence diagram to illustrate interactions within the updated system.
+  - Modified the CSV parser to parse and accept the input_faults.csv file which has an extra column specifying faults.
 
 - Matthew Gaudet
-  - Implemented the State design pattern for the Elevator, adding ElevatorIdleState and ElevatorTransportingState for refined behavioral control.
-  - Added associated tests.
+  - Added logic to handle the DOOR_NOT_OPEN fault. If the request has this fault, the loadElevator function prints "Elevator door opening failed due to fault, retrying doors" and adds an extra second delay.
+  - Added the TestFaults class with unit tests for "BAD_REQUEST", "DEATH", "DOOR_NOT_OPEN" or "DOOR_NOT_CLOSE" fault scenarios.
+
+
+## How to Test Faults for Iteration 4:
+- Update the file pathname in `FloorSubsystem.java` from the current value 'res/input.csv' to 'res/input_faults.csv' in line 187 of the main method.
+![alt text](<Iteration 4_ for Readme_Test Faults.png>)
+
+- Execute `TestFaults.java` in the test folder. (Make sure to close all running files before executing or the test testDeathFault() might fail due to socketException)

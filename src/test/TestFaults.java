@@ -72,8 +72,7 @@ public class TestFaults {
     }
 
     /**
-     * Unit test for BAD_REQUEST transient fault - ElevatorSubsystem identifies the fault and does not assign the
-     * request to an elevator
+     * Unit test for DEATH  fault - ElevatorSubsystem identifies the fault and sets the elevator to a fault state
      */
     @Test
     void testDeathFault() {
