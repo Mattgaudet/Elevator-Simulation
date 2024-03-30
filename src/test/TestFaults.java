@@ -3,6 +3,7 @@ package test;
 import static org.junit.jupiter.api.Assertions.*;
 
 import common.Config;
+import common.Log;
 import elevator.Elevator;
 import elevator.ElevatorFaultState;
 import elevator.ElevatorSubsystem;
@@ -26,8 +27,6 @@ public class TestFaults {
     private static Thread elevatorSubsystemThread;
     private static ElevatorDispatchState elevatorDispatchState;
 
-
-
     /**
      * Set up initial conditions before running the tests.
      */
@@ -36,7 +35,7 @@ public class TestFaults {
         elevator = null;
         counter = 0;
         elevatorDispatchState = new ElevatorDispatchState();
-        elevatorSubsystem = new ElevatorSubsystem(2);
+        elevatorSubsystem = new ElevatorSubsystem(3);
         elevatorSubsystemThread = new Thread(elevatorSubsystem);
         elevatorSubsystemThread.start();
     }
@@ -88,6 +87,34 @@ public class TestFaults {
         }
         //assert that the elevator is in fault state
         assertTrue(elevatorSubsystem.getElevatorCars()[1].getCurrentState() instanceof ElevatorFaultState);
+    }
+
+    /**
+     * Test elevator timout fault using a Thread to edit the start time to simulate a timeout fault
+     */
+    @Test
+    void simulateTimeoutFault() {
+        class testThread extends Thread{
+            public void run() {
+                try {
+                    Thread.sleep(12000);
+                } catch(InterruptedException e) {
+                    e.printStackTrace();
+                }
+                Log.print(">> testThread: editing elapsedTime");
+                elevatorSubsystem.getElevatorCars()[2].changeTime();;
+            }
+        }
+        ElevatorRequest er = new ElevatorRequest(LocalTime.now(), 0,ElevatorRequest.ButtonDirection.UP, 5);
+        elevatorSubsystem.assignRequest(er, 2);
+        testThread th = new testThread();
+        th.start();
+        try {
+            Thread.sleep(20000);
+        } catch(InterruptedException e) {
+            e.printStackTrace();
+        }
+        assertTrue(elevatorSubsystem.getElevatorCars()[2].getCurrentState() instanceof ElevatorFaultState);
     }
 
     /**

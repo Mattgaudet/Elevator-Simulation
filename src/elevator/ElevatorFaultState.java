@@ -8,6 +8,7 @@ public class ElevatorFaultState implements ElevatorState {
     public void action(Elevator elevator) {
         Log.print("Elevator " + elevator.getElevatorId() + " transitioned to FAULT state at " + java.time.LocalDateTime.now());
         // Perform actions when the elevator enters the fault state
+        elevator.getElevatorQueue().clear();
         stopElevatorAtNearestFloor(elevator);
         openDoors(elevator);
         displayErrorMessage(elevator);

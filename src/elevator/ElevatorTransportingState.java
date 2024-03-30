@@ -21,7 +21,7 @@ public class ElevatorTransportingState implements ElevatorState{
     /** Elevator context */
     private Elevator elevator;
     private ElevatorSubsystem elevatorSubsystem;
-
+    private long startTime;
     /** Timeout threshold for transporting state in milliseconds */
     private static final long TRANSPORTING_TIMEOUT = 60000; // 1 minute
 
@@ -83,11 +83,13 @@ public class ElevatorTransportingState implements ElevatorState{
             moveElevator(elevator.getElevatorQueue().peek().getButtonId(), currDirection, false);
         }
         // If the elevator has reached the destination floor and completed all requests, turn off the motor
-        elevator.setMotorStatus(Elevator.MotorStatus.OFF);
-        Log.print("Elevator " + elevator.getElevatorId() + " is waiting for next request at floor " + elevator.getCurrentFloor() +
-                " with door " + elevator.getDoorStatus().name().toLowerCase() + " at " + LocalTime.now());
-        Log.print("\n***********************************************\n");
-        elevator.setState(Elevator.State.IDLE);
+        if(elevator.getCurrentState() instanceof ElevatorTransportingState) { //only do if still in transporting state
+            elevator.setMotorStatus(Elevator.MotorStatus.OFF);
+            Log.print("Elevator " + elevator.getElevatorId() + " is waiting for next request at floor " + elevator.getCurrentFloor() +
+                    " with door " + elevator.getDoorStatus().name().toLowerCase() + " at " + LocalTime.now());
+            Log.print("\n***********************************************\n");
+            elevator.setState(Elevator.State.IDLE);
+        }
     }
     /**
      * Handle timeout error when elevator remains in transporting state for too long
@@ -130,7 +132,7 @@ public class ElevatorTransportingState implements ElevatorState{
         }
 
 
-        long startTime = System.currentTimeMillis();
+        startTime = System.currentTimeMillis();
         // Move the elevator from the current floor to the destination floor
         for (int floorsMoved = 0; floorsMoved < floorsToMove; floorsMoved++) {
             // Calculate elapsed time at each iteration
@@ -226,6 +228,14 @@ public class ElevatorTransportingState implements ElevatorState{
         }
 
         elevator.setDoorStatus(Elevator.DoorStatus.CLOSED);
+    }
+
+    /**
+     * Allow unit tests to modify start time to simulate timeout fault
+     * @param time
+     */
+    public void editStartTime(long time) {
+        startTime = startTime - time;
     }
         @Override
     public String toString() {

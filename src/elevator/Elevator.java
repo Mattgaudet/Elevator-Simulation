@@ -218,6 +218,13 @@ public class Elevator extends Thread{
     }
 
     /**
+     * Allows for test thread to edit the start time of transporting state to simulate timeout fault
+     */
+    public void changeTime() {
+        ((ElevatorTransportingState) this.currentState).editStartTime(60000);
+    }
+
+    /**
      * Change the current floor of the elevator.
      * @param floorNum The current floor of the elevator.
      * @return Unused.
