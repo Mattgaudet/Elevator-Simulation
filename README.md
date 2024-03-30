@@ -13,7 +13,7 @@ The goal of this project is to simulate an elevator system and showcase how elev
 - Input requests can be modified in the CSV file specified by `input.csv` in the res folder.
 - To execute all tests, right-click on the test folder and select 'Run Tests in 'test''
 
-![alt text](<Iteration 3_for Readme_Execution Order.png>)
+![iteration_3_readme_execution_order.png](iteration_3_readme_execution_order.png)
 
 
 ## Components
@@ -87,6 +87,6 @@ The goal of this project is to simulate an elevator system and showcase how elev
 
 ## How to Test Faults for Iteration 4:
 - Update the file pathname in `FloorSubsystem.java` from the current value 'res/input.csv' to 'res/input_faults.csv' in line 187 of the main method.
-![alt text](<Iteration 4_ for Readme_Test Faults.png>)
+![alt text](<Iteration 4_readme_test_faults.png>)
 
 - Execute `TestFaults.java` in the test folder. (Make sure to close all running files before executing or the test testDeathFault() might fail due to socketException)
