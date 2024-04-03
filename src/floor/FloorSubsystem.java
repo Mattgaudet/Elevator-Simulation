@@ -23,9 +23,6 @@ public class FloorSubsystem implements Runnable {
     /** The array of floors. */
     private final Floor[] floorArray;
 
-    /** The filepath for the requests. */
-    private final String filePath; // Field for the file path
-
     /** The total number of requests */
     private int numTotalRequests;
 
@@ -46,7 +43,6 @@ public class FloorSubsystem implements Runnable {
      * @param filePath The CSV file path.
      */
     public FloorSubsystem(String filePath) {
-        this.filePath = filePath;
         elevatorRequests = new ArrayList<>();
         floorArray = new Floor[10]; // 10 floors for now
         for (int i = 0; i < floorArray.length; i++) {
