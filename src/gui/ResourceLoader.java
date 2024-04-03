@@ -23,6 +23,7 @@ public class ResourceLoader {
                 resources.put(type, ImageIO.read(new File(path)));
             } catch (IOException e) {
                 Log.print("Failed to load: " + path);
+                resources.put(type, new BufferedImage(32, 32, BufferedImage.TYPE_INT_RGB));
             }
         }
     }

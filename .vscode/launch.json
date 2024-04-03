@@ -2,6 +2,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Window",
+            "request": "launch",
+            "mainClass": "gui.Window",
+            "projectName": "group_project_8009f3f7"
+        },
+        {
+            "type": "java",
             "name": "GUI",
             "request": "launch",
             "mainClass": "gui.GUI",
