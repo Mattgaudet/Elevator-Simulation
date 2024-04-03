@@ -1,86 +1,125 @@
-// package gui;
+package gui;
 
-// import common.Math;
-// import common.Config;
-// import java.awt.Container;
-// import java.util.concurrent.TimeUnit;
-// import java.util.concurrent.locks.Lock;
-// import java.util.concurrent.locks.ReentrantLock;
+import common.MathHelper;
+import common.Config;
+import java.awt.Container;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
-// public class Elevator {
+public class Elevator {
 
-//     private Lock lock;
-//     private Resource room;
-//     private Resource door1;
-//     private Resource door2;
-//     private Resource rope1;
-//     private Resource rope2;
+    private BlockingQueue<ElevatorJob> jobs;
+    private Resource room;
+    private Resource leftDoor;
+    private Resource rightDoor;
+    private Resource leftRope;
+    private Resource rightRope;
+    private int floor;
 
-//     public Elevator(Container container, int x) {
-//         room = new Resource(ResourceType.ELEVATOR_ROOM, x, 0);
-//         door1 = new Resource(ResourceType.ELEVATOR_DOOR, x, 0);
-//         door2 = new Resource(ResourceType.ELEVATOR_DOOR, x + ResourceLoader.getWidth(ResourceType.ELEVATOR_DOOR), 0);
-//         rope1 = new Resource(ResourceType.ELEVATOR_ROPE, x + 1, 0);
-//         rope2 = new Resource(ResourceType.ELEVATOR_ROPE, x + ResourceLoader.getWidth(ResourceType.ELEVATOR_ROOM) - 1, 0);
-//         container.add(rope1);
-//         container.add(rope2);
-//         container.add(door1);
-//         container.add(door2);
-//         container.add(room);
+    public Elevator(Container container, int index) {
+        int x = Floor.getLeftWidth() + index * getWidth();
 
-//         lock = new ReentrantLock();
-//     }
+        room = new Resource(ResourceType.ELEVATOR_ROOM, x, 0);
+        leftDoor = new Resource(ResourceType.ELEVATOR_DOOR, x, 0);
+        rightDoor = new Resource(ResourceType.ELEVATOR_DOOR, x + ResourceLoader.getWidth(ResourceType.ELEVATOR_DOOR), 0);
+        leftRope = new Resource(ResourceType.ELEVATOR_ROPE, x + 1, 0);
+        rightRope = new Resource(ResourceType.ELEVATOR_ROPE, x + ResourceLoader.getWidth(ResourceType.ELEVATOR_ROOM) - 2, 0);
 
-//     public void action(int passengers, int floor) {
-//         new Thread(() -> {
-//             if (!lock.tryLock()) {
-//                 return;
-//             }
-//             try {
-//                 load(passengers);
-//                 // move(floor);
-//                 // load(passengers);
-//             } finally {
-//                 lock.unlock();
-//             }
-//         }).start();
-//     }
+        container.add(leftDoor);
+        container.add(rightDoor);
+        container.add(room);
+        container.add(leftRope);
+        container.add(rightRope);
 
-//     private void load(int passengers) {
-//         int i;
-//         int resolution = 100;
-//         int end = ResourceLoader.getWidth(ResourceType.ELEVATOR_DOOR);
-//         for (i = 0; i <= Config.LOAD_TIME; i += resolution) {
-//             try {
-//                 TimeUnit.MILLISECONDS.sleep(resolution);
-//             } catch (InterruptedException e) {}
+        jobs = new LinkedBlockingQueue<>();
 
-//             float alpha = (float) i / (float) Config.LOAD_TIME;
-//             door1.setOffsetX((int) Math.lerp(0, -end, alpha));
-//             door2.setOffsetX((int) Math.lerp(0, +end, alpha));
-//         }
-//         try {
-//             TimeUnit.MILLISECONDS.sleep(passengers * Config.LOAD_TIME);
-//         } catch (InterruptedException e) {}
-//         for (i = 0; i <= Config.LOAD_TIME; i += resolution) {
-//             try {
-//                 TimeUnit.MILLISECONDS.sleep(resolution);
-//             } catch (InterruptedException e) {}
-//             float alpha = 1 - (float) i / (float) Config.LOAD_TIME;
-//             door1.setOffsetX((int) Math.lerp(0, -end, alpha));
-//             door2.setOffsetX((int) Math.lerp(0, +end, alpha));
-//         }
-//     }
+        Thread thread = new Thread(() -> {
+            while (true) {
+                ElevatorJob job = null;
+                while (job == null) {
+                    try {
+                        job = jobs.take();
+                    } catch (InterruptedException e) {}
+                }
+                switch (job.getType()) {
+                    case ElevatorJobType.MOVE: handleMove(job.getData()); break;
+                    case ElevatorJobType.LOAD: handleLoad(job.getData()); break;
+                    case ElevatorJobType.OPEN: handleOpenClose(true); break;
+                    case ElevatorJobType.CLOSE: handleOpenClose(false); break;
+                }
+            }
+        });
+        thread.setDaemon(true);
+        thread.start();
+    }
 
-//     private void move(int floor) {
+    public void move(int floor) {
+        jobs.add(new ElevatorJob(ElevatorJobType.MOVE, floor));
+    }
 
-//     }
+    public void load(int passengers) {
+        jobs.add(new ElevatorJob(ElevatorJobType.LOAD, passengers));
+    }
 
-//     public static int getWidth() {
-//         return ResourceLoader.getWidth(ResourceType.ELEVATOR_DOOR);
-//     }
+    public void open() {
+        jobs.add(new ElevatorJob(ElevatorJobType.OPEN, 0));
+    }
 
-//     public static int getHeight() {
-//         return Window.HEIGHT;
-//     }
-// }
+    public void close() {
+        jobs.add(new ElevatorJob(ElevatorJobType.CLOSE, 0));
+    }
+
+    private void handleMove(int floor) {
+        int floors = Math.abs(this.floor - floor);
+        if (floors == 0) {
+            return;
+        }
+        int direction = this.floor < floor ? 1 : -1;
+        int time = (int) (floors * 1.0f / Config.FLOORS_PER_SECOND * 1000.0f);
+        int resolution = 10;
+        for (int i = 0; i <= time; i += resolution) {
+            try {
+                TimeUnit.MILLISECONDS.sleep(resolution);
+            } catch (InterruptedException e) {}
+            float alpha = (float) i / (float) time * floors * direction;
+            setHeight(this.floor, alpha);
+        }
+        setHeight(floor, 0);
+    }
+
+    private void handleLoad(int passengers) {
+        try {
+            TimeUnit.MILLISECONDS.sleep(passengers * Config.LOAD_TIME);
+        } catch (InterruptedException e) {}
+    }
+
+    private void handleOpenClose(boolean open) {
+        int resolution = 100;
+        for (int i = 0; i <= Config.LOAD_TIME; i += resolution) {
+            try {
+                TimeUnit.MILLISECONDS.sleep(resolution);
+            } catch (InterruptedException e) {}
+            float alpha;
+            if (open) {
+                alpha = (float) i / (float) Config.LOAD_TIME;
+            } else {
+                alpha = 1 - (float) i / (float) Config.LOAD_TIME;
+            }
+            leftDoor.setOffsetX((int) MathHelper.lerp(0, -ResourceLoader.getWidth(ResourceType.ELEVATOR_DOOR), alpha));
+            rightDoor.setOffsetX((int) MathHelper.lerp(0, +ResourceLoader.getWidth(ResourceType.ELEVATOR_DOOR), alpha));
+        }
+    }
+
+    private void setHeight(int floor, float alpha) {
+        this.floor = floor;
+        int height = Floor.getHeight() * floor + (int) (Floor.getHeight() * alpha);
+        room.setOffsetY(height);
+        leftDoor.setOffsetY(height);
+        rightDoor.setOffsetY(height);
+    }
+
+    public static int getWidth() {
+        return ResourceLoader.getWidth(ResourceType.ELEVATOR_ROOM);
+    }
+}

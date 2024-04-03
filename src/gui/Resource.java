@@ -34,8 +34,8 @@ public class Resource extends JComponent {
     @Override
     protected void paintComponent(Graphics graphics) {
         super.paintComponent(graphics);
-        int x = coords.x;
-        int y = Window.HEIGHT - coords.y - coords.height;
+        int x = coords.x + offset.width;
+        int y = coords.y + offset.height;
         int width = coords.width;
         int height = coords.height;
         graphics.drawImage(resource, x, y, width, height, this);
