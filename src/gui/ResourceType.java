@@ -10,4 +10,5 @@ public enum ResourceType {
     CORRIDOR,
     FLOOR,
     LAMP,
+    PERSON,
 }

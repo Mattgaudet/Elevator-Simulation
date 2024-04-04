@@ -15,6 +15,8 @@ public class GUI {
     /** */
     public static final int OFFSET = 64;
     /** */
+    public static final int PEOPLE = 5;
+    /** */
     private static Window window;
     /** */
     private static Elevator[] elevators = new Elevator[ELEVATORS];
@@ -47,6 +49,76 @@ public class GUI {
 
     /**
      * 
+     * @param floor
+     * @param people
+     */
+    public static void add(int floor, int people) {
+        floors[floor].add(people);
+    }
+
+    /**
+     * 
+     * @param floor
+     * @param people
+     */
+    public static void take(int floor, int people) {
+        floors[floor].take(people);
+    }
+
+    /**
+     * 
+     * @param floor
+     * @param people
+     */
+    public static void deliver(int floor, int people) {
+        floors[floor].deliver(people);
+    }
+
+    /**
+     * 
+     * @param elevator
+     * @param floor
+     */
+    public static void move(int elevator, int floor) {
+        elevators[elevator].move(floor);
+    }
+
+    /**
+     * 
+     * @param elevator
+     * @param passengers
+     */
+    public static void load(int elevator, int passengers) {
+        elevators[elevator].load(passengers);
+    }
+
+    /**
+     * 
+     * @param elevator
+     * @param passengers
+     */
+    public static void unload(int elevator, int passengers) {
+        elevators[elevator].unload(passengers);
+    }
+
+    /**
+     * 
+     * @param elevator
+     */
+    public static void open(int elevator) {
+        elevators[elevator].open();
+    }
+
+    /**
+     * 
+     * @param elevator
+     */
+    public static void close(int elevator) {
+        elevators[elevator].close();
+    }
+
+    /**
+     * 
      */
     public static void update() {
         window.repaint();
@@ -59,19 +131,17 @@ public class GUI {
     public static void main(String[] args) {
         init();
 
-        elevators[1].move(8);
-        elevators[1].open();
-        elevators[1].load(1);
-        elevators[1].close();
-
-        elevators[3].move(4);
-        elevators[3].open();
-        elevators[3].load(1);
-        elevators[3].close();
-        elevators[3].move(2);
-
-        elevators[0].move(20);
-        elevators[2].move(19);
-        elevators[0].open();
+        add(4, 5);
+        move(1, 4);
+        open(1);
+        load(1, 5);
+        close(1);
+        move(1, 9);
+        open(1);
+        unload(1, 3);
+        close(1);
+        move(1, 12);
+        open(1);
+        unload(1, 2);
     }
 }

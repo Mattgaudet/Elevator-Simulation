@@ -26,7 +26,13 @@ public class Elevator {
     /** */
     private Resource corridor;
     /** */
+    private Resource[] people = new Resource[GUI.PEOPLE];
+    /** */
     private int floor;
+    /** */
+    private int passengers;
+    /** */
+    private Container container;
 
     /**
      * 
@@ -42,6 +48,11 @@ public class Elevator {
         leftRope = new Resource(ResourceType.ROPE, x + 1, 0);
         rightRope = new Resource(ResourceType.ROPE, x + ResourceLoader.getWidth(ResourceType.ROOM) - 3, 0);
         corridor = new Resource(ResourceType.CORRIDOR, x, 0);
+
+        for (int i = 0; i < GUI.PEOPLE; i++) {
+            int personWidth = ResourceLoader.getWidth(ResourceType.PERSON);
+            people[i] = new Resource(ResourceType.PERSON, x + i * (personWidth + 1) + 4, 0);
+        }
 
         container.add(leftDoor);
         container.add(rightDoor);
@@ -63,6 +74,7 @@ public class Elevator {
                 switch (job.getType()) {
                     case ElevatorJobType.MOVE: handleMove(job.getData()); break;
                     case ElevatorJobType.LOAD: handleLoad(job.getData()); break;
+                    case ElevatorJobType.UNLOAD: handleUnload(job.getData()); break;
                     case ElevatorJobType.OPEN: handleOpenClose(true); break;
                     case ElevatorJobType.CLOSE: handleOpenClose(false); break;
                 }
@@ -70,6 +82,8 @@ public class Elevator {
         });
         thread.setDaemon(true);
         thread.start();
+
+        this.container = container;
     }
 
     /**
@@ -86,6 +100,14 @@ public class Elevator {
      */
     public void load(int passengers) {
         jobs.add(new ElevatorJob(ElevatorJobType.LOAD, passengers));
+    }
+
+    /**
+     * 
+     * @param passengers
+     */
+    public void unload(int passengers) {
+        jobs.add(new ElevatorJob(ElevatorJobType.UNLOAD, passengers));
     }
 
     /**
@@ -131,9 +153,51 @@ public class Elevator {
      * @param passengers
      */
     private void handleLoad(int passengers) {
-        try {
-            TimeUnit.MILLISECONDS.sleep(passengers * Config.LOAD_TIME);
-        } catch (InterruptedException e) {}
+        for (int i = 0; i < passengers; i++) {
+            try {
+                TimeUnit.MILLISECONDS.sleep(Config.LOAD_TIME);
+            } catch (InterruptedException e) {}
+            GUI.take(floor, 1);
+            setPassengers(1);
+        }
+    }
+
+    /**
+     * 
+     * @param passengers
+     */
+    private void handleUnload(int passengers) {
+        for (int i = 0; i < passengers; i++) {
+            try {
+                TimeUnit.MILLISECONDS.sleep(Config.LOAD_TIME);
+            } catch (InterruptedException e) {}
+            GUI.deliver(floor, 1);
+            setPassengers(-1);
+        }
+    }
+
+    /**
+     * 
+     * @param passengers
+     */
+    private void setPassengers(int passengers) {
+        int i;
+        for (i = 0; i < this.passengers; i++) {
+            container.remove(people[i]);
+        }
+        container.remove(room);
+        container.remove(leftRope);
+        container.remove(rightRope);
+        container.remove(corridor);
+        this.passengers += passengers;
+        for (i = 0; i < this.passengers; i++) {
+            container.add(people[i]);
+        }
+        container.add(room);
+        container.add(leftRope);
+        container.add(rightRope);
+        container.add(corridor);
+        GUI.update();
     }
 
     /**
@@ -171,6 +235,9 @@ public class Elevator {
         room.setOffsetY(height);
         leftDoor.setOffsetY(height);
         rightDoor.setOffsetY(height);
+        for (int i = 0; i < GUI.PEOPLE; i++) {
+            people[i].setOffsetY(height);
+        }
     }
 
     /**
