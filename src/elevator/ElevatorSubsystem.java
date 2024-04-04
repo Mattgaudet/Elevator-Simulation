@@ -22,7 +22,7 @@ public class ElevatorSubsystem implements Runnable {
     private RequestProcessedListener listener;
 
     /** The elevators to schedule. */
-    private Elevator[] elevatorCars = new Elevator[5]; // 10 elevators max for now
+    private Elevator[] elevatorCars = new Elevator[4]; // 4 elevators max for now
 
     /** The schedule to receive requests from. */
     private Scheduler scheduler;
@@ -257,7 +257,7 @@ public class ElevatorSubsystem implements Runnable {
      * @param args command line (not used)
      */
     public static void main(String[] args) {
-        ElevatorSubsystem elevatorSubsystem = new ElevatorSubsystem(5);
+        ElevatorSubsystem elevatorSubsystem = new ElevatorSubsystem(4);
         Thread elevatorSubsystemThread = new Thread(elevatorSubsystem,"ElevatorSubsystem Thread");
         elevatorSubsystemThread.start();
     }

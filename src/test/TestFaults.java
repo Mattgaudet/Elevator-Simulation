@@ -109,7 +109,7 @@ public class TestFaults {
         testThread th = new testThread();
         th.start();
         try {
-            Thread.sleep(20000);
+            Thread.sleep(30000);
         } catch(InterruptedException e) {
             e.printStackTrace();
         }
@@ -124,7 +124,7 @@ public class TestFaults {
         Elevator elv = new Elevator(2, elevatorSubsystem);
         elv.start();
 
-        ElevatorRequest er = new ElevatorRequest(LocalTime.now(), 0,ElevatorRequest.ButtonDirection.UP, 2);
+        ElevatorRequest er = new ElevatorRequest(LocalTime.now(), 0,ElevatorRequest.ButtonDirection.UP, 3);
         er.addFault(CSVParser.ElevatorFault.DOOR_NOT_CLOSE);
         elv.addRequestToElevatorQueue(er);
         assertEquals(Elevator.DoorStatus.CLOSED, elv.getDoorStatus()); //doors initially closed
@@ -136,7 +136,7 @@ public class TestFaults {
         assertEquals(Elevator.DoorStatus.OPEN, elv.getDoorStatus()); //doors opened on for loading on floor 0
         //fault is processed in the loadElevator method in ElevatorTransportingState
         try {
-            Thread.sleep(8000);
+            Thread.sleep(30000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -157,12 +157,11 @@ public class TestFaults {
         elevator.addRequestToElevatorQueue(er);
         assertEquals(Elevator.DoorStatus.CLOSED, elevator.getDoorStatus()); //doors initially closed
         try {
-            Thread.sleep(Config.DOOR_TIME + Config.LOAD_TIME + 100);
+            Thread.sleep(Config.DOOR_TIME + Config.TRANSIENT_FAULT_TIME + Config.LOAD_TIME);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        assertEquals(Elevator.DoorStatus.OPEN, elevator.getDoorStatus()); //doors opened on for loading on floor 0
-        //fault is processed in the loadElevator method in ElevatorTransportingState
+        assertEquals(Elevator.DoorStatus.OPEN, elevator.getDoorStatus()); //doors open after transient fault
         try {
             Thread.sleep(Config.DOOR_TIME + Config.LOAD_TIME);
         } catch (InterruptedException e) {

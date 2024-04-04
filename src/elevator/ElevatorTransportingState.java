@@ -2,7 +2,6 @@ package elevator;
 
 import common.Config;
 import common.Log;
-import floor.CSVParser;
 import floor.ElevatorRequest;
 
 import java.io.IOException;
@@ -23,9 +22,6 @@ public class ElevatorTransportingState implements ElevatorState{
     private Elevator elevator;
     private ElevatorSubsystem elevatorSubsystem;
     private long startTime;
-    /** Timeout threshold for transporting state in milliseconds */
-    private static final long TRANSPORTING_TIMEOUT = 60000; // 1 minute
-
 
     /**
      * Constructor for the transporting state
@@ -141,7 +137,7 @@ public class ElevatorTransportingState implements ElevatorState{
             Log.print("Elevator " + elevator.getElevatorId() +": Elapsed time since start: " + elapsedTime + " ms");
 
             // Check if elapsed time exceeds the timeout threshold
-            if (elapsedTime > TRANSPORTING_TIMEOUT) {
+            if (elapsedTime > elevator.getTransportingTimeout()) {
                 Log.print("Transporting state exceeded timeout threshold.");
                 handleTimeoutError(); // Handle timeout error
                 return; // Exit method to stop further processing
@@ -196,7 +192,7 @@ public class ElevatorTransportingState implements ElevatorState{
             // it takes to travel one floor
             if (floorsMoved + 1 < floorsToMove) {
                 try {
-                    Thread.sleep((int) tripTime);
+                    Thread.sleep(Config.TIME_TO_TRAVEL_1_FLOOR);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt(); // Re-interrupt the thread
                     throw new RuntimeException("Thread was interrupted", e);
@@ -232,17 +228,17 @@ public class ElevatorTransportingState implements ElevatorState{
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
-
-
-            elevator.timeToLoadPassengers(1);
+            // Sleep for 20 seconds (transient fault time)
+            try{
+                Thread.sleep(Config.TRANSIENT_FAULT_TIME);
+            } catch (InterruptedException e) {}
             er.removeFault();
         }
         elevator.setDoorStatus(Elevator.DoorStatus.OPEN);
         elevator.timeToLoadPassengers(1);
         //if there is a DOOR_NOT_CLOSE fault, handle as transient fault: reopen door and wait, then try to close again
         while(elevator.getElevatorQueue().peek().getFault().equals("DOOR_NOT_CLOSE")) {
-            Log.print(">> Elevator " + elevator.getElevatorId() + " door closing failed due to fault, reopening doors");
+            Log.print(">> Elevator " + elevator.getElevatorId() + " door closing failed due to fault");
            
             // Send the FAULT to the FloorSubsystem
             String InfoString = elevator.getElevatorQueue().peek().getFault() + " fault encountered by Elevator " + elevator.getElevatorId() + " at floor " + nextFloor;
@@ -261,7 +257,6 @@ public class ElevatorTransportingState implements ElevatorState{
                 e.printStackTrace();
             }
 
-            elevator.setDoorStatus(Elevator.DoorStatus.OPEN);
             try {
                 Thread.sleep(Config.TRANSIENT_FAULT_TIME);
             } catch (InterruptedException e) {}

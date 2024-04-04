@@ -41,6 +41,8 @@ public class Elevator extends Thread{
 
     /** The elevator subsystem to use. */
     private ElevatorSubsystem elevatorSubsystem;
+    /** Timer for elevator transporting state fault detection */
+    private long transportingTimeout; // 1 minute
 
     /**
      * The door status.
@@ -168,6 +170,14 @@ public class Elevator extends Thread{
                     assert request.getButtonId() <= elevatorQueue.peek().getButtonId(); // this should not happen
                 }
             }
+            long estimatedTime = (long) Config.TIME_TO_TRAVEL_1_FLOOR * Math.abs(request.getFloorNumber() - request.getButtonId());
+            estimatedTime += (long) Config.TIME_TO_TRAVEL_1_FLOOR * Math.abs(currentFloor - request.getFloorNumber());
+            estimatedTime += 2 * Config.LOAD_TIME + 4 * Config.DOOR_TIME + 30000; //add 30 seconds buffer time
+            if (elevatorQueue.isEmpty()) {
+                transportingTimeout = estimatedTime;
+            } else {
+                transportingTimeout += estimatedTime;
+            }
             Log.print("Elevator " + elevatorId + " request added");
             elevatorQueue.add(request);
             queueLock.notifyAll();
@@ -221,7 +231,7 @@ public class Elevator extends Thread{
      * Allows for test thread to edit the start time of transporting state to simulate timeout fault
      */
     public void changeTime() {
-        ((ElevatorTransportingState) this.currentState).editStartTime(60000);
+        ((ElevatorTransportingState) this.currentState).editStartTime(300000);
     }
 
     /**
@@ -250,6 +260,14 @@ public class Elevator extends Thread{
         this.currentState = getState(s);
         this.currentState.action(this);
 
+    }
+
+    /**
+     * Return this elevator's transportingTimeout
+     * @return transportingTimeout
+     */
+    public long getTransportingTimeout() {
+        return transportingTimeout;
     }
 
     /**

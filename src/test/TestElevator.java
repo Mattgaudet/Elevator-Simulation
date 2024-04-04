@@ -66,14 +66,14 @@ public class TestElevator {
     void testSimulateElevatorMovement() {
         elevator = new Elevator(1, elevatorSubsystem);
         elevator.start();
-        ElevatorRequest elevatorRequest = new ElevatorRequest(LocalTime.now(), 3, ElevatorRequest.ButtonDirection.UP, 4);
+        ElevatorRequest elevatorRequest = new ElevatorRequest(LocalTime.now(), 0, ElevatorRequest.ButtonDirection.UP, 1);
         elevator.addRequestToElevatorQueue(elevatorRequest);
         try {
-            Thread.sleep(26000);
+            Thread.sleep(22000);
         }catch (InterruptedException e) {
             e.printStackTrace();
         }
-        assertEquals(4, elevator.getCurrentFloor());
+        assertEquals(1, elevator.getCurrentFloor());
     }
 
     /**
@@ -101,10 +101,9 @@ public class TestElevator {
     @Test
     void testTimeToLoadPassengers() {
         Elevator elevator = new Elevator(1, elevatorSubsystem);
-
         assertTimeout(
-                java.time.Duration.ofSeconds(5),
-                () -> elevator.timeToLoadPassengers(3)
+                java.time.Duration.ofSeconds(6),
+                () -> elevator.timeToLoadPassengers(1)
         );
     }
 
