@@ -67,7 +67,7 @@ public class Floor {
      * 
      * @param people
      */
-    public void setWaiters(int people) {
+    private void setWaiters(int people) {
         container.remove(upLamp);
         container.remove(downLamp);
         container.remove(leftFloor);
@@ -96,7 +96,7 @@ public class Floor {
      * 
      * @param people
      */
-    public void add(int people) {
+    public synchronized void add(int people) {
         setWaiters(people);
     }
 
@@ -104,7 +104,7 @@ public class Floor {
      * 
      * @param people
      */
-    public void take(int people) {
+    public synchronized void take(int people) {
         setWaiters(-people);
     }
 
@@ -112,7 +112,7 @@ public class Floor {
      * 
      * @param people
      */
-    public void deliver(int people) {
+    public synchronized void deliver(int people) {
         container.remove(rightFloor);
         int i;
         for (i = 0; i < delivered.size(); i++) {

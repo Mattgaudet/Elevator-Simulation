@@ -9,11 +9,9 @@ public class GUI {
     /** */
     public static final int ELEVATORS = 4;
     /** */
-    public static final int WIDTH = 384;
+    public static final int WIDTH = 312;
     /** */
-    public static final int HEIGHT = 704;
-    /** */
-    public static final int OFFSET = 64;
+    public static final int HEIGHT = 572;
     /** */
     public static final int PEOPLE = 5;
     /** */
@@ -169,6 +167,14 @@ public class GUI {
                 Thread.sleep(7000);
             } catch (InterruptedException e) {}
             transientFault(1);
+        }).start();
+
+        move(2, 20);
+        new Thread(() -> {
+            try {
+                Thread.sleep(4800);
+            } catch (InterruptedException e) {}
+            hardFault(2);
         }).start();
     }
 }

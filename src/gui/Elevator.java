@@ -2,6 +2,7 @@ package gui;
 
 import common.MathHelper;
 import common.Config;
+import java.awt.Color;
 import java.awt.Container;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -44,6 +45,8 @@ public class Elevator {
     private Container container;
     /** */
     private boolean finished;
+    /** */
+    private boolean hardFault;
 
     /**
      * 
@@ -62,7 +65,7 @@ public class Elevator {
 
         for (int i = 0; i < GUI.PEOPLE; i++) {
             int personWidth = ResourceLoader.getWidth(ResourceType.PERSON);
-            people[i] = new Resource(ResourceType.PERSON, x + i * (personWidth + 1) + 4, 0);
+            people[i] = new Resource(ResourceType.PERSON, x + i * (personWidth + 1) + 1, 0);
         }
 
         container.add(leftDoor);
@@ -76,13 +79,15 @@ public class Elevator {
 
         thread = new Thread(() -> {
             while (true) {
+                if (hardFault) {
+                    return;
+                }
                 ElevatorJob job = null;
                 while (job == null) {
                     try {
                         job = jobs.take();
                     } catch (InterruptedException e) {}
                 }
-                System.out.println(job.getType().name());
                 switch (job.getType()) {
                     case ElevatorJobType.MOVE: handleMove(job.getData()); break;
                     case ElevatorJobType.LOAD: handleLoadUnload(job.getData(), true); break;
@@ -170,20 +175,23 @@ public class Elevator {
         int direction = this.floor < floor ? 1 : -1;
         int time = (int) (floors * 1.0f / Config.FLOORS_PER_SECOND * 1000.0f);
         int resolution = 100;
-        GUI.notifyLamp(floor, direction, true);
-        for (; heightFraction <= time; heightFraction += resolution) {
-            if (Thread.interrupted()) {
-                return;
+        try {
+            GUI.notifyLamp(floor, direction, true);
+            for (; heightFraction <= time; heightFraction += resolution) {
+                if (Thread.interrupted()) {
+                    return;
+                }
+                try {
+                    TimeUnit.MILLISECONDS.sleep(resolution);
+                } catch (InterruptedException e) {
+                    return;
+                }
+                float alpha = (float) heightFraction / (float) time * floors * direction;
+                setHeight(this.floor, alpha);
             }
-            try {
-                TimeUnit.MILLISECONDS.sleep(resolution);
-            } catch (InterruptedException e) {
-                return;
-            }
-            float alpha = (float) heightFraction / (float) time * floors * direction;
-            setHeight(this.floor, alpha);
+        } finally {
+            GUI.notifyLamp(floor, direction, false);
         }
-        GUI.notifyLamp(floor, direction, false);
         heightFraction = 0;
         setHeight(floor, 0);
         finished = true;
@@ -252,7 +260,7 @@ public class Elevator {
      */
     private void handleOpenClose(boolean open) {
         finished = false;
-        int resolution = 100;
+        int resolution = 10;
         for (; openCloseFraction <= Config.LOAD_TIME; openCloseFraction += resolution) {
             if (Thread.interrupted()) {
                 return;
@@ -282,8 +290,10 @@ public class Elevator {
      * 
      * @param hard
      */
-    public void handleFault(boolean hard) {
+    private void handleFault(boolean hard) {
+        setFaultTint(true);
         if (hard) {
+            hardFault = true;
             jobs.clear();
         } else {
             try {
@@ -294,7 +304,24 @@ public class Elevator {
             if (previous != null && !finished) {
                 jobs.addFirst(previous);
             }
+            setFaultTint(false);
         }
+    }
+
+    /**
+     * 
+     * @param on
+     */
+    private void setFaultTint(boolean on) {
+        Color color;
+        if (on) {
+            color = new Color(1.0f, 0.0f, 0.0f, 0.3f);
+        } else {
+            color = new Color(0.0f, 0.0f, 0.0f, 0.0f);
+        }
+        leftDoor.setTint(color);
+        rightDoor.setTint(color);
+        room.setTint(color);
     }
 
     /**
