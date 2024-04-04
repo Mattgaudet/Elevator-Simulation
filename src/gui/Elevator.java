@@ -291,11 +291,12 @@ public class Elevator {
      * @param hard
      */
     private void handleFault(boolean hard) {
-        setFaultTint(true);
         if (hard) {
+            setFaultTint(false, true);
             hardFault = true;
             jobs.clear();
         } else {
+            setFaultTint(true, true);
             try {
                 Thread.sleep(Config.TRANSIENT_FAULT_TIME);
             } catch (InterruptedException e) {
@@ -304,7 +305,7 @@ public class Elevator {
             if (previous != null && !finished) {
                 jobs.addFirst(previous);
             }
-            setFaultTint(false);
+            setFaultTint(false, false);
         }
     }
 
@@ -312,9 +313,11 @@ public class Elevator {
      * 
      * @param on
      */
-    private void setFaultTint(boolean on) {
+    private void setFaultTint(boolean trans, boolean on) {
         Color color;
-        if (on) {
+        if (on && trans) {
+            color = new Color(0.0f, 0.0f, 1.0f, 0.3f);
+        } else if (on) {
             color = new Color(1.0f, 0.0f, 0.0f, 0.3f);
         } else {
             color = new Color(0.0f, 0.0f, 0.0f, 0.0f);
