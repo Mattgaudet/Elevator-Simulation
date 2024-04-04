@@ -2,6 +2,27 @@
     "configurations": [
         {
             "type": "java",
+            "name": "FloorSubsystem",
+            "request": "launch",
+            "mainClass": "floor.FloorSubsystem",
+            "projectName": "group_project_8009f3f7"
+        },
+        {
+            "type": "java",
+            "name": "Scheduler",
+            "request": "launch",
+            "mainClass": "scheduler.Scheduler",
+            "projectName": "group_project_8009f3f7"
+        },
+        {
+            "type": "java",
+            "name": "ElevatorSubsystem",
+            "request": "launch",
+            "mainClass": "elevator.ElevatorSubsystem",
+            "projectName": "group_project_8009f3f7"
+        },
+        {
+            "type": "java",
             "name": "GUI",
             "request": "launch",
             "mainClass": "gui.GUI",

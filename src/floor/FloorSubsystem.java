@@ -1,5 +1,6 @@
 package floor;
 
+import floor.CSVParser.ElevatorFault;
 import floor.ElevatorRequest.ButtonDirection;
 import scheduler.Scheduler;
 
@@ -11,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import common.Log;
 import java.nio.charset.StandardCharsets;
+import gui.GUI;
 
 /**
  * Create a new floor subsystem to manage the floors.
@@ -57,6 +59,8 @@ public class FloorSubsystem implements Runnable {
         // handle timings
         baseline = LocalTime.now();
         t1 = LocalTime.now();
+
+        GUI.init();
     }
 
     /**
@@ -201,6 +205,11 @@ public class FloorSubsystem implements Runnable {
             while (true) { // Loop indefinitely
                 ElevatorRequest er = floorSubsystem.waitForRequestTriggered();
                 if (er != null) {
+
+                    if (ElevatorFault.fromString(er.getFault()).isHardFault()) {
+                        GUI.add(er.getFloorNumber(), 1);
+                    }
+
                     byte[] sendData = er.getBytes();
                     DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, schedulerAddress, schedulerPort);
                     socket.send(sendPacket);
@@ -217,17 +226,29 @@ public class FloorSubsystem implements Runnable {
                     // if the packet has pattern "x;x;x;x;x" then it is a lamp status change trigger (example:0;TRANSPORTING;0;4;UP)
                     if (new String(packet.getData(), 0, packet.getLength()).matches("\\d+;\\w+;\\d+;\\d+;\\w+")) {
 
-                    // Process the packet (For LampStatus changes)
-                    String received = new String(packet.getData(), 0, packet.getLength());
-                    System.out.println();
-                    System.out.println("Received: " + received); // example: 0;TRANSPORTING;0;4;UP
+                        // Process the packet (For LampStatus changes)
+                        String received = new String(packet.getData(), 0, packet.getLength());
+                        System.out.println();
+                        System.out.println("Received: " + received); // example: 0;TRANSPORTING;0;4;UP
 
-                    Log.print("Elevator " + received.split(";")[0] + " is moving " + received.split(";")[4] +
-                    " from floor " + received.split(";")[2] + " to floor " + received.split(";")[3]);
-                    
-                    ButtonDirection direction = ButtonDirection.valueOf(received.split(";")[4]);
-                    floorSubsystem.changeLampStatus(direction);
+                        String[] data = received.split(";");
+                        int elevator = Integer.valueOf(data[0]).intValue();
+                        int start = Integer.valueOf(data[2]).intValue();
+                        int end = Integer.valueOf(data[3]).intValue();
 
+                        Log.print("Elevator " + data[0] + " is moving " + data[4] + " from floor " + data[2] + " to floor " + data[3]);
+                        
+                        ButtonDirection direction = ButtonDirection.valueOf(received.split(";")[4]);
+                        floorSubsystem.changeLampStatus(direction);
+
+                        GUI.close(elevator);
+                        GUI.move(elevator, end);
+                        GUI.open(elevator);
+                        if (GUI.hasPassengers(elevator)) {
+                            GUI.unload(elevator, 1);
+                        } else {
+                            GUI.load(elevator, 1);
+                        }
                     }
 
                     // if the packet contains 'fault'
@@ -236,6 +257,22 @@ public class FloorSubsystem implements Runnable {
                         String received = new String(packet.getData(), 0, packet.getLength());
                         System.out.println();
                         System.out.println("Received: " + received); // 
+                        String[] data = received.split(" ");
+                        String fault = data[0];
+                        int elevator = Integer.valueOf(data[5]).intValue();
+
+                        if (ElevatorFault.fromString(fault).isHardFault()) {
+                            GUI.hardFault(elevator);
+                        } else {
+                            switch (fault) {
+                            case "DOOR_NOT_OPEN":
+                                GUI.openFault(elevator);
+                                break;
+                            case "DOOR_NOT_CLOSE":
+                                GUI.closeFault(elevator);
+                                break;
+                            }
+                        }
                     }
 
                     // If no request is available, wait a bit before checking again

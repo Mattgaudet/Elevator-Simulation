@@ -48,6 +48,14 @@ public class Number extends ResourceHelper {
 
     /**
      * 
+     * @return
+     */
+    public int getValue() {
+        return value;
+    }
+
+    /**
+     * 
      * @param value
      */
     public void addValue(int value) {

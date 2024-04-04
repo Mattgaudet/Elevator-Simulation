@@ -16,8 +16,6 @@ public class Elevator {
     /** */
     private LinkedBlockingDeque<ElevatorJob> jobs;
     /** */
-    private ElevatorJob previous;
-    /** */
     private Resource room;
     /** */
     private Resource leftDoor;
@@ -36,9 +34,13 @@ public class Elevator {
     /** */
     private int i;
     /** */
-    private boolean finished;
-    /** */
     private boolean hardFault;
+    /** */
+    private boolean open;
+    /** */
+    private boolean openFault;
+    /** */
+    private boolean closeFault;
 
     /**
      * 
@@ -62,6 +64,9 @@ public class Elevator {
         container.add(leftRope);
         container.add(rightRope);
         container.add(corridor);
+        open = false;
+        openFault = false;
+        closeFault = false;
         jobs = new LinkedBlockingDeque<>();
         thread = new Thread(() -> {
             while (true) {
@@ -80,11 +85,7 @@ public class Elevator {
                     case UNLOAD: handleLoadUnload(job.getData(), false); break;
                     case OPEN: handleOpenClose(true); break;
                     case CLOSE: handleOpenClose(false); break;
-                    case TRANSIENT_FAULT: handleFault(false); break;
-                    case HARD_FAULT: handleFault(true); break;
-                }
-                if (!job.isFault()) {
-                    previous = job;
+                    case HARD_FAULT: handleHardFault(); break;
                 }
             }
         });
@@ -133,9 +134,15 @@ public class Elevator {
     /**
      * 
      */
-    public void transientFault() {
-        jobs.addFirst(new ElevatorJob(ElevatorJobType.TRANSIENT_FAULT, 0));
-        thread.interrupt();
+    public void openFault() {
+        openFault = true;
+    }
+
+    /**
+     * 
+     */
+    public void closeFault() {
+        closeFault = true;
     }
 
     /**
@@ -151,7 +158,6 @@ public class Elevator {
      * @param floor
      */
     private void handleMove(int floor) {
-        finished = false;
         int floors = Math.abs(this.floor - floor);
         if (floors == 0) {
             return;
@@ -178,7 +184,6 @@ public class Elevator {
         }
         i = 0;
         setHeight(floor, 0);
-        finished = true;
     }
 
     /**
@@ -187,7 +192,6 @@ public class Elevator {
      * @param load
      */
     private void handleLoadUnload(int passengers, boolean load) {
-        finished = false;
         for (; i < passengers; i++) {
             if (Thread.interrupted()) {
                 return;
@@ -206,7 +210,6 @@ public class Elevator {
             }
         }
         i = 0;
-        finished = true;
     }
 
     /**
@@ -214,7 +217,9 @@ public class Elevator {
      * @param open
      */
     private void handleOpenClose(boolean open) {
-        finished = false;
+        if (this.open == open) {
+            return;
+        }
         int resolution = 10;
         for (; i <= Config.LOAD_TIME; i += resolution) {
             if (Thread.interrupted()) {
@@ -224,6 +229,13 @@ public class Elevator {
                 TimeUnit.MILLISECONDS.sleep(resolution);
             } catch (InterruptedException e) {
                 return;
+            }
+            if (open && openFault) {
+                handleTransientFault();
+                openFault = false;
+            } else if (!open && closeFault) {
+                handleTransientFault();
+                closeFault = false;
             }
             float alpha;
             if (open) {
@@ -238,39 +250,46 @@ public class Elevator {
             rightDoor.setRightClip(shift);
         }
         i = 0;
-        finished = true;
+        this.open = open;
     }
 
     /**
      * 
-     * @param hard
      */
-    private void handleFault(boolean hard) {
-        if (hard) {
-            setFaultTint(new Color(1.0f, 0.0f, 0.0f, 0.5f));
-            hardFault = true;
-            jobs.clear();
-        } else {
-            try {
-                int resolution = 100;
-                for (int i = 0; i <= Config.TRANSIENT_FAULT_TIME; i += resolution) {
-                    try {
-                        TimeUnit.MILLISECONDS.sleep(resolution);
-                    } catch (InterruptedException e) {}
-                    float alpha = (float) i / (float) Config.TRANSIENT_FAULT_TIME;
-                    float r = MathHelper.lerp(1.0f, 0.0f, alpha);
-                    float g = MathHelper.lerp(0.0f, 1.0f, alpha);
-                    float b = MathHelper.lerp(0.0f, 0.0f, alpha);
-                    float a = MathHelper.lerp(1.0f, 0.0f, alpha);
-                    setFaultTint(new Color(r, g, b, a));
-                }
-            } finally {
-                if (previous != null && !finished) {
-                    jobs.addFirst(previous);
-                }
-                setFaultTint(new Color(0.0f, 0.0f, 0.0f, 0.0f));
+    private void handleHardFault() {
+        setFaultTint(new Color(1.0f, 0.0f, 0.0f, 0.5f));
+        hardFault = true;
+        jobs.clear();
+    }
+
+    /**
+     * 
+     */
+    private void handleTransientFault() {
+        try {
+            int resolution = 100;
+            for (int i = 0; i <= Config.TRANSIENT_FAULT_TIME; i += resolution) {
+                try {
+                    TimeUnit.MILLISECONDS.sleep(resolution);
+                } catch (InterruptedException e) {}
+                float alpha = (float) i / (float) Config.TRANSIENT_FAULT_TIME;
+                float r = MathHelper.lerp(1.0f, 0.2f, alpha);
+                float g = MathHelper.lerp(0.0f, 1.0f, alpha);
+                float b = MathHelper.lerp(0.0f, 0.0f, alpha);
+                float a = MathHelper.lerp(1.0f, 0.0f, alpha);
+                setFaultTint(new Color(r, g, b, a));
             }
+        } finally {
+            setFaultTint(new Color(0.0f, 0.0f, 0.0f, 0.0f));
         }
+    }
+
+    /**
+     * 
+     * @return
+     */
+    public boolean hasPassengers() {
+        return number.getValue() != 0;
     }
 
     /**

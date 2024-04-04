@@ -36,6 +36,10 @@ public class CSVParser {
             }
             return ElevatorFault.NO_FAULT;
         }
+
+        public boolean isHardFault() {
+            return this == TIMEOUT_FAULT | this == WRONG_FLOOR || this == DEATH;
+        }
     };
 
     /**

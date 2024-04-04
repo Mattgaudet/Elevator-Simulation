@@ -122,8 +122,16 @@ public class GUI {
      * 
      * @param elevator
      */
-    public static void transientFault(int elevator) {
-        elevators[elevator].transientFault();
+    public static void openFault(int elevator) {
+        elevators[elevator].openFault();
+    }
+
+    /**
+     * 
+     * @param elevator
+     */
+    public static void closeFault(int elevator) {
+        elevators[elevator].closeFault();
     }
 
     /**
@@ -132,6 +140,15 @@ public class GUI {
      */
     public static void hardFault(int elevator) {
         elevators[elevator].hardFault();
+    }
+
+    /**
+     * 
+     * @param elevator
+     * @return
+     */
+    public static boolean hasPassengers(int elevator) {
+        return elevators[elevator].hasPassengers();
     }
 
     /**
@@ -151,7 +168,14 @@ public class GUI {
         add(4, 5);
         move(1, 4);
         open(1);
+        open(1);
+        open(1);
+        open(1);
         load(1, 5);
+        close(1);
+        close(1);
+        close(1);
+        close(1);
         close(1);
         move(1, 9);
         open(1);
@@ -165,19 +189,11 @@ public class GUI {
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {}
-            transientFault(1);
+            openFault(1);
             try {
                 Thread.sleep(7000);
             } catch (InterruptedException e) {}
-            transientFault(1);
+            closeFault(1);
         }).start();
-
-        // move(2, 20);
-        // new Thread(() -> {
-        //     try {
-        //         Thread.sleep(4800);
-        //     } catch (InterruptedException e) {}
-        //     hardFault(2);
-        // }).start();
     }
 }
