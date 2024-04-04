@@ -10,8 +10,11 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.imageio.ImageIO;
 
+/**
+ * 
+ */
 public class ResourceLoader {
-
+    /** */
     private static Map<ResourceType, BufferedImage> resources;
 
     static {
@@ -28,14 +31,29 @@ public class ResourceLoader {
         }
     }
 
+    /**
+     * 
+     * @param type
+     * @return
+     */
     public static BufferedImage getResource(ResourceType type) {
         return resources.get(type);
     }
 
+    /**
+     * 
+     * @param type
+     * @return
+     */
     public static int getWidth(ResourceType type) {
         return getResource(type).getWidth();
     }
 
+    /**
+     * 
+     * @param type
+     * @return
+     */
     public static int getHeight(ResourceType type) {
         return getResource(type).getHeight();
     }
