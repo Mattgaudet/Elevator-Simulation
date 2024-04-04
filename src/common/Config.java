@@ -13,5 +13,9 @@ public class Config {
     /** The number of floors traveled per second in an elevator. */
     public static final double FLOORS_PER_SECOND = 2;
 
+    /** */
+    public static final int TRANSIENT_FAULT_TIME = 2000;
+
+    /** */
     public static final String TEXTURES = "res/textures";
 }

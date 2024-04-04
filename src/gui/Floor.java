@@ -63,6 +63,10 @@ public class Floor {
         }
     }
 
+    /**
+     * 
+     * @param people
+     */
     public void setWaiters(int people) {
         container.remove(upLamp);
         container.remove(downLamp);
@@ -88,6 +92,10 @@ public class Floor {
         container.add(leftFloor);
     }
 
+    /**
+     * 
+     * @param people
+     */
     public void add(int people) {
         setWaiters(people);
     }

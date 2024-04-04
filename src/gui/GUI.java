@@ -119,6 +119,22 @@ public class GUI {
 
     /**
      * 
+     * @param elevator
+     */
+    public static void transientFault(int elevator) {
+        elevators[elevator].transientFault();
+    }
+
+    /**
+     * 
+     * @param elevator
+     */
+    public static void hardFault(int elevator) {
+        elevators[elevator].hardFault();
+    }
+
+    /**
+     * 
      */
     public static void update() {
         window.repaint();
@@ -143,5 +159,16 @@ public class GUI {
         move(1, 12);
         open(1);
         unload(1, 2);
+
+        new Thread(() -> {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {}
+            transientFault(1);
+            try {
+                Thread.sleep(7000);
+            } catch (InterruptedException e) {}
+            transientFault(1);
+        }).start();
     }
 }

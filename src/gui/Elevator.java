@@ -4,15 +4,18 @@ import common.MathHelper;
 import common.Config;
 import java.awt.Container;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.LinkedBlockingDeque;
 
 /**
  * 
  */
 public class Elevator {
     /** */
-    private BlockingQueue<ElevatorJob> jobs;
+    private Thread thread;
+    /** */
+    private LinkedBlockingDeque<ElevatorJob> jobs;
+    /** */
+    private ElevatorJob previous;
     /** */
     private Resource room;
     /** */
@@ -30,9 +33,17 @@ public class Elevator {
     /** */
     private int floor;
     /** */
+    private int heightFraction;
+    /** */
+    private int openCloseFraction;
+    /** */
     private int passengers;
     /** */
+    private int loadingPassengers;
+    /** */
     private Container container;
+    /** */
+    private boolean finished;
 
     /**
      * 
@@ -61,9 +72,9 @@ public class Elevator {
         container.add(rightRope);
         container.add(corridor);
 
-        jobs = new LinkedBlockingQueue<>();
+        jobs = new LinkedBlockingDeque<>();
 
-        Thread thread = new Thread(() -> {
+        thread = new Thread(() -> {
             while (true) {
                 ElevatorJob job = null;
                 while (job == null) {
@@ -71,12 +82,18 @@ public class Elevator {
                         job = jobs.take();
                     } catch (InterruptedException e) {}
                 }
+                System.out.println(job.getType().name());
                 switch (job.getType()) {
                     case ElevatorJobType.MOVE: handleMove(job.getData()); break;
-                    case ElevatorJobType.LOAD: handleLoad(job.getData()); break;
-                    case ElevatorJobType.UNLOAD: handleUnload(job.getData()); break;
+                    case ElevatorJobType.LOAD: handleLoadUnload(job.getData(), true); break;
+                    case ElevatorJobType.UNLOAD: handleLoadUnload(job.getData(), false); break;
                     case ElevatorJobType.OPEN: handleOpenClose(true); break;
                     case ElevatorJobType.CLOSE: handleOpenClose(false); break;
+                    case ElevatorJobType.TRANSIENT_FAULT: handleFault(false); break;
+                    case ElevatorJobType.HARD_FAULT: handleFault(true); break;
+                }
+                if (!job.isFault()) {
+                    previous = job;
                 }
             }
         });
@@ -126,61 +143,90 @@ public class Elevator {
 
     /**
      * 
+     */
+    public void transientFault() {
+        jobs.addFirst(new ElevatorJob(ElevatorJobType.TRANSIENT_FAULT, 0));
+        thread.interrupt();
+    }
+
+    /**
+     * 
+     */
+    public void hardFault() {
+        jobs.addFirst(new ElevatorJob(ElevatorJobType.HARD_FAULT, 0));
+        thread.interrupt();
+    }
+
+    /**
+     * 
      * @param floor
      */
     private void handleMove(int floor) {
+        finished = false;
         int floors = Math.abs(this.floor - floor);
         if (floors == 0) {
             return;
         }
         int direction = this.floor < floor ? 1 : -1;
         int time = (int) (floors * 1.0f / Config.FLOORS_PER_SECOND * 1000.0f);
-        int resolution = 10;
+        int resolution = 100;
         GUI.notifyLamp(floor, direction, true);
-        for (int i = 0; i <= time; i += resolution) {
+        for (; heightFraction <= time; heightFraction += resolution) {
+            if (Thread.interrupted()) {
+                return;
+            }
             try {
                 TimeUnit.MILLISECONDS.sleep(resolution);
-            } catch (InterruptedException e) {}
-            float alpha = (float) i / (float) time * floors * direction;
+            } catch (InterruptedException e) {
+                return;
+            }
+            float alpha = (float) heightFraction / (float) time * floors * direction;
             setHeight(this.floor, alpha);
         }
         GUI.notifyLamp(floor, direction, false);
+        heightFraction = 0;
         setHeight(floor, 0);
+        finished = true;
     }
 
     /**
      * 
      * @param passengers
+     * @param load
      */
-    private void handleLoad(int passengers) {
-        for (int i = 0; i < passengers; i++) {
+    private void handleLoadUnload(int passengers, boolean load) {
+        finished = false;
+        for (; loadingPassengers < passengers; loadingPassengers++) {
+            if (Thread.interrupted()) {
+                return;
+            }
             try {
-                TimeUnit.MILLISECONDS.sleep(Config.LOAD_TIME);
-            } catch (InterruptedException e) {}
-            GUI.take(floor, 1);
-            setPassengers(1);
-        }
-    }
-
-    /**
-     * 
-     * @param passengers
-     */
-    private void handleUnload(int passengers) {
-        for (int i = 0; i < passengers; i++) {
+                TimeUnit.MILLISECONDS.sleep(Config.LOAD_TIME / 2);
+            } catch (InterruptedException e) {
+                return;
+            }
+            if (load) {
+                GUI.take(floor, 1);
+                addPassengers(1);
+            } else {
+                GUI.deliver(floor, 1);
+                addPassengers(-1);
+            }
             try {
-                TimeUnit.MILLISECONDS.sleep(Config.LOAD_TIME);
-            } catch (InterruptedException e) {}
-            GUI.deliver(floor, 1);
-            setPassengers(-1);
+                TimeUnit.MILLISECONDS.sleep(Config.LOAD_TIME / 2);
+            } catch (InterruptedException e) {
+                return;
+            }
         }
+        loadingPassengers = 0;
+        finished = true;
     }
 
     /**
      * 
      * @param passengers
      */
-    private void setPassengers(int passengers) {
+    private void addPassengers(int passengers) {
         int i;
         for (i = 0; i < this.passengers; i++) {
             container.remove(people[i]);
@@ -205,22 +251,49 @@ public class Elevator {
      * @param open
      */
     private void handleOpenClose(boolean open) {
+        finished = false;
         int resolution = 100;
-        for (int i = 0; i <= Config.LOAD_TIME; i += resolution) {
+        for (; openCloseFraction <= Config.LOAD_TIME; openCloseFraction += resolution) {
+            if (Thread.interrupted()) {
+                return;
+            }
             try {
                 TimeUnit.MILLISECONDS.sleep(resolution);
-            } catch (InterruptedException e) {}
+            } catch (InterruptedException e) {
+                return;
+            }
             float alpha;
             if (open) {
-                alpha = (float) i / (float) Config.LOAD_TIME;
+                alpha = (float) openCloseFraction / (float) Config.LOAD_TIME;
             } else {
-                alpha = 1 - (float) i / (float) Config.LOAD_TIME;
+                alpha = 1 - (float) openCloseFraction / (float) Config.LOAD_TIME;
             }
             int shift = (int) MathHelper.lerp(0, ResourceLoader.getWidth(ResourceType.DOOR), alpha);
             leftDoor.setOffsetX(-shift);
             leftDoor.setLeftClip(shift);
             rightDoor.setOffsetX(shift);
             rightDoor.setRightClip(shift);
+        }
+        openCloseFraction = 0;
+        finished = true;
+    }
+
+    /**
+     * 
+     * @param hard
+     */
+    public void handleFault(boolean hard) {
+        if (hard) {
+            jobs.clear();
+        } else {
+            try {
+                Thread.sleep(Config.TRANSIENT_FAULT_TIME);
+            } catch (InterruptedException e) {
+                return;
+            }
+            if (previous != null && !finished) {
+                jobs.addFirst(previous);
+            }
         }
     }
 

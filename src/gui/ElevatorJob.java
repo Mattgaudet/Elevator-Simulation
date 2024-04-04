@@ -34,4 +34,12 @@ public class ElevatorJob {
     public int getData() {
         return data;
     }
+
+    /**
+     * 
+     * @return
+     */
+    public boolean isFault() {
+        return type.isFault();
+    }
 }

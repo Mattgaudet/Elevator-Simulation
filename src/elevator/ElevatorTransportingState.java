@@ -1,5 +1,6 @@
 package elevator;
 
+import common.Config;
 import common.Log;
 import floor.CSVParser;
 import floor.ElevatorRequest;
@@ -209,6 +210,7 @@ public class ElevatorTransportingState implements ElevatorState{
      * Opens the doors, waits for passengers to load/unload, then closes doors
      * @param loadingType use "loading" or "unloading"
      * @param nextFloor the floor that the elevator is stopped at
+     * @throws InterruptedException 
      */
     public void loadElevator(String loadingType, int nextFloor, ElevatorRequest er) {
         Log.print("Elevator " + elevator.getElevatorId() + " is stopping for " + loadingType + " at floor " + nextFloor);
@@ -223,7 +225,9 @@ public class ElevatorTransportingState implements ElevatorState{
         while(elevator.getElevatorQueue().peek().getFault().equals("DOOR_NOT_CLOSE")) {
             Log.print(">> Elevator " + elevator.getElevatorId() + " door closing failed due to fault, reopening doors");
             elevator.setDoorStatus(Elevator.DoorStatus.OPEN);
-            elevator.timeToLoadPassengers(1);
+            try {
+                Thread.sleep(Config.TRANSIENT_FAULT_TIME);
+            } catch (InterruptedException e) {}
             er.removeFault();
         }
 
