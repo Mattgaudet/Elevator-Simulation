@@ -230,18 +230,18 @@ public class Elevator {
             } catch (InterruptedException e) {
                 return;
             }
-            if (open && openFault) {
-                handleTransientFault();
-                openFault = false;
-            } else if (!open && closeFault) {
-                handleTransientFault();
-                closeFault = false;
+            float alpha = (float) i / (float) Config.LOAD_TIME;
+            if (alpha > 0.5) {
+                if (open && openFault) {
+                    handleTransientFault();
+                    openFault = false;
+                } else if (!open && closeFault) {
+                    handleTransientFault();
+                    closeFault = false;
+                }
             }
-            float alpha;
-            if (open) {
-                alpha = (float) i / (float) Config.LOAD_TIME;
-            } else {
-                alpha = 1 - (float) i / (float) Config.LOAD_TIME;
+            if (!open) {
+                alpha = 1 - alpha;
             }
             int shift = (int) MathHelper.lerp(0, ResourceLoader.getWidth(ResourceType.DOOR), alpha);
             leftDoor.setOffsetX(-shift);
@@ -273,11 +273,7 @@ public class Elevator {
                     TimeUnit.MILLISECONDS.sleep(resolution);
                 } catch (InterruptedException e) {}
                 float alpha = (float) i / (float) Config.TRANSIENT_FAULT_TIME;
-                float r = MathHelper.lerp(1.0f, 0.2f, alpha);
-                float g = MathHelper.lerp(0.0f, 1.0f, alpha);
-                float b = MathHelper.lerp(0.0f, 0.0f, alpha);
-                float a = MathHelper.lerp(1.0f, 0.0f, alpha);
-                setFaultTint(new Color(r, g, b, a));
+                setFaultTint(new Color(1.0f, 0.0f, 0.0f, MathHelper.lerp(0.5f, 0.0f, alpha)));
             }
         } finally {
             setFaultTint(new Color(0.0f, 0.0f, 0.0f, 0.0f));
