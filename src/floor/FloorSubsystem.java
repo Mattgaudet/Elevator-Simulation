@@ -44,7 +44,7 @@ public class FloorSubsystem implements Runnable {
      */
     public FloorSubsystem(String filePath) {
         elevatorRequests = new ArrayList<>();
-        floorArray = new Floor[10]; // 10 floors for now
+        floorArray = new Floor[22]; // 22 floors
         for (int i = 0; i < floorArray.length; i++) {
             floorArray[i] = new Floor(i+1); // Initialize each Floor object in the array
         }
@@ -180,9 +180,11 @@ public class FloorSubsystem implements Runnable {
     }
 
     public static void main(String[] args) {
-        String filePath = "res/input.csv"; // Default file path
+        String filePath = "res/input_faults.csv"; // Default file path
         int schedulerPort = 5000; // Example port number for Scheduler
         String schedulerHost = "localhost"; // Scheduler host, change as needed
+
+        System.out.println("FloorSubsystem listening on port 12345");
 
         // Initialize the FloorSubsystem with the file path
         FloorSubsystem floorSubsystem = new FloorSubsystem(filePath, LocalTime.of(14, 15));
@@ -208,9 +210,12 @@ public class FloorSubsystem implements Runnable {
                     System.out.println("Data sent: " + sentDataString);
 
                 } else {
-
+                    
                     // Receive the packet (For LampStatus changes)
                     receiveSocket.receive(packet);
+
+                    // if the packet has pattern "x;x;x;x;x" then it is a lamp status change trigger (example:0;TRANSPORTING;0;4;UP)
+                    if (new String(packet.getData(), 0, packet.getLength()).matches("\\d+;\\w+;\\d+;\\d+;\\w+")) {
 
                     // Process the packet (For LampStatus changes)
                     String received = new String(packet.getData(), 0, packet.getLength());
@@ -222,6 +227,16 @@ public class FloorSubsystem implements Runnable {
                     
                     ButtonDirection direction = ButtonDirection.valueOf(received.split(";")[4]);
                     floorSubsystem.changeLampStatus(direction);
+
+                    }
+
+                    // if the packet contains 'fault'
+                    if (new String(packet.getData(), 0, packet.getLength()).contains("fault")) {
+                        // Process the packet (For LampStatus changes)
+                        String received = new String(packet.getData(), 0, packet.getLength());
+                        System.out.println();
+                        System.out.println("Received: " + received); // 
+                    }
 
                     // If no request is available, wait a bit before checking again
                     try {
@@ -246,3 +261,5 @@ public class FloorSubsystem implements Runnable {
     }
 
 }
+
+

@@ -89,13 +89,13 @@ public class Elevator {
                     } catch (InterruptedException e) {}
                 }
                 switch (job.getType()) {
-                    case ElevatorJobType.MOVE: handleMove(job.getData()); break;
-                    case ElevatorJobType.LOAD: handleLoadUnload(job.getData(), true); break;
-                    case ElevatorJobType.UNLOAD: handleLoadUnload(job.getData(), false); break;
-                    case ElevatorJobType.OPEN: handleOpenClose(true); break;
-                    case ElevatorJobType.CLOSE: handleOpenClose(false); break;
-                    case ElevatorJobType.TRANSIENT_FAULT: handleFault(false); break;
-                    case ElevatorJobType.HARD_FAULT: handleFault(true); break;
+                    case MOVE: handleMove(job.getData()); break;
+                    case LOAD: handleLoadUnload(job.getData(), true); break;
+                    case UNLOAD: handleLoadUnload(job.getData(), false); break;
+                    case OPEN: handleOpenClose(true); break;
+                    case CLOSE: handleOpenClose(false); break;
+                    case TRANSIENT_FAULT: handleFault(false); break;
+                    case HARD_FAULT: handleFault(true); break;
                 }
                 if (!job.isFault()) {
                     previous = job;

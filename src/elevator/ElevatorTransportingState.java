@@ -132,7 +132,6 @@ public class ElevatorTransportingState implements ElevatorState{
             e.printStackTrace();
         }
 
-
         startTime = System.currentTimeMillis();
         // Move the elevator from the current floor to the destination floor
         for (int floorsMoved = 0; floorsMoved < floorsToMove; floorsMoved++) {
@@ -216,6 +215,26 @@ public class ElevatorTransportingState implements ElevatorState{
         Log.print("Elevator " + elevator.getElevatorId() + " is stopping for " + loadingType + " at floor " + nextFloor);
         while(elevator.getElevatorQueue().peek().getFault().equals("DOOR_NOT_OPEN")) {
             Log.print(">> Elevator " + elevator.getElevatorId() + " door opening failed due to fault, retrying doors");
+
+            // Send the FAULT to the FloorSubsystem
+            String InfoString = elevator.getElevatorQueue().peek().getFault() + " fault encountered by Elevator " + elevator.getElevatorId() + " at floor " + nextFloor;
+            byte[] directionBytes = InfoString.getBytes(StandardCharsets.UTF_8);
+            InetAddress address = null;
+            try {
+                address = InetAddress.getByName("localhost");
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            } // the FloorSubsystem listen address
+            int port = 12345; // the FloorSubsystem listen port
+            DatagramPacket packet = new DatagramPacket(directionBytes, directionBytes.length, address, port);
+            try (DatagramSocket socket = new DatagramSocket()) {
+                socket.send(packet);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+
+
             elevator.timeToLoadPassengers(1);
             er.removeFault();
         }
@@ -224,6 +243,24 @@ public class ElevatorTransportingState implements ElevatorState{
         //if there is a DOOR_NOT_CLOSE fault, handle as transient fault: reopen door and wait, then try to close again
         while(elevator.getElevatorQueue().peek().getFault().equals("DOOR_NOT_CLOSE")) {
             Log.print(">> Elevator " + elevator.getElevatorId() + " door closing failed due to fault, reopening doors");
+           
+            // Send the FAULT to the FloorSubsystem
+            String InfoString = elevator.getElevatorQueue().peek().getFault() + " fault encountered by Elevator " + elevator.getElevatorId() + " at floor " + nextFloor;
+            byte[] directionBytes = InfoString.getBytes(StandardCharsets.UTF_8);
+            InetAddress address = null;
+            try {
+                address = InetAddress.getByName("localhost");
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            } // the FloorSubsystem listen address
+            int port = 12345; // the FloorSubsystem listen port
+            DatagramPacket packet = new DatagramPacket(directionBytes, directionBytes.length, address, port);
+            try (DatagramSocket socket = new DatagramSocket()) {
+                socket.send(packet);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
             elevator.setDoorStatus(Elevator.DoorStatus.OPEN);
             try {
                 Thread.sleep(Config.TRANSIENT_FAULT_TIME);

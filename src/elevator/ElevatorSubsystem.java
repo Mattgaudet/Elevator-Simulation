@@ -6,6 +6,7 @@ import floor.ElevatorRequest;
 import java.io.IOException;
 import java.net.*;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -113,6 +114,27 @@ public class ElevatorSubsystem implements Runnable {
                     if (received.contains("DEATH"))  {
                         int elevatorID = ByteBuffer.wrap(receiveData, receivePacket.getLength() - 4, 4).getInt();
                         System.out.println(">> Elevator " + elevatorID + " has encountered some unexpected fault!! :( ");
+
+
+                            // Send the FAULT to the FloorSubsystem
+                            String InfoString = "DEATH" + " fault encountered by Elevator " + elevatorID + " at floor " + elevatorCars[elevatorID].getCurrentFloor();
+                            byte[] directionBytes = InfoString.getBytes(StandardCharsets.UTF_8);
+                            InetAddress address = null;
+                            try {
+                                address = InetAddress.getByName("localhost");
+                            } catch (UnknownHostException e) {
+                                e.printStackTrace();
+                            } // the FloorSubsystem listen address
+                            int port = 12345; // the FloorSubsystem listen port
+                            DatagramPacket packet = new DatagramPacket(directionBytes, directionBytes.length, address, port);
+                            try (DatagramSocket socket = new DatagramSocket()) {
+                                socket.send(packet);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+
+
+
                         System.out.println("Setting elevator " + elevatorID + " to FAULT state");
                         elevatorCars[elevatorID].setState(Elevator.State.FAULT);
                     }
