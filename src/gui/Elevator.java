@@ -30,19 +30,11 @@ public class Elevator {
     /** */
     private Resource corridor;
     /** */
-    private Resource[] people = new Resource[GUI.PEOPLE];
+    private Number number;
     /** */
     private int floor;
     /** */
-    private int heightFraction;
-    /** */
-    private int openCloseFraction;
-    /** */
-    private int passengers;
-    /** */
-    private int loadingPassengers;
-    /** */
-    private Container container;
+    private int i;
     /** */
     private boolean finished;
     /** */
@@ -55,28 +47,22 @@ public class Elevator {
      */
     public Elevator(Container container, int index) {
         int x = Floor.getWidth() + index * getWidth();
-
         room = new Resource(ResourceType.ROOM, x, 0);
         leftDoor = new Resource(ResourceType.DOOR, x, 0);
         rightDoor = new Resource(ResourceType.DOOR, x + ResourceLoader.getWidth(ResourceType.DOOR), 0);
         leftRope = new Resource(ResourceType.ROPE, x + 1, 0);
         rightRope = new Resource(ResourceType.ROPE, x + ResourceLoader.getWidth(ResourceType.ROOM) - 3, 0);
         corridor = new Resource(ResourceType.CORRIDOR, x, 0);
-
-        for (int i = 0; i < GUI.PEOPLE; i++) {
-            int personWidth = ResourceLoader.getWidth(ResourceType.PERSON);
-            people[i] = new Resource(ResourceType.PERSON, x + i * (personWidth + 1) + 1, 0);
-        }
-
+        number = new Number(x + 4, ResourceLoader.getHeight(ResourceType.ROOM) - 8, Color.WHITE);
+        number.setSize(6);
         container.add(leftDoor);
         container.add(rightDoor);
+        container.add(number);
         container.add(room);
         container.add(leftRope);
         container.add(rightRope);
         container.add(corridor);
-
         jobs = new LinkedBlockingDeque<>();
-
         thread = new Thread(() -> {
             while (true) {
                 if (hardFault) {
@@ -104,8 +90,6 @@ public class Elevator {
         });
         thread.setDaemon(true);
         thread.start();
-
-        this.container = container;
     }
 
     /**
@@ -177,7 +161,7 @@ public class Elevator {
         int resolution = 100;
         try {
             GUI.notifyLamp(floor, direction, true);
-            for (; heightFraction <= time; heightFraction += resolution) {
+            for (; i <= time; i += resolution) {
                 if (Thread.interrupted()) {
                     return;
                 }
@@ -186,13 +170,13 @@ public class Elevator {
                 } catch (InterruptedException e) {
                     return;
                 }
-                float alpha = (float) heightFraction / (float) time * floors * direction;
+                float alpha = (float) i / (float) time * floors * direction;
                 setHeight(this.floor, alpha);
             }
         } finally {
             GUI.notifyLamp(floor, direction, false);
         }
-        heightFraction = 0;
+        i = 0;
         setHeight(floor, 0);
         finished = true;
     }
@@ -204,54 +188,25 @@ public class Elevator {
      */
     private void handleLoadUnload(int passengers, boolean load) {
         finished = false;
-        for (; loadingPassengers < passengers; loadingPassengers++) {
+        for (; i < passengers; i++) {
             if (Thread.interrupted()) {
                 return;
             }
             try {
-                TimeUnit.MILLISECONDS.sleep(Config.LOAD_TIME / 2);
+                TimeUnit.MILLISECONDS.sleep(Config.LOAD_TIME);
             } catch (InterruptedException e) {
                 return;
             }
             if (load) {
+                number.addValue(1);
                 GUI.take(floor, 1);
-                addPassengers(1);
             } else {
+                number.subValue(1);
                 GUI.deliver(floor, 1);
-                addPassengers(-1);
-            }
-            try {
-                TimeUnit.MILLISECONDS.sleep(Config.LOAD_TIME / 2);
-            } catch (InterruptedException e) {
-                return;
             }
         }
-        loadingPassengers = 0;
+        i = 0;
         finished = true;
-    }
-
-    /**
-     * 
-     * @param passengers
-     */
-    private void addPassengers(int passengers) {
-        int i;
-        for (i = 0; i < this.passengers; i++) {
-            container.remove(people[i]);
-        }
-        container.remove(room);
-        container.remove(leftRope);
-        container.remove(rightRope);
-        container.remove(corridor);
-        this.passengers += passengers;
-        for (i = 0; i < this.passengers; i++) {
-            container.add(people[i]);
-        }
-        container.add(room);
-        container.add(leftRope);
-        container.add(rightRope);
-        container.add(corridor);
-        GUI.update();
     }
 
     /**
@@ -261,7 +216,7 @@ public class Elevator {
     private void handleOpenClose(boolean open) {
         finished = false;
         int resolution = 10;
-        for (; openCloseFraction <= Config.LOAD_TIME; openCloseFraction += resolution) {
+        for (; i <= Config.LOAD_TIME; i += resolution) {
             if (Thread.interrupted()) {
                 return;
             }
@@ -272,9 +227,9 @@ public class Elevator {
             }
             float alpha;
             if (open) {
-                alpha = (float) openCloseFraction / (float) Config.LOAD_TIME;
+                alpha = (float) i / (float) Config.LOAD_TIME;
             } else {
-                alpha = 1 - (float) openCloseFraction / (float) Config.LOAD_TIME;
+                alpha = 1 - (float) i / (float) Config.LOAD_TIME;
             }
             int shift = (int) MathHelper.lerp(0, ResourceLoader.getWidth(ResourceType.DOOR), alpha);
             leftDoor.setOffsetX(-shift);
@@ -282,7 +237,7 @@ public class Elevator {
             rightDoor.setOffsetX(shift);
             rightDoor.setRightClip(shift);
         }
-        openCloseFraction = 0;
+        i = 0;
         finished = true;
     }
 
@@ -292,36 +247,37 @@ public class Elevator {
      */
     private void handleFault(boolean hard) {
         if (hard) {
-            setFaultTint(false, true);
+            setFaultTint(new Color(1.0f, 0.0f, 0.0f, 0.5f));
             hardFault = true;
             jobs.clear();
         } else {
-            setFaultTint(true, true);
             try {
-                Thread.sleep(Config.TRANSIENT_FAULT_TIME);
-            } catch (InterruptedException e) {
-                return;
+                int resolution = 100;
+                for (int i = 0; i <= Config.TRANSIENT_FAULT_TIME; i += resolution) {
+                    try {
+                        TimeUnit.MILLISECONDS.sleep(resolution);
+                    } catch (InterruptedException e) {}
+                    float alpha = (float) i / (float) Config.TRANSIENT_FAULT_TIME;
+                    float r = MathHelper.lerp(1.0f, 0.0f, alpha);
+                    float g = MathHelper.lerp(0.0f, 1.0f, alpha);
+                    float b = MathHelper.lerp(0.0f, 0.0f, alpha);
+                    float a = MathHelper.lerp(1.0f, 0.0f, alpha);
+                    setFaultTint(new Color(r, g, b, a));
+                }
+            } finally {
+                if (previous != null && !finished) {
+                    jobs.addFirst(previous);
+                }
+                setFaultTint(new Color(0.0f, 0.0f, 0.0f, 0.0f));
             }
-            if (previous != null && !finished) {
-                jobs.addFirst(previous);
-            }
-            setFaultTint(false, false);
         }
     }
 
     /**
      * 
-     * @param on
+     * @param color
      */
-    private void setFaultTint(boolean trans, boolean on) {
-        Color color;
-        if (on && trans) {
-            color = new Color(0.0f, 0.0f, 1.0f, 0.3f);
-        } else if (on) {
-            color = new Color(1.0f, 0.0f, 0.0f, 0.3f);
-        } else {
-            color = new Color(0.0f, 0.0f, 0.0f, 0.0f);
-        }
+    private void setFaultTint(Color color) {
         leftDoor.setTint(color);
         rightDoor.setTint(color);
         room.setTint(color);
@@ -338,9 +294,7 @@ public class Elevator {
         room.setOffsetY(height);
         leftDoor.setOffsetY(height);
         rightDoor.setOffsetY(height);
-        for (int i = 0; i < GUI.PEOPLE; i++) {
-            people[i].setOffsetY(height);
-        }
+        number.setOffsetY(height);
     }
 
     /**

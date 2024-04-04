@@ -1,5 +1,7 @@
 package gui;
 
+import common.Log;
+
 /**
  * 
  */
@@ -25,6 +27,7 @@ public class GUI {
      * 
      */
     public static void init() {
+        Log.disable();
         window = new Window(WIDTH, HEIGHT);
         int i;
         for (i = 0; i < ELEVATORS; i++) {
@@ -169,12 +172,12 @@ public class GUI {
             transientFault(1);
         }).start();
 
-        move(2, 20);
-        new Thread(() -> {
-            try {
-                Thread.sleep(4800);
-            } catch (InterruptedException e) {}
-            hardFault(2);
-        }).start();
+        // move(2, 20);
+        // new Thread(() -> {
+        //     try {
+        //         Thread.sleep(4800);
+        //     } catch (InterruptedException e) {}
+        //     hardFault(2);
+        // }).start();
     }
 }

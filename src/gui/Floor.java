@@ -1,7 +1,7 @@
 package gui;
 
+import java.awt.Color;
 import java.awt.Container;
-import java.util.ArrayList;
 
 /**
  * 
@@ -16,11 +16,11 @@ public class Floor {
     /** */
     private Lamp downLamp;
     /** */
-    private ArrayList<Resource> waiting;
+    private Number floorNumber;
     /** */
-    private ArrayList<Resource> delivered;
+    private Number waitingNumber;
     /** */
-    private Container container;
+    private Number deliveredNumber;
     /** */
     private int x1;
     /** */
@@ -41,13 +41,21 @@ public class Floor {
         rightFloor = new Resource(ResourceType.FLOOR, x2, y);
         upLamp = new Lamp(x1 - 6, y + getHeight() / 2 + 2);
         downLamp = new Lamp(x1 - 6, y + getHeight() / 2 - 2);
+        floorNumber = new Number(4, y + getHeight() - 8, Color.WHITE);
+        waitingNumber = new Number(x1 / 2 - 2, y + getHeight() - 8, Color.WHITE);
+        deliveredNumber = new Number(x2 + x1 / 2 - 2, y + getHeight() - 8, Color.WHITE);
+        floorNumber.setSize(6);
+        waitingNumber.setSize(6);
+        deliveredNumber.setSize(6);
+        floorNumber.setValue(index);
+        container.add(floorNumber);
+        container.add(waitingNumber);
+        container.add(deliveredNumber);
         container.add(upLamp);
         container.add(downLamp);
         container.add(leftFloor);
         container.add(rightFloor);
-        waiting = new ArrayList<>();
-        delivered = new ArrayList<>();
-        this.container = container;
+        container.add(rightFloor);
     }
 
     /**
@@ -67,37 +75,8 @@ public class Floor {
      * 
      * @param people
      */
-    private void setWaiters(int people) {
-        container.remove(upLamp);
-        container.remove(downLamp);
-        container.remove(leftFloor);
-        int i;
-        for (i = 0; i < waiting.size(); i++) {
-            if (waiting.get(i) == null) {
-                continue;
-            }
-            container.remove(waiting.get(i));
-        }
-        int size = waiting.size() + people;
-        waiting.clear();
-        int personWidth = ResourceLoader.getWidth(ResourceType.PERSON);
-        for (i = 0; i < size; i++) {
-            int x = x1 - i * (personWidth + 1) - 16;
-            Resource person = new Resource(ResourceType.PERSON, x, y + 2);
-            waiting.add(person);
-            container.add(person);
-        }
-        container.add(upLamp);
-        container.add(downLamp);
-        container.add(leftFloor);
-    }
-
-    /**
-     * 
-     * @param people
-     */
     public synchronized void add(int people) {
-        setWaiters(people);
+        waitingNumber.addValue(people);
     }
 
     /**
@@ -105,7 +84,7 @@ public class Floor {
      * @param people
      */
     public synchronized void take(int people) {
-        setWaiters(-people);
+        waitingNumber.subValue(people);
     }
 
     /**
@@ -113,24 +92,7 @@ public class Floor {
      * @param people
      */
     public synchronized void deliver(int people) {
-        container.remove(rightFloor);
-        int i;
-        for (i = 0; i < delivered.size(); i++) {
-            if (delivered.get(i) == null) {
-                continue;
-            }
-            container.remove(delivered.get(i));
-        }
-        int size = delivered.size() + people;
-        delivered.clear();
-        int personWidth = ResourceLoader.getWidth(ResourceType.PERSON);
-        for (i = 0; i < size; i++) {
-            int x = x2 + i * (personWidth + 1) + 16;
-            Resource person = new Resource(ResourceType.PERSON, x, y + 2);
-            delivered.add(person);
-            container.add(person);
-        }
-        container.add(rightFloor);
+        deliveredNumber.addValue(people);
     }
 
     /**

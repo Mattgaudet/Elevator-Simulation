@@ -10,17 +10,9 @@ import javax.swing.JComponent;
 /**
  * 
  */
-public class Resource extends JComponent {
+public class Resource extends ResourceHelper {
     /** */
     private BufferedImage resource;
-    /** */
-    private Rectangle coords = new Rectangle();
-    /** */
-    private Dimension offset = new Dimension();
-    /** */
-    private Dimension clip = new Dimension();
-    /** */
-    private Color tint;
 
     /**
      * 
@@ -29,58 +21,10 @@ public class Resource extends JComponent {
      * @param y
      */
     public Resource(ResourceType type, int x, int y) {
+        super(x, y);
         resource = ResourceLoader.getResource(type);
-        coords.x = x;
-        coords.y = y;
         coords.width = ResourceLoader.getWidth(type);
         coords.height = ResourceLoader.getHeight(type);
-        setBounds(0, 0, GUI.WIDTH, GUI.HEIGHT);
-        setTint(new Color(0.0f, 0.0f, 0.0f, 0.0f));
-    }
-
-    /**
-     * 
-     * @param x
-     */
-    public void setOffsetX(int x) {
-        offset.width = x;
-        GUI.update();
-    }
-
-    /**
-     * 
-     * @param y
-     */
-    public void setOffsetY(int y) {
-        offset.height = y;
-        GUI.update();
-    }
-
-    /**
-     * 
-     * @param x
-     */
-    public void setLeftClip(int x) {
-        clip.width = x;
-        GUI.update();
-    }
-
-    /**
-     * 
-     * @param x
-     */
-    public void setRightClip(int x) {
-        clip.height = x;
-        GUI.update();
-    }
-
-    /**
-     * 
-     * @param tint
-     */
-    public void setTint(Color tint) {
-        this.tint = tint;
-        GUI.update();
     }
 
     /**
@@ -112,13 +56,8 @@ public class Resource extends JComponent {
         if (resource == null) {
             return;
         }
+        Rectangle rectangle = getRectangle();
+        graphics.drawImage(resource, rectangle.x, rectangle.y, rectangle.width, rectangle.height, this);
         super.paintComponent(graphics);
-        int x = coords.x + offset.width + clip.width;
-        int y = GUI.HEIGHT - coords.y - offset.height - coords.height;
-        int width = coords.width - clip.width - clip.height;
-        int height = coords.height;
-        graphics.drawImage(resource, x, y, width, height, this);
-        graphics.setColor(tint);
-        graphics.fillRect(x, y, width, height);
     }
 }
