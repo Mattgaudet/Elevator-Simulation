@@ -184,7 +184,9 @@ public class FloorSubsystem implements Runnable {
     }
 
     public static void main(String[] args) {
-        String filePath = "res/input_faults.csv"; // Default file path
+        //String filePath = "res/input_faults.csv"; // Default file path
+        //String filePath = "res/input_faults_bigger.csv"; // used for testing with more inputs
+        String filePath = "res/input_faults_bigger2.csv"; // used for testing with more inputs, spaced out more
         int schedulerPort = 5000; // Example port number for Scheduler
         String schedulerHost = "localhost"; // Scheduler host, change as needed
 
@@ -201,6 +203,8 @@ public class FloorSubsystem implements Runnable {
             DatagramSocket receiveSocket = new DatagramSocket(12345);
             byte[] buffer = new byte[256];
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+
+            // Create a thread for listening :)
 
             while (true) { // Loop indefinitely
                 ElevatorRequest er = floorSubsystem.waitForRequestTriggered();
