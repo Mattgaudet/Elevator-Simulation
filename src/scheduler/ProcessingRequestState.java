@@ -6,6 +6,7 @@ import elevator.Elevator;
 import floor.ElevatorRequest;
 import floor.ElevatorRequest.ButtonDirection;
 
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -62,9 +63,11 @@ public class ProcessingRequestState implements SchedulerState {
 
         // Initialize variables to track the chosen elevator and minimum travel time
         int selectedElevatorId = -1;
-        int minTravelTimeSameDirection = Integer.MAX_VALUE;
-        int minTravelTimeOppositeDirection = Integer.MAX_VALUE;
-
+        Comparator<ArrayList<Integer>> listComparator = Comparator.comparing(list -> list.get(0));
+        ArrayList<Integer> tier1List = new ArrayList<>();
+        ArrayList<Integer> tier2List = new ArrayList<>();
+        PriorityQueue<ArrayList<Integer>> tier1Queue = new PriorityQueue<>(listComparator);
+        PriorityQueue<ArrayList<Integer>> tier2Queue = new PriorityQueue<>(listComparator);
         // Iterate through each elevator's information
         while (matcher.find()) {
             try {
@@ -76,25 +79,49 @@ public class ProcessingRequestState implements SchedulerState {
 
                 // Calculate the travel time for the current elevator
                 int travelTime = calculateTravelTime(currentFloor, request.getFloorNumber(), speedPerFloor);
-
-                // Check if the elevator is idle or moving in the requested direction
-                if (currentState == Elevator.State.IDLE || (currDirection != ButtonDirection.NONE && currDirection == request.getButtonDirection())) {
-                    // Update the selected elevator if it minimizes travel time
-                    if (currDirection == request.getButtonDirection() && travelTime < minTravelTimeSameDirection) {
-                        minTravelTimeSameDirection = travelTime;
-                        selectedElevatorId = elevatorId;
-                    } else if (currDirection != request.getButtonDirection() && travelTime < minTravelTimeOppositeDirection) {
-                        minTravelTimeOppositeDirection = travelTime;
-                        selectedElevatorId = elevatorId;
-                    }
+                //check if elevator is idle or transporting and on the way to the elevator's destination
+                if(currentState == Elevator.State.IDLE || (onTheWay(request, currentFloor, currDirection))
+                        && currentState == Elevator.State.TRANSPORTING)  {
+                    tier1List.add(travelTime);
+                    tier1List.add(elevatorId);
+                    tier1Queue.offer(tier1List);
+                }
+                if(currentState != Elevator.State.FAULT) {
+                    tier2List.add(travelTime);
+                    tier2List.add(elevatorId);
+                    tier2Queue.offer(tier2List);
                 }
             } catch (IllegalArgumentException e) {
                 System.err.println("Error parsing elevator information: " + e.getMessage());
                 e.printStackTrace();
             }
         }
-        System.out.println("Selected elevator ID is : " + selectedElevatorId);
+        if(!tier1Queue.isEmpty()) { //select the closest elevator that is idle or transporting in same direction
+            selectedElevatorId = tier1Queue.poll().get(1);
+            System.out.println("Selected elevator ID is : " + selectedElevatorId);
+        } else if (!tier2Queue.isEmpty()){ //otherwise select the closest elevator
+            selectedElevatorId = tier2Queue.poll().get(1);
+            System.out.println("Selected elevator ID is : " + selectedElevatorId);
+        } else {
+            Log.print("Failed to find a working elevator");
+        }
         return selectedElevatorId;
+    }
+
+    /**
+     * Check if request in the current path of the elevator
+     * @param er the request to schedule
+     * @param elevatorFloor the current floor of the elevator
+     * @param elevatorDirection the current direction of the elevator
+     * @return true if in the path, false otherwise
+     */
+    private boolean onTheWay(ElevatorRequest er, int elevatorFloor, ButtonDirection elevatorDirection) {
+        int reqFloor = er.getFloorNumber();
+        if((reqFloor > (elevatorFloor + 1) && elevatorDirection == ButtonDirection.UP && er.getButtonDirection() == ButtonDirection.UP) ||
+                (reqFloor < (elevatorFloor - 1) && elevatorDirection == ButtonDirection.DOWN && er.getButtonDirection() == ButtonDirection.DOWN)) {
+            return true;
+        }
+        return false;
     }
 
     /**

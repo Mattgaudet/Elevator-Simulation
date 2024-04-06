@@ -149,6 +149,7 @@ public class Elevator extends Thread{
     public ButtonDirection getCurrDirection() {
         return currDirection;
     }
+    public void setDirection(ButtonDirection b) {this.currDirection = b;}
 
     /**
      * Function to add a request to this Elevator's request queue. Synchronizing on queueLock rather than elevatorQueue

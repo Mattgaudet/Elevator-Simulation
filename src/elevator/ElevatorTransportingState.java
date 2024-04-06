@@ -85,6 +85,7 @@ public class ElevatorTransportingState implements ElevatorState{
             Log.print("Elevator " + elevator.getElevatorId() + " is waiting for next request at floor " + elevator.getCurrentFloor() +
                     " with door " + elevator.getDoorStatus().name().toLowerCase() + " at " + LocalTime.now());
             Log.print("\n***********************************************\n");
+            elevator.setDirection(ElevatorRequest.ButtonDirection.NONE);
             elevator.setState(Elevator.State.IDLE);
         }
     }
@@ -106,6 +107,7 @@ public class ElevatorTransportingState implements ElevatorState{
     public void moveElevator(int destinationFloor, ElevatorRequest.ButtonDirection direction, boolean isInitialPickup) {
         int floorsToMove = Math.abs(elevator.getCurrentFloor() - destinationFloor);
         double tripTime = elevator.findTravelTime(floorsToMove);
+        elevator.setDirection(direction);
         Log.print("Elevator " + elevator.getElevatorId() + " is moving " + direction.name().toLowerCase() +
                 " from floor " + elevator.getCurrentFloor() + " to floor " + destinationFloor +
                 ". Estimated travel time: " + tripTime + " ms");
