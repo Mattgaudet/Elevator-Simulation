@@ -21,4 +21,5 @@ public class Config {
 
     /** */
     public static final String TEXTURES = "res/textures";
+    public static final int MAX_PASSENGERS = 5;
 }

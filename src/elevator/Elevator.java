@@ -158,6 +158,12 @@ public class Elevator extends Thread{
      */
     public void addRequestToElevatorQueue(ElevatorRequest request) {
         synchronized (queueLock) {
+            // We are assuming each request is considered one person
+            if (elevatorQueue.size() + 1 > Config.MAX_PASSENGERS) {
+                Log.print("Elevator " + elevatorId + " is full. Cannot add more passengers.");
+                return;
+            }
+
             if (elevatorQueue.isEmpty()) {
                 if (request.getButtonDirection() == ButtonDirection.UP) {
                     elevatorQueue = new PriorityQueue<>(); // default is up
