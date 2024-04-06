@@ -204,7 +204,105 @@ public class FloorSubsystem implements Runnable {
             byte[] buffer = new byte[256];
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 
-            // Create a thread for listening :)
+            // Create a separate thread to continuously listen for packets
+            Thread receiveThread = new Thread(() -> {
+                while (true) {
+                    try {
+                    
+
+                        // Receive the packet (For LampStatus changes)
+                        receiveSocket.receive(packet);
+
+                        // If the packet has pattern "x;x;x;x;x;x;x;x" then it is a lamp status change trigger (example: 0;TRANSPORTING;4;UP;10;0;1)
+                        if (new String(packet.getData(), 0, packet.getLength()).matches("\\d+;\\w+;\\d+;\\w+;\\d+;\\d+;\\d+")) {
+                            // Process the packet (For LampStatus changes)
+                            String received = new String(packet.getData(), 0, packet.getLength());
+                            System.out.println();
+                            System.out.println("Received: " + received); // example:  0;TRANSPORTING;4;UP;10;0;1
+
+                            String[] data = received.split(";");
+                            int elevator = Integer.parseInt(data[0]);
+                            String state = data[1];
+                            // int currentFloor = Integer.parseInt(data[2]);
+                            int nextFloor = Integer.parseInt(data[2]);
+                            ButtonDirection direction = ButtonDirection.valueOf(data[3]);
+                            int destinationFloor = Integer.parseInt(data[4]);
+                            int unloadedCount = Integer.parseInt(data[5]);
+                            int loadedCount = Integer.parseInt(data[6]);
+
+                            System.out.printf("Elevator %d is moving %s to next floor: %d, destination floor: %d, unloaded passengers: %d, loaded passengers: %d",
+                                    elevator, direction, nextFloor, destinationFloor, unloadedCount, loadedCount);
+                            System.out.println();
+
+                            // floorSubsystem.changeLampStatus(direction);
+
+                            // GUI.close(elevator);
+                            // GUI.move(elevator, nextFloor);
+                            // GUI.open(elevator);
+
+                            // if (unloadedCount > 0) {
+                            //     GUI.unload(elevator, unloadedCount);
+                            // }
+
+                            // if (loadedCount > 0) {
+                            //     GUI.load(elevator, loadedCount);
+                            // }
+                            
+                            floorSubsystem.changeLampStatus(direction);
+
+                            GUI.move(elevator, nextFloor);
+                            System.out.println( "GUI Update -> Elevator " + elevator +  " :Moving to floor: " + nextFloor);                        
+                            
+                            // only open doors if there are passengers to unload or load
+                            if (unloadedCount > 0 || loadedCount > 0) {
+                                GUI.open(elevator);
+                        
+                                if (unloadedCount > 0) {
+                                    GUI.unload(elevator, unloadedCount);
+                                    System.out.println( "GUI Update -> Elevator " + elevator +  " :Opening doors for unloading passengers");
+                                }
+                                if (loadedCount > 0) {
+                                    GUI.load(elevator, loadedCount);
+                                    System.out.println( "GUI Update -> Elevator " + elevator +  " :Opening doors for loading passengers");
+                                }
+                                
+                                GUI.close(elevator);
+                                System.out.println( "GUI Update -> Elevator " + elevator +  " :Closing doors");
+                            }
+
+                        }
+
+                        // If the packet contains 'fault'
+                        if (new String(packet.getData(), 0, packet.getLength()).contains("fault")) {
+                            // Process the packet (For LampStatus changes)
+                            String received = new String(packet.getData(), 0, packet.getLength());
+                            System.out.println();
+                            System.out.println("Received: " + received); //
+                            String[] data = received.split(" ");
+                            String fault = data[0];
+                            int elevator = Integer.parseInt(data[5]);
+
+                            if (ElevatorFault.fromString(fault).isHardFault()) {
+                                GUI.hardFault(elevator);
+                            } else {
+                                switch (fault) {
+                                    case "DOOR_NOT_OPEN":
+                                        GUI.openFault(elevator);
+                                        break;
+                                    case "DOOR_NOT_CLOSE":
+                                        GUI.closeFault(elevator);
+                                        break;
+                                }
+                            }
+                        }
+
+                    } catch (IOException e) {
+                        System.err.println("IOException while receiving packet: " + e.getMessage());
+                    }
+                }
+            });
+
+            receiveThread.start(); // Start the thread to listen for packets
 
             while (true) { // Loop indefinitely
                 ElevatorRequest er = floorSubsystem.waitForRequestTriggered();
@@ -223,62 +321,6 @@ public class FloorSubsystem implements Runnable {
                     System.out.println("Data sent: " + sentDataString);
 
                 } else {
-                    
-                    // Receive the packet (For LampStatus changes)
-                    receiveSocket.receive(packet);
-
-                    // if the packet has pattern "x;x;x;x;x" then it is a lamp status change trigger (example:0;TRANSPORTING;0;4;UP)
-                    if (new String(packet.getData(), 0, packet.getLength()).matches("\\d+;\\w+;\\d+;\\d+;\\w+")) {
-
-                        // Process the packet (For LampStatus changes)
-                        String received = new String(packet.getData(), 0, packet.getLength());
-                        System.out.println();
-                        System.out.println("Received: " + received); // example: 0;TRANSPORTING;0;4;UP
-
-                        String[] data = received.split(";");
-                        int elevator = Integer.valueOf(data[0]).intValue();
-                        int start = Integer.valueOf(data[2]).intValue();
-                        int end = Integer.valueOf(data[3]).intValue();
-
-                        Log.print("Elevator " + data[0] + " is moving " + data[4] + " from floor " + data[2] + " to floor " + data[3]);
-                        
-                        ButtonDirection direction = ButtonDirection.valueOf(received.split(";")[4]);
-                        floorSubsystem.changeLampStatus(direction);
-
-                        GUI.close(elevator);
-                        GUI.move(elevator, end);
-                        GUI.open(elevator);
-                        if (GUI.hasPassengers(elevator)) {
-                            GUI.unload(elevator, 1);
-                        } else {
-                            GUI.load(elevator, 1);
-                        }
-                    }
-
-                    // if the packet contains 'fault'
-                    if (new String(packet.getData(), 0, packet.getLength()).contains("fault")) {
-                        // Process the packet (For LampStatus changes)
-                        String received = new String(packet.getData(), 0, packet.getLength());
-                        System.out.println();
-                        System.out.println("Received: " + received); // 
-                        String[] data = received.split(" ");
-                        String fault = data[0];
-                        int elevator = Integer.valueOf(data[5]).intValue();
-
-                        if (ElevatorFault.fromString(fault).isHardFault()) {
-                            GUI.hardFault(elevator);
-                        } else {
-                            switch (fault) {
-                            case "DOOR_NOT_OPEN":
-                                GUI.openFault(elevator);
-                                break;
-                            case "DOOR_NOT_CLOSE":
-                                GUI.closeFault(elevator);
-                                break;
-                            }
-                        }
-                    }
-
                     // If no request is available, wait a bit before checking again
                     try {
                         Thread.sleep(100); // Wait for 100 milliseconds
@@ -289,9 +331,6 @@ public class FloorSubsystem implements Runnable {
                     }
                 }
             }
-
-            // Close the socket when exiting the loop
-            socket.close();
         } catch (SocketException e) {
             System.err.println("SocketException: " + e.getMessage());
         } catch (UnknownHostException e) {

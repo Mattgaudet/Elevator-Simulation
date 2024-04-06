@@ -113,24 +113,12 @@ public class ElevatorTransportingState implements ElevatorState{
                 ". Estimated travel time: " + tripTime + " ms");
 
 
-        // Send the elevator's current state to the FloorSubsystem ( for changing the Lamp status)
-        String InfoString = elevator.getElevatorId() + ";" + elevator.getCurrentState() + ";" + elevator.getCurrentFloor() + ";" + destinationFloor + ";" + direction;
-        byte[] directionBytes = InfoString.getBytes(StandardCharsets.UTF_8);
-        InetAddress address = null;
-        try {
-            address = InetAddress.getByName("localhost");
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        } // the FloorSubsystem listen address
-        int port = 12345; // the FloorSubsystem listen port
-        DatagramPacket packet = new DatagramPacket(directionBytes, directionBytes.length, address, port);
-        try (DatagramSocket socket = new DatagramSocket()) {
-            socket.send(packet);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
         startTime = System.currentTimeMillis();
+
+        int unloadedCount;
+        int loadedCount;
+        
         // Move the elevator from the current floor to the destination floor
         for (int floorsMoved = 0; floorsMoved < floorsToMove; floorsMoved++) {
             // Calculate elapsed time at each iteration
@@ -158,23 +146,31 @@ public class ElevatorTransportingState implements ElevatorState{
                     floorsToMove += Math.abs(newFloor - destinationFloor);
                     destinationFloor = newFloor;
                 }
-                //check if any unload requests on this floor
+
+                // Check if any unload requests on this floor
+               unloadedCount = 0;
+               loadedCount = 0;
+
                 for (ElevatorRequest e : elevator.getElevatorQueue()) {
                     if (nextFloor == e.getButtonId() && e.isLoaded()) {
-                        loadElevator("unloading", nextFloor, e); //unload the elevator
+                        loadElevator("unloading", nextFloor, e); // Unload the elevator
                         removeList.add(e);
                         doorsOpened = true;
+                        unloadedCount++;
                     }
-                    //check if any load requests on this floor in same direction
+                    
+                    // Check if any load requests on this floor in the same direction
                     else if (e.getFloorNumber() == nextFloor && (e.getButtonDirection() == direction && !isInitialPickup ||
                             isInitialPickup && e.getFloorNumber() == newFloor && e.getButtonDirection() != direction)) {
-                        if (!doorsOpened) { //prevents doors from opening twice on same floor
-                            loadElevator("loading", nextFloor, e); //load the elevator
+                        if (!doorsOpened) { // Prevents doors from opening twice on the same floor
+                            loadElevator("loading", nextFloor, e); // Load the elevator
                             doorsOpened = true;
+                            loadedCount++;
                         } else {
                             Log.print("Additional passenger got on elevator at floor " + nextFloor + "!");
+                           loadedCount++;
                         }
-                        //adjust floorsToMove and destination to accommodate new request if necessary
+                        // Adjust floorsToMove and destination to accommodate new request if necessary
                         if ((direction == ElevatorRequest.ButtonDirection.UP && e.getButtonId() > destinationFloor) ||
                                 (direction == ElevatorRequest.ButtonDirection.DOWN && e.getButtonId() < destinationFloor)) {
                             floorsToMove += Math.abs(e.getButtonId() - destinationFloor);
@@ -183,6 +179,10 @@ public class ElevatorTransportingState implements ElevatorState{
                         e.setLoaded();
                     }
                 }
+
+                // Send the elevator's current state packet to the FloorSubsystem (port 12345)
+                sendElevatorState(elevator.getElevatorId(), elevator.getCurrentState().toString(), nextFloor, direction, destinationFloor, unloadedCount, loadedCount);
+
                 //remove completed requests
                 for (ElevatorRequest e : removeList) {
                     e.setProcessed(); // this set the processed variable to true
@@ -190,6 +190,7 @@ public class ElevatorTransportingState implements ElevatorState{
                     elevator.getElevatorQueue().remove(e); //remove from elevator queue
                 }
             }
+
             // If the elevator hasn't reached the destination floor yet, pause for the time
             // it takes to travel one floor
             if (floorsMoved + 1 < floorsToMove) {
@@ -201,7 +202,48 @@ public class ElevatorTransportingState implements ElevatorState{
                 }
             }
         }
+
+
+
     }
+
+
+
+    // Send the elevator's current state with the next floor, direction, destination floor, unloaded count, and loaded count to the FloorSubsystem 
+    
+    private void sendElevatorState(int elevatorId, String state, int nextFloor, ElevatorRequest.ButtonDirection direction, int destinationFloor, int unloadedCount, int loadedCount) {
+        String infoString = String.format("%d;%s;%d;%s;%d;%d;%d",
+                elevatorId,
+                state,
+                nextFloor,
+                direction,
+                destinationFloor,
+                unloadedCount,
+                loadedCount);
+    
+        byte[] infoBytes = infoString.getBytes(StandardCharsets.UTF_8);
+        InetAddress address = null;
+        try {
+            address = InetAddress.getByName("localhost");
+        } catch (UnknownHostException ex) {
+            ex.printStackTrace();
+        }
+        int port = 12345; // The FloorSubsystem listen port
+        DatagramPacket packet = new DatagramPacket(infoBytes, infoBytes.length, address, port);
+        try (DatagramSocket socket = new DatagramSocket()) {
+            socket.send(packet);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+
+
+
+
+
+
+
 
     /**
      * Opens the doors, waits for passengers to load/unload, then closes doors
