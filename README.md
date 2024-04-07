@@ -9,7 +9,7 @@ The goal of this project is to simulate an elevator system and showcase how elev
 - Compile the Java files using your preferred IDE that supports Java. That said, it is recommended to use IntelliJ IDEA 2023.2.5 (Community Edition) for best results. 
 
 ## Usage
-- First start `ElevatorSubsystem.java`, then `Scheduler.java` and at the end `FloorSubsystem.java`
+- First start `ElevatorSubsystem.java`, then `Scheduler.java` and at the end `FloorSubsystem.java`. The FloorSubsystem will start the GUI.
 - Input requests can be modified in the CSV file specified by `input.csv` in the res folder.
 - To execute all tests, right-click on the test folder and select 'Run Tests in 'test''
 
@@ -36,6 +36,18 @@ The goal of this project is to simulate an elevator system and showcase how elev
   - `FloorSubsystem.java`: Acts as the manager for all floor-related activities. It reads elevator requests from a CSV file using CSVParser, stores these requests, and communicates with the Scheduler to coordinate the handling of these requests. The subsystem manages an array of Floor objects representing the floors in the building.
   - `Floor.java`: Represents an individual floor within the building. It maintains the state of the floor's lamps (indicating if an up or down request has been made).
 
+- **GUI**
+  - `Elevator.java`: A graphical representation of an Elevator, including its doors
+  - `ElevatorJob.java` and `ElevatorJobType.java`: Contains the Elevator jobs' type and data
+  - `Floor.java`: Contains the graphical representation of the Floors, including the corridors which hold and display the number of passengers waiting (left) and unloaded (right)
+  - `GUI.java`: The class containing the logic to display the graphical user interface, and receiving updated information from the FloorSubsystem and parsing it on the GUI in real-time.
+  - `Lamp.java`:
+  - `Number.java`:
+  - `Resource.java`, `ResourceLoader.java`, `ResourceHelper.java` and `ResourceType.java`:
+  - `Window.java`:
+
+
+
 - **log**
   - `Log.java`: Provides a static method, print, for logging informational messages, which is used throughout the project to log events, operations, and errors.
 
@@ -48,6 +60,7 @@ The goal of this project is to simulate an elevator system and showcase how elev
   - `AwaitingRequestState.java` : A concrete implementation of the SchedulerState interface, representing the state where the Scheduler is idle and waiting for new requests.
   - `ProcessingRequestState.java`: Another implementation of SchedulerState, representing the state where the Scheduler is actively analyzing a received request to determine the best elevator assignment.
   - `ElevatorDispatchState.java` : A SchedulerState implementation responsible for the state where an elevator has been selected and the Scheduler communicates the request to the ElevatorSubsystem.
+  
 
 - **test**
   - `CSVParserTest.java`: Tests the functionality of the CSV parser to ensure reliability.
@@ -65,28 +78,23 @@ The goal of this project is to simulate an elevator system and showcase how elev
 - Laurence Lamarche-Cliche (101173070) 
 - Matthew Gaudet (101193256)
 
-## Team Contributions for Iteration 4
+## Team Contributions for Iteration 5
 
 - Ali Abdollahian
-  - Added elapsed timer for processing requests that has a limit of 1 minute. If the processing time exceeds one minute, it moves the elevator to a fault state
+  - Added the capacity limits logic inside an Elevator
 
 - Jaan Soulier
-  - Added new diagrams covering the Elevator Subsystem, Floor Subsystem, Scheduler Subsystem and timing diagrams.
+  - Created the Graphical User Interface, parsing information from the FloorSubsystem and updating the GUI accordingly, including loading and unloading passengers, opening and closing doors and displaying two different types of faulty states.
   
 - Jarnail Singh
-  - Added the Elevatorfaultstate.
-  - ElevatorSubsystem looks at the request received from the scheduler and if it has a fault text such as "DEATH" or "BAD_REQUEST" or "DOOR_NOT_CLOSE", it sets the elevator that is supposed to receive this request to the FAULT state or ignores the request or passes the request.
+  - Created new UDP methods in the ElevatorSubsystem to send information to the FloorSubsystem, to update the GUI properly.
+  - 
   
 - Laurence Lamarche-Cliche
-  - Modified the CSV parser to parse and accept the input_faults.csv file which has an extra column specifying faults.
+  - Performed extensive GUI testing
+  - Added error handling code in the Elevator States
+  - Added tests for UDP between the three subsystems
 
 - Matthew Gaudet
-  - Added logic to handle the DOOR_NOT_OPEN fault. If the request has this fault, the loadElevator function prints "Elevator door opening failed due to fault, retrying doors" and adds an extra second delay.
-  - Added the TestFaults class with unit tests for "BAD_REQUEST", "DEATH", "DOOR_NOT_OPEN" or "DOOR_NOT_CLOSE" fault scenarios.
-
-
-## How to Test Faults for Iteration 4:
-- Update the file pathname in `FloorSubsystem.java` from the current value 'res/input.csv' to 'res/input_faults.csv' in line 187 of the main method.
-![alt text](<Iteration 4_readme_test_faults.png>)
-
-- Execute `TestFaults.java` in the test folder. (Make sure to close all running files before executing or the test testDeathFault() might fail due to socketException)
+  - Added instrumentation code to measure our Elevator System's performance
+  - 
