@@ -41,10 +41,10 @@ The goal of this project is to simulate an elevator system and showcase how elev
   - `ElevatorJob.java` and `ElevatorJobType.java`: Contains the Elevator jobs' type and data
   - `Floor.java`: Contains the graphical representation of the Floors, including the corridors which hold and display the number of passengers waiting (left) and unloaded (right)
   - `GUI.java`: The class containing the logic to display the graphical user interface, and receiving updated information from the FloorSubsystem and parsing it on the GUI in real-time.
-  - `Lamp.java`:
-  - `Number.java`:
-  - `Resource.java`, `ResourceLoader.java`, `ResourceHelper.java` and `ResourceType.java`:
-  - `Window.java`:
+  - `Lamp.java`: This class represents the lamps indicating elevator calls on each floor.
+  - `Number.java`:This classhandles displaying numerical values on the GUI, such as the number of waiting or unloaded passengers.
+  - `Resource.java`, `ResourceLoader.java`, `ResourceHelper.java` and `ResourceType.java`: These classes collectively manage the loading, manipulation, and rendering of graphical resources (images) used in the GUI.
+  - `Window.java`: The class extending JFrame and setting up the main application window.
 
 
 
@@ -87,8 +87,8 @@ The goal of this project is to simulate an elevator system and showcase how elev
   - Created the Graphical User Interface, parsing information from the FloorSubsystem and updating the GUI accordingly, including loading and unloading passengers, opening and closing doors and displaying two different types of faulty states.
   
 - Jarnail Singh
+  - ElevatorSubsystem, ElevatorTransportingState will send a signal to FloorSubsystem on port 12345 containing “fault, ElevatorId and floor it happened on” at the moment the transient fault (“DOOR NOT OPEN/ CLOSE”)  or  Hard Fault (“DEATH”) is encountered.
   - Created new UDP methods in the ElevatorSubsystem to send information to the FloorSubsystem, to update the GUI properly.
-  - 
   
 - Laurence Lamarche-Cliche
   - Performed extensive GUI testing
@@ -97,4 +97,4 @@ The goal of this project is to simulate an elevator system and showcase how elev
 
 - Matthew Gaudet
   - Added instrumentation code to measure our Elevator System's performance
-  - 
+  - Update transporting timeout to depend on the number of floors to move rather than a hard-coded value.
