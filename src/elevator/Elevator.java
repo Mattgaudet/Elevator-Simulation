@@ -256,7 +256,7 @@ public class Elevator extends Thread{
      * @return The travel time in milliseconds.
      */
     public int findTravelTime(int numFloors) {
-        double travelTime = numFloors * 1.0 / Config.FLOORS_PER_SECOND; // Assuming the elevator travels at a speed of 0.5 seconds per floor
+        double travelTime = numFloors * 1.0 / Config.FLOORS_PER_SECOND; 
         return (int) (Math.round(travelTime * 1000));
     }
 
