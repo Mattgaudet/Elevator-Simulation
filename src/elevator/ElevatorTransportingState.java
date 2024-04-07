@@ -61,10 +61,24 @@ public class ElevatorTransportingState implements ElevatorState{
             elevator.setMotorStatus(Elevator.MotorStatus.ON);
 
             //open doors if already on same floor as the request
-            if (request.getFloorNumber() == elevator.getCurrentFloor()) {
-                loadElevator("loading", elevator.getCurrentFloor(), request);
-                request.setLoaded();
+            boolean loaded = false;
+            int numLoaded = 0;
+            synchronized (elevator.getQueueLock()) {
+                for (ElevatorRequest er : elevator.getElevatorQueue()) {
+                    if (request.getFloorNumber() == elevator.getCurrentFloor()) {
+                        if (!loaded) {
+                            loadElevator("loading", elevator.getCurrentFloor(), er);
+                            loaded = true;
+                        }
+                        er.setLoaded();
+                        numLoaded++;
+                    }
+                }
             }
+            if(loaded) { sendElevatorState(elevator.getElevatorId(), elevator.getCurrentState().toString(), elevator.getCurrentFloor(),
+                    ElevatorRequest.ButtonDirection.NONE, elevator.getCurrentFloor(), 0, numLoaded); }
+
+
             //check if the elevator needs to move in opposite direction to get to starting floor
             if ((startingFloor < elevator.getCurrentFloor() && currDirection == ElevatorRequest.ButtonDirection.UP) || (startingFloor > elevator.getCurrentFloor() &&
                     currDirection == ElevatorRequest.ButtonDirection.DOWN)) {

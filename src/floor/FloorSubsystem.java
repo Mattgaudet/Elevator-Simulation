@@ -217,9 +217,6 @@ public class FloorSubsystem implements Runnable {
                         if (new String(packet.getData(), 0, packet.getLength()).matches("\\d+;\\w+;\\d+;\\w+;\\d+;\\d+;\\d+")) {
                             // Process the packet (For LampStatus changes)
                             String received = new String(packet.getData(), 0, packet.getLength());
-                            System.out.println();
-                            System.out.println("Received: " + received); // example:  0;TRANSPORTING;4;UP;10;0;1
-
                             String[] data = received.split(";");
                             int elevator = Integer.parseInt(data[0]);
                             String state = data[1];
@@ -230,28 +227,12 @@ public class FloorSubsystem implements Runnable {
                             int unloadedCount = Integer.parseInt(data[5]);
                             int loadedCount = Integer.parseInt(data[6]);
 
-                            System.out.printf("Elevator %d is moving %s to next floor: %d, destination floor: %d, unloaded passengers: %d, loaded passengers: %d",
+                            System.out.printf("GUI update: Elevator %d is moving %s to next floor: %d, destination floor: %d, unloaded passengers: %d, loaded passengers: %d",
                                     elevator, direction, nextFloor, destinationFloor, unloadedCount, loadedCount);
                             System.out.println();
-
-                            // floorSubsystem.changeLampStatus(direction);
-
-                            // GUI.close(elevator);
-                            // GUI.move(elevator, nextFloor);
-                            // GUI.open(elevator);
-
-                            // if (unloadedCount > 0) {
-                            //     GUI.unload(elevator, unloadedCount);
-                            // }
-
-                            // if (loadedCount > 0) {
-                            //     GUI.load(elevator, loadedCount);
-                            // }
-                            
                             floorSubsystem.changeLampStatus(direction);
 
                             GUI.move(elevator, nextFloor);
-                            System.out.println( "GUI Update -> Elevator " + elevator +  " :Moving to floor: " + nextFloor);                        
                             
                             // only open doors if there are passengers to unload or load
                             if (unloadedCount > 0 || loadedCount > 0) {
@@ -259,15 +240,12 @@ public class FloorSubsystem implements Runnable {
                         
                                 if (unloadedCount > 0) {
                                     GUI.unload(elevator, unloadedCount);
-                                    System.out.println( "GUI Update -> Elevator " + elevator +  " :Opening doors for unloading passengers");
                                 }
                                 if (loadedCount > 0) {
                                     GUI.load(elevator, loadedCount);
-                                    System.out.println( "GUI Update -> Elevator " + elevator +  " :Opening doors for loading passengers");
                                 }
                                 
                                 GUI.close(elevator);
-                                System.out.println( "GUI Update -> Elevator " + elevator +  " :Closing doors");
                             }
 
                         }
@@ -318,7 +296,7 @@ public class FloorSubsystem implements Runnable {
 
                     // Print the data sent, for testing
                     String sentDataString = new String(sendData, StandardCharsets.UTF_8);
-                    System.out.println("Data sent: " + sentDataString);
+                    System.out.println("Data sent: " + sentDataString + " at time: " + LocalTime.now());
 
                 } else {
                     // If no request is available, wait a bit before checking again
