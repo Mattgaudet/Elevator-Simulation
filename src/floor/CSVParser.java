@@ -117,7 +117,7 @@ public class CSVParser {
 
                 // Print request
                 Log.print(
-                        "FloorSubsystem: Read ElevatorRequest(" + elevatorRequest + ") from File >> " + "Time: " + time
+                        "FloorSubsystem: Read ElevatorRequest(" + elevatorRequest + ") from File \n>> " + "Time: " + time
                                 + ", CurrentFloor: " + floorNumber + ", Direction: " + direction + ", ButtonPress/Destination: " + buttonID);
 
                 // Add request to list

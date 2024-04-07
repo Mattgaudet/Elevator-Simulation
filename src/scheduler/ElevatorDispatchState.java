@@ -4,6 +4,7 @@ import floor.ElevatorRequest;
 import java.io.IOException;
 import java.net.*;
 import java.nio.ByteBuffer;
+import java.time.LocalTime;
 
 /**
  * This state sends the request and chosen elevatorID to the ElevatorSubsystem
@@ -20,7 +21,8 @@ public class ElevatorDispatchState implements SchedulerState {
     public void processRequest(Scheduler scheduler, ElevatorRequest request, int elevatorID) {
         sendRequestToElevator(request, elevatorID);
 
-        Log.print("Scheduler: Request sent to elevator " + elevatorID + " for floor " + request.getFloorNumber() + " and direction " + request.getButtonDirection() + ".");
+        Log.print("Scheduler: Request sent to elevator " + elevatorID + " for floor " + request.getFloorNumber() +
+                " and direction " + request.getButtonDirection() + " at " + LocalTime.now());
 
         // Transition back to the AwaitingRequestState
         scheduler.setState(new AwaitingRequestState(scheduler));

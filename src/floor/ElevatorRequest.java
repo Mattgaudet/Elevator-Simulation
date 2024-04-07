@@ -41,10 +41,10 @@ public class ElevatorRequest implements Comparable<ElevatorRequest> {
 	 * Track whether the elevator request has been loaded with the passenger
 	 */
 	private boolean loaded = false;
-
+	/** If request has been processed */
 	private boolean processed = false;
-
-
+	/** When the elevator request was assigned by the elevator (for stats) */
+	private LocalTime startTime;
 
 	/**
 	 * Create a new elevator request.
@@ -159,6 +159,22 @@ public class ElevatorRequest implements Comparable<ElevatorRequest> {
 	 * @return if the elevatorRequest is loaded
 	 */
 	public boolean isLoaded() {return this.loaded;}
+
+	/**
+	 * Get the start time
+	 * @return startTime
+	 */
+	public LocalTime getStartTime() {
+		return startTime;
+	}
+
+	/**
+	 * Set the start time
+	 * @param start startTime
+	 */
+	public void setStartTime(LocalTime start) {
+		this.startTime = start;
+	}
 
 	/**
 	 * Compare ElevatorRequests by floor number

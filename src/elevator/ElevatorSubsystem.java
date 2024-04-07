@@ -32,7 +32,8 @@ public class ElevatorSubsystem implements Runnable {
 
     /** The responses from the elevators. */
     private ArrayList<ElevatorRequest> elevatorSubsystemResponseLog = new ArrayList<ElevatorRequest>();
-
+    /** Track the number movements by elevators */
+    private int totalFloorsMoved;
     /**
      * Set the listener for request processing.
      * @param listener The listener to set.
@@ -70,6 +71,7 @@ public class ElevatorSubsystem implements Runnable {
             this.elevatorCars[i] = new Elevator(i, this);
             this.elevatorCars[i].start();
         }
+        this.totalFloorsMoved = 0;
     }
 
     /**
@@ -99,7 +101,7 @@ public class ElevatorSubsystem implements Runnable {
                 String received = new String(receivePacket.getData(), 0, receivePacket.getLength());
 
                 if ("GET-INFO".equals(received.trim())) { // received an info request from Scheduler
-                    System.out.println("Received GET-INFO request");
+                    //System.out.println("Received GET-INFO request");
 
                     // Extract the address and port of the Scheduler from the received packet
                     InetAddress schedulerAddress = receivePacket.getAddress();
@@ -150,7 +152,8 @@ public class ElevatorSubsystem implements Runnable {
 
                         // Create new request from bytes
                         ElevatorRequest request = new ElevatorRequest(requestData);
-                        System.out.println("Received Elevator request: " + request + " assigned to elevator " + elevatorID);
+                        Log.print("Received Elevator request: " + request + " assigned to elevator " + elevatorID +
+                                " at " + LocalTime.now());
                         assignRequest(request, elevatorID);
                     }
                 }
@@ -196,6 +199,21 @@ public class ElevatorSubsystem implements Runnable {
     }
 
     /**
+     * Add floor moved to count for stats
+     */
+    public void addFloorMoved() {
+        totalFloorsMoved++;
+    }
+
+    /**
+     * Get total floors moved for stats output
+     * @return totalFloorsMoved
+     */
+    public int getTotalFloorsMoved() {
+        return totalFloorsMoved;
+    }
+
+    /**
      * Change the lamp status to indicate a request.
      * @param direction The direction of the request.
      */
@@ -220,7 +238,6 @@ public class ElevatorSubsystem implements Runnable {
         } catch (IOException e) {
             System.err.println("IOException: " + e.getMessage());
         }
-        Log.print("ElevatorSubsystem: Sent completed " + er + " to Scheduler.");
     }
 
     /**
@@ -249,7 +266,7 @@ public class ElevatorSubsystem implements Runnable {
         } catch (IOException e) {
             System.err.println("IOException in sendElevatorsInfo: " + e.getMessage());
         }
-        System.out.println("Sent elevators info to Scheduler.");
+        //System.out.println("Sent elevators info to Scheduler.");
     }
 
     /**

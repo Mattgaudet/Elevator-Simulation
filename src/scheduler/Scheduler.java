@@ -1,5 +1,6 @@
 package scheduler;
 
+import common.Log;
 import elevator.Elevator;
 import elevator.ElevatorInfo;
 import floor.ElevatorRequest;
@@ -8,6 +9,7 @@ import floor.ElevatorRequest.ButtonDirection;
 
 import java.io.IOException;
 import java.net.*;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -108,7 +110,7 @@ public class Scheduler implements Runnable {
 
             // Process the received data
             String response = new String(receivePacket.getData(), 0, receivePacket.getLength());
-            System.out.println("Received elevators info: " + response);
+            Log.print("Received elevators info:\n" + response);
             elevatorsInfo = Arrays.toString(parseElevatorsInfo(receivePacket.getData()));
 
         } catch (UnknownHostException e) {
@@ -182,7 +184,7 @@ public class Scheduler implements Runnable {
         
         int listenPort = 5000;
         try (DatagramSocket serverSocket = new DatagramSocket(listenPort)) {
-            System.out.println("Scheduler listening on port " + listenPort);
+            Log.print("Scheduler listening on port " + listenPort);
             while (true) {
                 byte[] receiveData = new byte[1024];
                 DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
@@ -193,11 +195,11 @@ public class Scheduler implements Runnable {
                 
                 if (request.isProcessed()) {
                     // Handle completed request from the ElevatorSubsystem
-                    System.out.println("Received completed request from ElevatorSubsystem: " + request);
+                    Log.print("Received completed request from ElevatorSubsystem: " + request + " at " + LocalTime.now());
                     // Further processing...
                 } else {
                     // Handle new request from the FloorSubsystem
-                    System.out.println("Received new request from FloorSubsystem: " + request);
+                    Log.print("Received new request from FloorSubsystem: " + request + " at " + LocalTime.now());
                     state.processRequest(this, receivePacket.getData());
                 }
             }
