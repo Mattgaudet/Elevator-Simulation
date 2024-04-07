@@ -155,6 +155,9 @@ public class Elevator extends Thread{
     public void setDirection(ButtonDirection b) {this.currDirection = b;}
 
     public void sendRequestBackToScheduler(ElevatorRequest request) throws IOException {
+        try{
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {}
         int schedulerPort = 5000; // Example port number for Scheduler
         String schedulerHost = "localhost"; // Scheduler host, change as needed
         DatagramSocket socket = new DatagramSocket();
