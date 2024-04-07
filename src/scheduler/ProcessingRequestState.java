@@ -17,11 +17,6 @@ public class ProcessingRequestState implements SchedulerState {
     @Override
     public void processRequest(Scheduler scheduler, byte[] requestData) {
         ElevatorRequest request = parseRequestFromFloorSubsystem(requestData);
-        if (request != null) {
-            System.out.println("Received and parsed request: " + request.toString());
-        } else {
-            System.out.println("Failed to parse the request from received data.");
-        }
         scheduler.addToRequestQueue(request);
         String elevatorsInfo = scheduler.getElevatorsInfo();
         int elevatorID = selectElevator(scheduler, request, elevatorsInfo);   // currently, always 0
@@ -98,10 +93,10 @@ public class ProcessingRequestState implements SchedulerState {
         }
         if(!tier1Queue.isEmpty()) { //select the closest elevator that is idle or transporting in same direction
             selectedElevatorId = tier1Queue.poll().get(1);
-            System.out.println("Selected elevator ID is : " + selectedElevatorId);
+            Log.print("Selected elevator ID is : " + selectedElevatorId);
         } else if (!tier2Queue.isEmpty()){ //otherwise select the closest elevator
             selectedElevatorId = tier2Queue.poll().get(1);
-            System.out.println("Selected elevator ID is : " + selectedElevatorId);
+            Log.print("Selected elevator ID is : " + selectedElevatorId);
         } else {
             Log.print("Failed to find a working elevator");
         }

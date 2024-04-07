@@ -2,6 +2,8 @@ package elevator;
 
 import common.Log;
 
+import java.time.LocalTime;
+
 /**
  * Elevator is stationary and waits for requests to be added to the elevatorQueue
  */
@@ -13,7 +15,7 @@ public class ElevatorIdleState implements ElevatorState{
      */
     @Override
     public void action(Elevator elevator) {
-        Log.print("Elevator " + elevator.getElevatorId() + " transitioned to IDLE state");
+        Log.print("Elevator " + elevator.getElevatorId() + " transitioned to IDLE state at " + LocalTime.now());
         synchronized (elevator.getQueueLock()) {
             while (elevator.getElevatorQueue().isEmpty()) {
                 try {

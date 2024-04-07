@@ -10,6 +10,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.LocalTime;
 import java.util.ArrayList;
 
@@ -38,7 +39,7 @@ public class ElevatorTransportingState implements ElevatorState{
     @Override
     public void action(Elevator elevator) {
         this.elevator = elevator;
-        Log.print("Elevator " + elevator.getElevatorId() + " transitioned to TRANSPORTING state");
+        Log.print("Elevator " + elevator.getElevatorId() + " transitioned to TRANSPORTING state at " + LocalTime.now());
         simulateElevatorMovement();
     }
 
@@ -46,9 +47,6 @@ public class ElevatorTransportingState implements ElevatorState{
      * Simulate movement of the elevator for all requests in the elevator's request queue
      */
     public void simulateElevatorMovement() {
-        Log.print("\n***********************************************\n");
-        Log.print("Elevator " + elevator.getElevatorId() + " is currently on floor " + elevator.getCurrentFloor() + " with door " +
-                elevator.getDoorStatus().name().toLowerCase() + " at " + LocalTime.now());
         int destinationFloor;
         while (!elevator.getElevatorQueue().isEmpty()) {
             // Extract the next destination floor from the queue
@@ -82,9 +80,6 @@ public class ElevatorTransportingState implements ElevatorState{
         // If the elevator has reached the destination floor and completed all requests, turn off the motor
         if(elevator.getCurrentState() instanceof ElevatorTransportingState) { //only do if still in transporting state
             elevator.setMotorStatus(Elevator.MotorStatus.OFF);
-            Log.print("Elevator " + elevator.getElevatorId() + " is waiting for next request at floor " + elevator.getCurrentFloor() +
-                    " with door " + elevator.getDoorStatus().name().toLowerCase() + " at " + LocalTime.now());
-            Log.print("\n***********************************************\n");
             elevator.setDirection(ElevatorRequest.ButtonDirection.NONE);
             elevator.setState(Elevator.State.IDLE);
         }
@@ -106,16 +101,8 @@ public class ElevatorTransportingState implements ElevatorState{
      */
     public void moveElevator(int destinationFloor, ElevatorRequest.ButtonDirection direction, boolean isInitialPickup) {
         int floorsToMove = Math.abs(elevator.getCurrentFloor() - destinationFloor);
-        double tripTime = elevator.findTravelTime(floorsToMove);
         elevator.setDirection(direction);
-        Log.print("Elevator " + elevator.getElevatorId() + " is moving " + direction.name().toLowerCase() +
-                " from floor " + elevator.getCurrentFloor() + " to floor " + destinationFloor +
-                ". Estimated travel time: " + tripTime + " ms");
-
-
-
         startTime = System.currentTimeMillis();
-
         int unloadedCount;
         int loadedCount;
         
@@ -124,22 +111,18 @@ public class ElevatorTransportingState implements ElevatorState{
             // Calculate elapsed time at each iteration
             long currentTime = System.currentTimeMillis();
             long elapsedTime = currentTime - startTime;
-            Log.print("Elevator " + elevator.getElevatorId() +": Elapsed time since start: " + elapsedTime + " ms");
-
             // Check if elapsed time exceeds the timeout threshold
             if (elapsedTime > elevator.getTransportingTimeout()) {
-                Log.print("Transporting state exceeded timeout threshold.");
+                Log.print("Transporting state exceeded timeout threshold at " + LocalTime.now());
                 handleTimeoutError(); // Handle timeout error
                 return; // Exit method to stop further processing
             }
             int nextFloor = direction == ElevatorRequest.ButtonDirection.UP ? elevator.getCurrentFloor() + 1 : elevator.getCurrentFloor() - 1;
             ArrayList<ElevatorRequest> removeList = new ArrayList<>();
             elevator.arrivedFloor(nextFloor);
-
             boolean doorsOpened = false;
 
             synchronized (elevator.getQueueLock()) {
-
                 if (elevator.getCurrentState() instanceof ElevatorFaultState) {
                     return;
                 } // prevent null pointer exception if elevator is assigned a faulty state
@@ -152,7 +135,6 @@ public class ElevatorTransportingState implements ElevatorState{
                     floorsToMove += Math.abs(newFloor - destinationFloor);
                     destinationFloor = newFloor;
                 }
-
                 // Check if any unload requests on this floor
                unloadedCount = 0;
                loadedCount = 0;
@@ -171,11 +153,10 @@ public class ElevatorTransportingState implements ElevatorState{
                         if (!doorsOpened) { // Prevents doors from opening twice on the same floor
                             loadElevator("loading", nextFloor, e); // Load the elevator
                             doorsOpened = true;
-                            loadedCount++;
                         } else {
-                            Log.print("Additional passenger got on elevator at floor " + nextFloor + "!");
-                           loadedCount++;
+                            Log.print("Additional passenger got on elevator "+ elevator.getElevatorId() + " at floor " + nextFloor + "!");
                         }
+                        loadedCount++;
                         // Adjust floorsToMove and destination to accommodate new request if necessary
                         if ((direction == ElevatorRequest.ButtonDirection.UP && e.getButtonId() > destinationFloor) ||
                                 (direction == ElevatorRequest.ButtonDirection.DOWN && e.getButtonId() < destinationFloor)) {
@@ -192,6 +173,12 @@ public class ElevatorTransportingState implements ElevatorState{
                 //remove completed requests
                 for (ElevatorRequest e : removeList) {
                     e.setProcessed(); // this set the processed variable to true
+                    Duration duration = Duration.between(e.getStartTime(), LocalTime.now());
+                    String formattedDuration = String.format("%d minutes, %d seconds",
+                            duration.toMinutesPart(), duration.toSecondsPart());
+                    Log.print("\nElevator %d completed %s at %s \n> Total floors moved by all elevators so far: %d \n" +
+                                    "> Processing time for request: %s\n", elevator.getElevatorId(), e, LocalTime.now().toString(),
+                            elevatorSubsystem.getTotalFloorsMoved(), formattedDuration);
                     elevatorSubsystem.sendCompletedElevatorRequest(e); //notify scheduler request completed
                     elevator.getElevatorQueue().remove(e); //remove from elevator queue
                 }
@@ -208,15 +195,18 @@ public class ElevatorTransportingState implements ElevatorState{
                 }
             }
         }
-
-
-
     }
 
-
-
-    // Send the elevator's current state with the next floor, direction, destination floor, unloaded count, and loaded count to the FloorSubsystem 
-    
+    /**
+     * Send the elevator's current state with the next floor, direction, destination floor, unloaded count, and loaded count to the FloorSubsystem
+     * @param elevatorId
+     * @param state
+     * @param nextFloor
+     * @param direction
+     * @param destinationFloor
+     * @param unloadedCount
+     * @param loadedCount
+     */
     private void sendElevatorState(int elevatorId, String state, int nextFloor, ElevatorRequest.ButtonDirection direction, int destinationFloor, int unloadedCount, int loadedCount) {
         String infoString = String.format("%d;%s;%d;%s;%d;%d;%d",
                 elevatorId,
@@ -243,14 +233,6 @@ public class ElevatorTransportingState implements ElevatorState{
         }
     }
 
-
-
-
-
-
-
-
-
     /**
      * Opens the doors, waits for passengers to load/unload, then closes doors
      * @param loadingType use "loading" or "unloading"
@@ -258,7 +240,8 @@ public class ElevatorTransportingState implements ElevatorState{
      * @throws InterruptedException 
      */
     public void loadElevator(String loadingType, int nextFloor, ElevatorRequest er) {
-        Log.print("Elevator " + elevator.getElevatorId() + " is stopping for " + loadingType + " at floor " + nextFloor);
+        Log.print("Elevator " + elevator.getElevatorId() + " is " + loadingType + " at floor " +
+                nextFloor + " at " + LocalTime.now());
         while(elevator.getElevatorQueue().peek().getFault().equals("DOOR_NOT_OPEN")) {
             Log.print(">> Elevator " + elevator.getElevatorId() + " door opening failed due to fault, retrying doors");
 
@@ -312,7 +295,6 @@ public class ElevatorTransportingState implements ElevatorState{
             } catch (InterruptedException e) {}
             er.removeFault();
         }
-
         elevator.setDoorStatus(Elevator.DoorStatus.CLOSED);
     }
 

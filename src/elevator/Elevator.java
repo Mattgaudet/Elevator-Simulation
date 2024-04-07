@@ -125,7 +125,6 @@ public class Elevator extends Thread{
      */
     public void setMotorStatus(MotorStatus motorStatus) {
         this.motorStatus = motorStatus;
-        Log.print("Elevator " + elevatorId + " motor is now " + motorStatus.name().toLowerCase() + "!");
     }
 
     /**
@@ -147,7 +146,7 @@ public class Elevator extends Thread{
             e.printStackTrace();
         }
         this.doorStatus = doorStatus;
-        Log.print("Elevator " + elevatorId +" door is " + doorStatus.name().toLowerCase() + "!");
+        //Log.print("Elevator " + elevatorId +" door is " + doorStatus.name().toLowerCase() + "!"); for debug
     }
 
     public ButtonDirection getCurrDirection() {
@@ -166,7 +165,7 @@ public class Elevator extends Thread{
 
         // Print the data sent, for testing
         String sentDataString = new String(sendData, StandardCharsets.UTF_8);
-        System.out.println("Elevator " + elevatorId + " full, sent request BACK to Scheduler: " + sentDataString);
+        Log.print("Elevator " + elevatorId + " full, sent request BACK to Scheduler: " + sentDataString);
     }
 
     /**
@@ -209,7 +208,7 @@ public class Elevator extends Thread{
             } else {
                 transportingTimeout += estimatedTime;
             }
-            Log.print("Elevator " + elevatorId + " request added");
+            request.setStartTime(LocalTime.now());
             elevatorQueue.add(request);
             queueLock.notifyAll();
         }
@@ -272,7 +271,8 @@ public class Elevator extends Thread{
      */
     public int arrivedFloor(int floorNum) {
         this.currentFloor = floorNum;
-        Log.print("Elevator " + this.elevatorId + " reached floor " + floorNum + " at " + LocalTime.now());
+        elevatorSubsystem.addFloorMoved();
+        //Log.print("Elevator " + this.elevatorId + " reached floor " + floorNum + " at " + LocalTime.now()); for debug
         return -1;
     }
 
@@ -313,7 +313,6 @@ public class Elevator extends Thread{
      */
     @Override
     public void run() {
-        Log.print("Elevator " + elevatorId + " created");
         setState(State.IDLE);
     }
 }
