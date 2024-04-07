@@ -139,11 +139,14 @@ public class ElevatorTransportingState implements ElevatorState{
             boolean doorsOpened = false;
 
             synchronized (elevator.getQueueLock()) {
+
+                if (elevator.getCurrentState() instanceof ElevatorFaultState) {
+                    return;
+                } // prevent null pointer exception if elevator is assigned a faulty state
+
                 //check if new requests have been added to the front of the queue
-                int newFloor = elevator.getCurrentFloor();
-                if (elevator.getElevatorQueue().peek() != null) {
-                    newFloor = elevator.getElevatorQueue().peek().getFloorNumber();
-                }
+                int newFloor = elevator.getElevatorQueue().peek().getFloorNumber();
+
                 if (newFloor > destinationFloor && direction == ElevatorRequest.ButtonDirection.UP
                         || newFloor < destinationFloor && direction == ElevatorRequest.ButtonDirection.DOWN) {
                     floorsToMove += Math.abs(newFloor - destinationFloor);
