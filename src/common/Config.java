@@ -11,7 +11,7 @@ public class Config {
     public static final int DOOR_TIME = 3000; //3 seconds
 
     /** The number of floors traveled per second in an elevator. */
-    public static final double FLOORS_PER_SECOND = 2;
+    public static final double FLOORS_PER_SECOND = 0.2;
 
     /** The time in milliseconds required to travel one floor. */
     public static final int TIME_TO_TRAVEL_1_FLOOR = 10000; //10 seconds
