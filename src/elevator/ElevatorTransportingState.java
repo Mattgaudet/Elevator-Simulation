@@ -140,8 +140,11 @@ public class ElevatorTransportingState implements ElevatorState{
 
             synchronized (elevator.getQueueLock()) {
                 //check if new requests have been added to the front of the queue
-                int newFloor = elevator.getElevatorQueue().peek().getFloorNumber();
-                if(newFloor > destinationFloor && direction == ElevatorRequest.ButtonDirection.UP
+                int newFloor = elevator.getCurrentFloor();
+                if (elevator.getElevatorQueue().peek() != null) {
+                    newFloor = elevator.getElevatorQueue().peek().getFloorNumber();
+                }
+                if (newFloor > destinationFloor && direction == ElevatorRequest.ButtonDirection.UP
                         || newFloor < destinationFloor && direction == ElevatorRequest.ButtonDirection.DOWN) {
                     floorsToMove += Math.abs(newFloor - destinationFloor);
                     destinationFloor = newFloor;
