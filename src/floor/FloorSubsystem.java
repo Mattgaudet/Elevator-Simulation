@@ -184,12 +184,12 @@ public class FloorSubsystem implements Runnable {
     }
 
     public static void main(String[] args) {
-        //String filePath = "res/input_faults.csv"; // Default file path
+        String filePath = "res/input_faults.csv"; // Default file path
         //String filePath = "res/input_faults_bigger.csv"; // used for testing with more inputs
-        String filePath = "res/input_faults_bigger2.csv"; // used for testing with more inputs, spaced out more
+        //String filePath = "res/input_faults_bigger2.csv"; // used for testing with more inputs, spaced out more
+        //String filePath = "res/input_demo.csv";
         int schedulerPort = 5000; // Example port number for Scheduler
         String schedulerHost = "localhost"; // Scheduler host, change as needed
-
         System.out.println("FloorSubsystem listening on port 12345");
 
         // Initialize the FloorSubsystem with the file path

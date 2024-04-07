@@ -5,6 +5,10 @@ import common.Log;
 import floor.ElevatorRequest.ButtonDirection;
 import floor.ElevatorRequest;
 import elevator.ElevatorSubsystem;
+
+import java.io.IOException;
+import java.net.*;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalTime;
 import java.util.*;
 
@@ -151,6 +155,20 @@ public class Elevator extends Thread{
     }
     public void setDirection(ButtonDirection b) {this.currDirection = b;}
 
+    public void sendRequestBackToScheduler(ElevatorRequest request) throws IOException {
+        int schedulerPort = 5000; // Example port number for Scheduler
+        String schedulerHost = "localhost"; // Scheduler host, change as needed
+        DatagramSocket socket = new DatagramSocket();
+        InetAddress schedulerAddress = InetAddress.getByName(schedulerHost);
+        byte[] sendData = request.getBytes();
+        DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, schedulerAddress, schedulerPort);
+        socket.send(sendPacket);
+
+        // Print the data sent, for testing
+        String sentDataString = new String(sendData, StandardCharsets.UTF_8);
+        System.out.println("Elevator " + elevatorId + " full, sent request BACK to Scheduler: " + sentDataString);
+    }
+
     /**
      * Function to add a request to this Elevator's request queue. Synchronizing on queueLock rather than elevatorQueue
      * so that elevatorQueue can be reinitialized without causing issues
@@ -161,6 +179,12 @@ public class Elevator extends Thread{
             // We are assuming each request is considered one person
             if (elevatorQueue.size() + 1 > Config.MAX_PASSENGERS) {
                 Log.print("Elevator " + elevatorId + " is full. Cannot add more passengers.");
+                try {
+                    sendRequestBackToScheduler(request); // Send the request back to scheduler for re-assignment
+                }
+                catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
                 return;
             }
 
